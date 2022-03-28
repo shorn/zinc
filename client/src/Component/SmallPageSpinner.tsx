@@ -3,7 +3,7 @@ import Typography from "@mui/material/Typography";
 import {LinearProgress} from "@mui/material";
 import {SmallContentMain} from "Design/LayoutMain";
 
-export function SmallScreenSpinner({message}: {
+export function SmallPageSpinner({message}: {
   message: string | React.ReactNode
 }){
   return <SmallContentMain center>

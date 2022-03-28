@@ -20,7 +20,7 @@ export function initSendEvent(){
     dsn: Config.sentryDsn ?? "https://1@example.com/1",
     transport: Config.sentryDsn ? undefined : SentrySupabaseTransport,
     environment: Config.environmentName,
-    release: "cabbage@" + Config.gitCommit,
+    release: "cognito-poc@" + Config.gitCommit,
     autoSessionTracking: false,
   });
 }

@@ -4,7 +4,7 @@ import {safeStringify} from "Util/ObjectUtil";
 import * as React from "react";
 import {ErrorInfo, } from "Error/ErrorUtil";
 import {isNonEmptyArrayOfString} from "Util/TypeUtil";
-import {PrimaryButton} from "Component/CabbageButton";
+import {PrimaryButton} from "Component/AppButton";
 
 const log = console;
 

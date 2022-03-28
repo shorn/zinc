@@ -7,7 +7,7 @@ import {ErrorInfo} from "Error/ErrorUtil";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import {ErrorInfoComponent} from "Error/ErrorInforComponent";
-import {PrimaryButton} from "Component/CabbageButton";
+import {PrimaryButton} from "Component/AppButton";
 
 const log = console;
 
