@@ -1,1 +1,3 @@
-rootProject.name = "tf-download"
+rootProject.name = "cognito-poc"
+
+include "terraform"

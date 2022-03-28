@@ -1,9 +1,9 @@
 variable "tfd_region" {
-  default = "ap-southeast-2"
+  default = "us-east-1"
 }
 
 locals {
-  sourcecode = "github.com/shorn/tf-download"
+  sourcecode = "github.com/shorn/cognito-poc"
 }
 
 /*
@@ -16,9 +16,9 @@ terraform {
   /* S3 bucket is used to init and store TF state information.
   Bucket must be manually created before TF can be run. */
   backend "s3" {
-    bucket = "tf-download-state"
-    key    = "tf-download.tfstate"
-    region = "ap-southeast-2"
+    bucket = "cognito-poc-state"
+    key    = "cognito-poc.tfstate"
+    region = "us-east-1"
   }
 
   required_providers {

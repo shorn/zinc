@@ -24,7 +24,7 @@ class S3Util{
           content(credPath).type(CREDENTIALS).build()).build())
     }
 
-    builder.region(Region.AP_SOUTHEAST_2)
+    builder.region(Region.US_EAST_1)
     return builder.build()
   }
 
