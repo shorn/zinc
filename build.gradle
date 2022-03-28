@@ -1,0 +1,133 @@
+import tfdownload.OsUtil
+import tfdownload.S3Util
+
+import java.nio.file.Paths
+
+plugins{
+  // for clean task
+  id 'base' 
+}
+
+ext{
+  tfSrcDir = "src/main/terraform"
+  awsCredFile = System.getProperty('user.home') +
+    "/.config/tf-download/aws.credentials"
+}
+
+repositories{
+  // this tells Gradle where the TF files are and what the structure is
+  ivy{
+    url 'https://releases.hashicorp.com/'
+    patternLayout{
+      /* Terraform release site uses a different layout than standard maven/ivy
+         structure (underscores insted of dashes and no metadata file). */
+      artifact(
+        '/[organization]/[revision]/[module]_[revision]_[classifier].[ext]')
+    }
+    metadataSources{
+      // this tells Gradle only the artifact is there, no other metadata files
+      artifact()
+    }
+  }
+}
+
+configurations{
+  tfBinary
+}
+
+dependencies{
+  /* this tells Gradle what version and architecture of TF to download, 
+  relies on releases.hashicorp.com being declared as a repository above. 
+  Change this to upgrade your version of Terraform. */
+  tfBinary "terraform:terraform:1.1.4:${OsUtil.classifier}@zip"
+}
+
+task showTfBinaryLocation{
+  group "terraform"
+  doLast{
+    println "Terraform binary: " + configurations.tfBinary.singleFile
+  }
+}
+
+task unzipTfBinary(type: Copy){
+  group "terraform"
+  /* Gradle will download and cache the file for us.
+  Should only download the file if this task executes (i.e. will not download
+  during configuration phase). */
+  from zipTree(configurations.tfBinary.singleFile)
+  into configurations.tfBinary.singleFile.parentFile
+}
+
+[ 'init', 'validate', 'plan', 'apply', 'destroy',
+  'help', 'version', 'refresh', 'show', 'output'
+].each{ tfCommand ->
+  task "tf-$tfCommand"(type: Exec){
+    group "terraform"
+    dependsOn unzipTfBinary
+
+    executable "${configurations.tfBinary.singleFile.parentFile}/terraform"
+    args = ["-chdir=${tfSrcDir}", tfCommand]
+
+    environment += [
+      "TF_LOG": "OFF",
+    ]
+    if( file(awsCredFile).exists() ){
+      environment "AWS_SHARED_CREDENTIALS_FILE", awsCredFile
+    }
+
+    doFirst{
+      println "running TF command: " + commandLine
+    }
+  }
+}
+
+'tf-help'{
+  // help is not a command, just a standalone global option
+  args = ["-help"]
+}
+
+'tf-apply'{
+  args += "-auto-approve"
+}
+
+'tf-destroy'{
+  // to avoid running this accidentlly, you must uncomment this line 
+  // do not commit the uncommented version
+  // args += "-auto-approve"
+}
+
+/* standlone task so you can run this instead of "tf init -upgrade" after
+upgrading the AWS provider */
+task cleanTfLock(type: Delete){
+  group "build"
+  delete "$tfSrcDir/.terraform.lock.hcl"
+}
+
+clean{
+  dependsOn cleanTfLock
+  delete "$tfSrcDir/.terraform"
+}
+
+/* Intended to be run once, manually, to bootstrap the AWS account - not to 
+be a task dependency or something like that. */
+task createS3StateBucket{
+  group "terraform"
+  description = "creates S3 bucket to store TF state if it doesn't exist"
+  ext{
+    // must match `terraform.backend.s3.bucket` in src/main/terraform/aws.tf
+    bucketName = "tf-download-state"
+  }
+  doLast{
+    if( file(awsCredFile).exists() ){
+      S3Util.credPath = Paths.get(awsCredFile)
+    }
+    def bucket = S3Util.getBucket(ext.bucketName)
+    if( bucket ){
+      println "tf state bucket exists: $bucketName"
+    } else{
+      println "creating tf state bucket: $ext.bucketName"
+      S3Util.createPrivateVersionedBucket(ext.bucketName)
+    }
+  }
+}
+

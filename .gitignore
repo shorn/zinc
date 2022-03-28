@@ -1,0 +1,6 @@
+.idea
+.gradle
+build/
+
+src/main/terraform/.terraform
+src/main/terraform/.terraform.lock.hcl
