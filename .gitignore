@@ -2,5 +2,5 @@
 .gradle
 build/
 
-src/main/terraform/.terraform
-src/main/terraform/.terraform.lock.hcl
+terraform/src/main/terraform/.terraform
+terraform/src/main/terraform/.terraform.lock.hcl
