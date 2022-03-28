@@ -39,7 +39,7 @@ dependencies{
   /* this tells Gradle what version and architecture of TF to download, 
   relies on releases.hashicorp.com being declared as a repository above. 
   Change this to upgrade your version of Terraform. */
-  tfBinary "terraform:terraform:1.1.4:${OsUtil.classifier}@zip"
+  tfBinary "terraform:terraform:1.1.6:${OsUtil.classifier}@zip"
 }
 
 task showTfBinaryLocation{

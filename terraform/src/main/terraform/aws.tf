@@ -25,7 +25,7 @@ terraform {
     aws = {
       // hostname makes clear this is actually an external dependency
       source  = "registry.terraform.io/hashicorp/aws"
-      version = "3.74.0"
+      version = "4.8.0"
     }
   }
 }
