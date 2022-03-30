@@ -25,7 +25,11 @@ export function ScratchPage(){
 
 function Content(){
   return <FlexContentMain>
-    <CardMargin><TextSpan>Scratch stuff</TextSpan></CardMargin>
+    <CardMargin>
+      <TextSpan>Scratch stuff</TextSpan>
+    </CardMargin>
+    
   </FlexContentMain>
 }
+
 
