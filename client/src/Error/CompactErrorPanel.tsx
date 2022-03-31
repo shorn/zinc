@@ -32,7 +32,7 @@ const log = console;
  */
 export function CompactErrorPanel({
   error,
-  border,
+  border = "h-pad",
   errorLink = "add",
   sendEvent = "send",
 }:{
