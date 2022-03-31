@@ -263,7 +263,7 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
 
 export function IntroContainer(){
   return <SmallContentMain center>
-    <Typography paragraph>This is is a demo app I built to learn about
+    <Typography paragraph>This is is a demo app built to learn about
       AWS Cognito.
       The UI is built using React and the <NewWindowLink href={muiUrl}>
         MUI</NewWindowLink> framework.
