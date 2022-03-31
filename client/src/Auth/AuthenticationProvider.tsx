@@ -1,6 +1,6 @@
-import React, {useContext} from "react";
-import {LargeContentMain, SmallContentMain} from "Design/LayoutMain";
-import {Typography} from "@mui/material";
+import React, { useContext } from "react";
+import { LargeContentMain, SmallContentMain } from "Design/LayoutMain";
+import { Typography } from "@mui/material";
 import {
   cognitoPocGithubUrl,
   muiUrl,
@@ -12,16 +12,16 @@ import {
   CognitoUserPool,
   CognitoUserSession
 } from "amazon-cognito-identity-js";
-import {Config} from "Config";
-import {SmallPageSpinner} from "Component/SmallPageSpinner";
-import {EmailSignInContainer} from "Auth/EmailSignInContainer";
-import {ErrorInfoComponent} from "Error/ErrorInforComponent";
-import {ErrorInfo} from "Error/ErrorUtil";
-import {navBrowserByAssign, serverLocationUrl} from "Util/WindowUtil";
-import {ContainerCard} from "Design/ContainerCard";
-import {PrimaryButton, SecondaryButton} from "Component/AppButton";
-import {TextSpan} from "Component/TextSpan";
-import {parseJwtDate} from "Util/DateUtil";
+import { Config } from "Config";
+import { SmallPageSpinner } from "Component/SmallPageSpinner";
+import { EmailContainer, resolveEmailSession } from "Auth/EmailSignInContainer";
+import { ErrorInfoComponent } from "Error/ErrorInforComponent";
+import { ErrorInfo } from "Error/ErrorUtil";
+import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
+import { ContainerCard } from "Design/ContainerCard";
+import { PrimaryButton, SecondaryButton } from "Component/AppButton";
+import { TextSpan } from "Component/TextSpan";
+import { parseJwtDate } from "Util/DateUtil";
 
 export const emailPool = new CognitoUserPool({
   UserPoolId: Config.cognitoEmailUserPoolId,
@@ -61,74 +61,18 @@ export type AuthnState =
 function debugSession(session: CognitoUserSession){
   const idToken = session.getIdToken();
   const payload = idToken.payload;
-  console.log("idToken", {
+  console.debug("idToken", {
     exp: parseJwtDate(payload.exp),
     iat: parseJwtDate(payload.iat),
     auth_time: parseJwtDate(payload.auth_time),
   })
 }
 
-async function resolveEmailAuthn(pool: CognitoUserPool): Promise<AuthnState>{
-  return new Promise<AuthnState>((resolve, reject)=>{
-    const user = pool.getCurrentUser();
-    if( !user ){
-      return resolve({status: "not-logged-in"});
-    }
-    user.getSession((
-      error: null | Error,
-      session: null | CognitoUserSession,
-    ) => {
-      if( error ){
-        console.log("problem calling getSession()", error.message);
-        return resolve({status: "error", error:{
-          message: "while getting email session", 
-          problem: error 
-        }});
-      }
-      // console.log("getCurrentUser()", pool.getCurrentUser());
-      // console.log("getSignInUserSession()", user.getSignInUserSession());
-
-      if( session == null ){
-        console.log("no session was got");
-        return resolve({status: "not-logged-in"});
-      }
-
-      if( !session.getIdToken() ){
-        return resolve({status: "error", error: {
-          message: "no session idtoken", problem: session}});
-      }
-      
-      if( !session.getIdToken().payload ){
-        return resolve({status: "error", error: {
-          message: "session idtoken has no payload", problem: session}});
-      }
-      
-      const email: string | undefined = session.getIdToken().payload.email;
-      const emailVerified = Boolean(session.getIdToken().payload.email_verified);
-      console.log("idToken.payload", 
-        emailVerified, session.getIdToken().payload);
-
-      if( !email ){
-        // defensive logic: never seen this state 
-        console.log("session returned with no email",
-          session, session.getIdToken(), session.getIdToken()?.payload);
-        return resolve({status: "not-logged-in"});
-      }
-
-      if( !emailVerified ){
-        return resolve({status: "unverified-email", email});
-      }
-
-      return resolve({status: "logged-in", session});
-    });
-  });
-}
 
 async function resolveGoogleAuthn(pool: CognitoUserPool): Promise<AuthnState>{
   return new Promise<AuthnState>((resolve, reject)=> {
     const user = pool.getCurrentUser();
-    console.log("resolveGoogleAuthn()", user);
-
+    console.debug("resolveGoogleAuthn()", user);
 
     const parsedHash = new URLSearchParams(
       window.location.hash.substring(1) // skip the first char (#)
@@ -154,6 +98,7 @@ async function resolveGoogleAuthn(pool: CognitoUserPool): Promise<AuthnState>{
       AccessToken: new CognitoAccessToken({AccessToken}) 
     })
     
+    // don't leave tokens in the url
     window.location.hash = "";
     
     resolve({status: "logged-in", session});
@@ -195,7 +140,7 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
       console.log("checkLoginState() email,google", emailUser, googleUser);
       if( emailUser ){
         console.log("resolving email authn");
-        const emailState = await resolveEmailAuthn(emailPool);
+        const emailState = await resolveEmailSession(emailPool);
         setState(emailState);
         if( emailState.status !== "not-logged-in" ){
           // don't fire the google check
@@ -279,7 +224,7 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
     return <LargeContentMain>
       <IntroContainer/>
       <SmallContentMain>
-        <EmailSignInContainer
+        <EmailContainer pool={emailPool}
           onSignInSucceeded={() => {
             // noinspection JSIgnoredPromiseFromCall
             checkLoginState();
@@ -320,7 +265,7 @@ export function IntroContainer(){
   return <SmallContentMain center>
     <Typography paragraph>This is is a demo app I built to learn about
       AWS Cognito.
-      The UI is build using React and the <NewWindowLink href={muiUrl}>
+      The UI is built using React and the <NewWindowLink href={muiUrl}>
         MUI</NewWindowLink> framework.
     </Typography>
     <Typography>You can find the source code for the App
@@ -339,9 +284,9 @@ export function GoogleSignInContainer(){
 
   async function googleSignIn(){
     const redirectUri = serverLocationUrl();
-    console.log("redirect to:", redirectUri);
+    console.debug("redirect to:", redirectUri);
     const googleLoginUrl = getCognitoGoogleLoginDomain() +
-    "/login?response_type=token" +
+      "/login?response_type=token" +
       `&client_id=${Config.cognitoGoogleUserPoolClientId}` +
       `&redirect_uri=${redirectUri}`
     setIsWorking(true);
@@ -351,7 +296,6 @@ export function GoogleSignInContainer(){
   return <ContainerCard title={"Google"}>
     <form onSubmit={(e) => {
       e.preventDefault();
-      console.log("google clicked");
       // noinspection JSIgnoredPromiseFromCall
       googleSignIn();
     }}>
