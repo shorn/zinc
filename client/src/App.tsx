@@ -9,21 +9,21 @@ import {HelloWorldPage} from "Page/HelloWorldPage";
 import {ScratchPage} from "Page/ScratchPage";
 import {LocationPathnameProvider} from "Util/Hook/LocationPathname";
 import {AppNavBar} from "Design/AppNavBar";
-import {LoginPage} from "Page/LoginPage";
+import {AuthenticationProvider} from "Auth/AuthenticationProvider";
 
-export function App() {
+export function App(){
   return <PocTheme>
     <CssBaseline/>
     <ReactErrorBoundary>
       <ErrorDialogProvider>
         <LocationPathnameProvider>
-          {/* authn provide goes here*/}
-          <NavigationProvider>
-            <AppNavBar/>
-            <HelloWorldPage/>
-            <ScratchPage/>
-            <LoginPage/>
-          </NavigationProvider>
+          <AuthenticationProvider>
+            <NavigationProvider>
+              <AppNavBar/>
+              <HelloWorldPage/>
+              <ScratchPage/>
+            </NavigationProvider>
+          </AuthenticationProvider>
         </LocationPathnameProvider>
       </ErrorDialogProvider>
     </ReactErrorBoundary>

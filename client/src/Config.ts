@@ -3,7 +3,7 @@
  * The config values used by the app are decided when this file is run (i.e.
  * when the app is loaded into the browser), based on the value of
  * environmentName, which is compiled in at build time via the
- * REACT_APP_CABBAGE_ENV environment variable.
+ * REACT_APP_POC_ENV environment variable.
  * <p>
  * Config values are embedded into the raw client javascript artifact - it is
  * designed only for static, publicly visible config (i.e. not per user stuff
@@ -40,9 +40,13 @@ export interface EnvironmentConfig {
    * (i.e not "if config.envName === "prd").
    */
   isProd: boolean,
-  
-  /** Supabase project (must be synced with supabaseAnonKey) */
-  supabaseUrl: string,
+
+  cognitoAwsRegion: string;
+  cognitoEmailUserPoolId: string,
+  cognitoEmailUserPoolClientId: string;
+  cognitoGoogleUserPoolDomain: string;
+  cognitoGoogleUserPoolId: string;
+  cognitoGoogleUserPoolClientId: string;
   
   /** Used to submit logs to Sentry instead of the Cabbage endpoint */
   sentryDsn?: string,
@@ -51,7 +55,7 @@ export interface EnvironmentConfig {
 function initConfig(){
   const newConfig = {
     ...buildConfig,
-    ...chooseEnvironmentConfig(process.env.REACT_APP_CABBAGE_ENV),
+    ...chooseEnvironmentConfig(process.env.REACT_APP_POC_ENV),
   };
 
   // don't print the key; it's not a secret, but it's ugly
@@ -86,30 +90,47 @@ function chooseEnvironmentConfig(env: string | undefined){
 }
 
 const ciConfig: EnvironmentConfig = {
-  isProd: false,
   environmentName: "ci",
-  supabaseUrl: "https://taiyomopzsnvxsaplvkh.supabase.co",
+  isProd: false,
+  cognitoAwsRegion: "us-east-1",
+  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
+  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
+  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
+  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
+  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
 };
 
-const stoDevDbUrl = "https://cqerjnimaqgfojrkpxcg.supabase.co";
 const devConfig: EnvironmentConfig = {
+  ...ciConfig,
   isProd: false,
-  environmentName: "dev",
-  supabaseUrl: process.env.REACT_APP_SUPBASE_DEV_URL ?? stoDevDbUrl,
-  // remember to turn off ublock if you want to do this
-  // sentryDsn: "https://cc170cd659a7473e907f7bbe779d9dac@o513436.ingest.sentry.io/5615490",
+  cognitoAwsRegion: "us-east-1",
+  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
+  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
+  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
+  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
+  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
 };
 
 const tstConfig: EnvironmentConfig = {
-  isProd: false,
   environmentName: "tst",
-  supabaseUrl: "https://wzoqznflznnxcszsdmkw.supabase.co",
+  isProd: false,
+  cognitoAwsRegion: "us-east-1",
+  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
+  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
+  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
+  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
+  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
 };
 
 const prdConfig: EnvironmentConfig = {
-  isProd: true,
   environmentName: "prd",
-  supabaseUrl: "https://othrpsywoabrbbqpuzjy.supabase.co",
+  isProd: true,
+  cognitoAwsRegion: "us-east-1",
+  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
+  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
+  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
+  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
+  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
 };
 
 

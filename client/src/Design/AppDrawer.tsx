@@ -10,7 +10,6 @@ import {
   isHelloWorldPagePath
 } from "Page/HelloWorldPage";
 import {getScratchPageLink, isScratchPagePath} from "Page/ScratchPage";
-import {getLoginPageLink, isLoginPagePath} from "Page/LoginPage";
 
 
 export function AppDrawer(props: {
@@ -35,9 +34,6 @@ export function AppDrawer(props: {
         <ListNavButton href={getScratchPageLink()}
           isCurrent={isScratchPagePath(pathname)}
           description="Scratch" />
-        <ListNavButton href={getLoginPageLink()}
-          isCurrent={isLoginPagePath(pathname)}
-          description="Login" />
       </List>
     </div>
   );

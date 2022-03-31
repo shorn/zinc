@@ -12,8 +12,9 @@ import {Cabbage} from "Component/Icon";
 import {AccountCircle, Menu as MenuIcon} from "@mui/icons-material";
 import Typography from "@mui/material/Typography";
 import {AppDrawer} from "Design/AppDrawer";
-import {getHelloWorldPageLink} from "../Page/HelloWorldPage";
-import {getScratchPageLink} from "../Page/ScratchPage";
+import {getHelloWorldPageLink} from "Page/HelloWorldPage";
+import {getScratchPageLink} from "Page/ScratchPage";
+import {useAuthn} from "Auth/AuthenticationProvider";
 
 const log = console;
 
@@ -86,8 +87,7 @@ function MenuShortcutNavItem(props: {
 
 
 function AccountMenu(){
-  // const {db} = useSupabase();
-  // const {user} = useAuthnUser();
+  const authn = useAuthn();
   const[ isMenuOpen, setIsMenuOpen] = React.useState(false);
   const menuAnchorRef = React.useRef<HTMLButtonElement>(null!);
   const nav = useNavigation();
@@ -117,13 +117,11 @@ function AccountMenu(){
         // log.debug("authn identity and claims", identity, claim);
         onClose();
       }}>
-        <Typography>Email {"xxx"}</Typography>
+        <Typography>Email {authn.email}</Typography>
       </MenuItem>
       <MenuItem onClick={async ()=>{
         log.debug("clicked logout");
-        // const result = await db.auth.signOut();
-        // log.debug("signout result", result);
-        nav.navigateTo("/");
+        authn.signOut();
       }}>
         <Typography>Sign out</Typography>
       </MenuItem>

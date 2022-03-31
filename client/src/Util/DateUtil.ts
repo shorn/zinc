@@ -2,6 +2,19 @@ const shorTimeformatOptions: Intl.DateTimeFormatOptions = {
   hour12: false, hour: "2-digit", minute: "2-digit"
 };
 
+export function parseJwtDate(date: string|undefined): Date | undefined{
+  if( !date ){
+    return undefined;
+  }
+
+  if( !Number.isInteger(date) ){
+    console.debug("date was not an integer", date);
+    return undefined;
+  }
+  
+  return new Date(Number(date) * 1000);
+}
+
 export function parseServerDate(date: string): Date{
   return new Date(date);
 }
