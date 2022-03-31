@@ -36,7 +36,7 @@ export function PrimaryButton({
 } & ButtonProps){
   return <>
     <Button {...primaryButtonProps} {...buttonProps}
-      style={{...primaryButtonProps.style}}
+      style={{...primaryButtonProps.style, ...buttonProps.style}}
     >
       {children}
       { isLoading &&
@@ -52,7 +52,7 @@ export function SecondaryButton({isLoading, error, children, ...buttonProps}:
 ){
   return <>
     <Button {...secondaryButtonProps} {...buttonProps}
-      style={{...secondaryButtonProps.style}}
+      style={{...secondaryButtonProps.style, ...buttonProps.style}}
     >
       {children}
       { isLoading &&
