@@ -5,7 +5,7 @@ import {ReactErrorBoundary} from "Error/ReactErrorBoundary";
 import {ErrorDialogProvider} from "Error/ErrorDialog";
 import {NavigationProvider} from "Design/NavigationProvider";
 import {PocTheme} from "Design/PocTheme";
-import {HelloWorldPage} from "Page/HelloWorldPage";
+import {HomePage} from "Page/HomePage";
 import {ScratchPage} from "Page/ScratchPage";
 import {LocationPathnameProvider} from "Util/Hook/LocationPathname";
 import {AppNavBar} from "Design/AppNavBar";
@@ -20,7 +20,7 @@ export function App(){
           <AuthenticationProvider>
             <NavigationProvider>
               <AppNavBar/>
-              <HelloWorldPage/>
+              <HomePage/>
               <ScratchPage/>
             </NavigationProvider>
           </AuthenticationProvider>

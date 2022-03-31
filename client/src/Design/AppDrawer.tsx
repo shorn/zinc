@@ -6,9 +6,9 @@ import HomeIcon from "@mui/icons-material/Home";
 import {useNavigation} from "Design/NavigationProvider";
 import {useLocationPathname} from "Util/Hook/LocationPathname";
 import {
-  getHelloWorldPageLink,
-  isHelloWorldPagePath
-} from "Page/HelloWorldPage";
+  getHomePageLink,
+  isHomePagePath
+} from "Page/HomePage";
 import {getScratchPageLink, isScratchPagePath} from "Page/ScratchPage";
 
 
@@ -23,14 +23,11 @@ export function AppDrawer(props: {
     // hardcoded width reminds folks that mobile is a thing
     <div style={{width: 250}}>
       <List>
-        <ListNavButton href={getHelloWorldPageLink()}
-          isCurrent={isHelloWorldPagePath(pathname)}
-           description={"Hello world"}
+        <ListNavButton href={getHomePageLink()}
+          isCurrent={isHomePagePath(pathname)}
+           description={"Home"}
           icon={<HomeIcon/>}
         />
-        <ListNavButton href={getScratchPageLink()}
-          isCurrent={isScratchPagePath(pathname)}
-          description="Scratch" />
         <ListNavButton href={getScratchPageLink()}
           isCurrent={isScratchPagePath(pathname)}
           description="Scratch" />

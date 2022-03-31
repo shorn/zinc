@@ -8,17 +8,17 @@ const log = console;
 
 const helloUrl = "/hello";
 
-export function getHelloWorldPageLink(): string{
+export function getHomePageLink(): string{
   return helloUrl;
 }
 
-export function isHelloWorldPagePath(path: String): boolean{
+export function isHomePagePath(path: String): boolean{
   const normalizedPath = path.toLowerCase();
   return normalizedPath.startsWith(helloUrl) || path === "/";
 }
 
-export function HelloWorldPage(){
-  return <NavTransition isPath={isHelloWorldPagePath} title={"POC - hello world"}>
+export function HomePage(){
+  return <NavTransition isPath={isHomePagePath} title={"POC - hello world"}>
     <Content/>
   </NavTransition>
 }

@@ -12,7 +12,7 @@ import {Cabbage} from "Component/Icon";
 import {AccountCircle, Menu as MenuIcon} from "@mui/icons-material";
 import Typography from "@mui/material/Typography";
 import {AppDrawer} from "Design/AppDrawer";
-import {getHelloWorldPageLink} from "Page/HelloWorldPage";
+import {getHomePageLink} from "Page/HomePage";
 import {getScratchPageLink} from "Page/ScratchPage";
 import {useAuthn} from "Auth/AuthenticationProvider";
 
@@ -28,8 +28,8 @@ export function AppNavBar(){
       <Toolbar variant={"dense"}>
         <IconButton
           color="inherit"
-          href={getHelloWorldPageLink()}
-          onClick={event=>nav.navigateTo(getHelloWorldPageLink(), event)}
+          href={getHomePageLink()}
+          onClick={event=>nav.navigateTo(getHomePageLink(), event)}
           size="large">
           <Cabbage/>
         </IconButton>
