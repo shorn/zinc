@@ -8,20 +8,21 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "synth": "cdk synth"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.10",
+    "@types/jest": "27.4.1",
     "@types/node": "10.17.27",
-    "jest": "^26.4.2",
-    "ts-jest": "^26.2.0",
+    "jest": "27.5.1",
+    "ts-jest": "27.1.4",
     "aws-cdk": "2.18.0",
-    "ts-node": "^9.0.0",
-    "typescript": "~3.9.7"
+    "ts-node": "10.7.0",
+    "typescript": "4.6.3"
   },
   "dependencies": {
     "aws-cdk-lib": "2.18.0",
-    "constructs": "^10.0.0",
-    "source-map-support": "^0.5.16"
+    "constructs": "10.0.102",
+    "source-map-support": "0.5.21"
   }
 }
