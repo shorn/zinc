@@ -1,10 +1,10 @@
 Initialised via `npx aws-cdk init --language typescript` on 2022-04-01.
 
-To use this app in your own account, specify a different account-id and region
-in the [stack environment](./bin/aws-cdk.ts).
+### Running you own copy
 
 The `package.json` specifies the `cognito-poc` profile in all its scripts, 
-so setup your credentials like 
+so setup your credentials/config using standard AWS profile mechanism. 
+
 `~/.aws/credentials`:
 ```
 [cognito-poc]
@@ -13,4 +13,11 @@ aws_access_key_id=AKIAxxx
 aws_secret_access_key=xxx
 ```
 
+`~/.aws/config`:
+```
+[profile user1]
+region=us-east-1
+```
 
+This config will defines the account/region that the CDK will use to create
+resources.
