@@ -1,6 +1,5 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { aws_s3 as s3, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class AwsCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -8,9 +7,11 @@ export class AwsCdkStack extends Stack {
 
     // The code that defines your stack goes here
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'AwsCdkQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    new s3.Bucket(this, 'StoCdkBucketTest2', {
+      bucketName: 'sto-cdk-bucket-test-2',
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true      
+    });    
   }
 }
