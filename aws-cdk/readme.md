@@ -1,19 +1,16 @@
-inited with `npx aws-cdk init --language typescript`
+Initialised via `npx aws-cdk init --language typescript` on 2022-04-01.
+
+To use this app in your own account, specify a different account-id and region
+in the [stack environment](./bin/aws-cdk.ts).
+
+The `package.json` specifies the `cognito-poc` profile in all its scripts, 
+so setup your credentials like 
+`~/.aws/credentials`:
+```
+[cognito-poc]
+# account: 9999, user: aws-cdk-user
+aws_access_key_id=AKIAxxx
+aws_secret_access_key=xxx
+```
 
 
-----
-
-# Welcome to your CDK TypeScript project
-
-This is a blank project for TypeScript development with CDK.
-
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
-
-## Useful commands
-
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `cdk deploy`      deploy this stack to your default AWS account/region
-* `cdk diff`        compare deployed stack with current state
-* `cdk synth`       emits the synthesized CloudFormation template
