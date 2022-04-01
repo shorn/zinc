@@ -2,8 +2,20 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { AwsCdkStack } from '../lib/aws-cdk-stack';
+import * as os from "os";
+import { config } from "aws-sdk";
+import * as fs from "fs";
 
 const app = new cdk.App();
+
+
+const credentialsFile = 
+  `${os.homedir()}/.config/cognito-poc/aws.credentials.json`;
+if( fs.existsSync(credentialsFile) ){
+  console.log("loading credentials", fs.realpathSync(credentialsFile));
+  config.loadFromPath(credentialsFile);
+}
+
 new AwsCdkStack(app, 'AwsCdkStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
