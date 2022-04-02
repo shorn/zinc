@@ -16,6 +16,7 @@
     "deploy": "npm run cog-poc deploy",
     "deploy-awscdkstack": "npm run cog-poc deploy AwsCdkStack",
     "deploy-lambda": "npm run cog-poc deploy LambdaStack",
+    "hotswap-lambda": "cdk --hotswap --profile cognito-poc deploy LambdaStack",
     "destroy": "npm run cog-poc donot_destroy",
     "doctor": "npm run cog-poc doctor",
     "context": "npm run cog-poc context"

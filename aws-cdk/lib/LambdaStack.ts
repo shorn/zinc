@@ -15,7 +15,8 @@ import {
 } from "aws-cdk-lib/aws-lambda-nodejs";
 import { join } from "path";
 
-const srcDir = "poc-lambda";
+const baseDir = "poc-lambda";
+const srcDir = `${baseDir}/src`;
 
 export class LambdaStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -34,7 +35,7 @@ export class LambdaStack extends Stack {
           'aws-sdk', // Use the 'aws-sdk' available in the Lambda runtime
         ],
       },
-      depsLockFilePath: join(__dirname, srcDir, 'package-lock.json'),
+      depsLockFilePath: join(__dirname, baseDir, 'package-lock.json'),
       environment: {
       },
       runtime: Runtime.NODEJS_14_X,
@@ -42,22 +43,29 @@ export class LambdaStack extends Stack {
       timeout: Duration.seconds(5),
     }
 
-    const getAllLambda = new NodejsFunction(this, 'getAllItemsFunction', {
-      entry: join(__dirname, srcDir, 'get-all.ts'),
+    const authUser = new NodejsFunction(this, 'AuthUser', {
+      entry: join(__dirname, srcDir, 'AuthUser.ts'),
       ...nodeJsFunctionProps,
     });
 
-    const getAllIntegration = new LambdaIntegration(getAllLambda);
+    const addUser = new NodejsFunction(this, 'AddUser', {
+      entry: join(__dirname, srcDir, 'AddUser.ts'),
+      ...nodeJsFunctionProps,
+    });
 
     // Create an API Gateway resource for each of the CRUD operations
     const api = new RestApi(this, 'CognitoPocPublicApi', {
       restApiName: 'Cognito POC public API'
     });
 
-    const items = api.root.addResource('get-all');
-    items.addMethod('POST', getAllIntegration);
-    items.addMethod('GET', getAllIntegration);
-    addCorsOptions(items);
+    // the resource controls the url
+    const authUserResource = api.root.addResource('auth-user');
+    authUserResource.addMethod('GET', new LambdaIntegration(authUser));
+    addCorsOptions(authUserResource);
+
+    const addUserResource = api.root.addResource('add-user');
+    addUserResource.addMethod('POST', new LambdaIntegration(addUser));
+    addCorsOptions(addUserResource);
 
   }
 }
