@@ -5,6 +5,7 @@
     "aws-cdk": "bin/aws-cdk.js"
   },
   "scripts": {
+    "postinstall": "(cd lib/poc-lambda && npm install);",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
@@ -13,11 +14,14 @@
     "diff": "npm run cog-poc diff",
     "bootstrap": "npm run cog-poc bootstrap",
     "deploy": "npm run cog-poc deploy",
+    "deploy-awscdkstack": "npm run cog-poc deploy AwsCdkStack",
+    "deploy-lambda": "npm run cog-poc deploy LambdaStack",
     "destroy": "npm run cog-poc donot_destroy",
     "doctor": "npm run cog-poc doctor",
     "context": "npm run cog-poc context"
   },
   "devDependencies": {
+    "esbuild": "0.14.29",
     "@types/jest": "27.4.1",
     "@types/node": "10.17.27",
     "jest": "27.5.1",
