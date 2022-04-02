@@ -14,7 +14,8 @@
     "bootstrap": "npm run cog-poc bootstrap",
     "deploy": "npm run cog-poc deploy",
     "destroy": "npm run cog-poc donot_destroy",
-    "doctor": "npm run cog-poc doctor"
+    "doctor": "npm run cog-poc doctor",
+    "context": "npm run cog-poc context"
   },
   "devDependencies": {
     "@types/jest": "27.4.1",
