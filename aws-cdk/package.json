@@ -6,8 +6,8 @@
   },
   "scripts": {
     "postinstall": "(cd lib/poc-lambda && npm install);",
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "tsc --noEmit",
+    "watch": "tsc --watch --noEmit",
     "test": "jest",
     "cog-poc": "cdk --profile cognito-poc",
     "synth": "npm run cog-poc synth",

@@ -1,4 +1,3 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { helloWorld } from "Util/SharedData";
 
 const TABLE_NAME = process.env.TABLE_NAME || '';

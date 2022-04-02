@@ -4,6 +4,10 @@
   "description": "Lambdas for cofgito-poc",
   "private": true,
   "license": "MIT",
+  "scripts": {
+    "tsc": "tsc --noEmit --baseUrl src",
+    "watch": "tsc --watch --noEmit --baseUrl src"
+  },
   "devDependencies": {
     "@types/node": "14.18.12",
     "@types/uuid": "8.3.4"
