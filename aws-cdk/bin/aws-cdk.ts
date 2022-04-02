@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
 import { AwsCdkStack } from '../lib/aws-cdk-stack';
+import { App, Tag } from "aws-cdk-lib";
 
+export const sourceCode = "github.com/shorn/cognito-poc/aws-cdk";
 
-const app = new cdk.App();
+const app = new App();
 
-new AwsCdkStack(app, 'AwsCdkStack', {
+const awsSdkStack = new AwsCdkStack(app, 'AwsCdkStack', {
 });
