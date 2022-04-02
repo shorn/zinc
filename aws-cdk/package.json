@@ -8,11 +8,13 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk --profile cognito-poc",
-    "synth": "cdk --profile cognito-poc synth",
-    "diff": "cdk --profile cognito-poc diff",
-    "bootstrap": "cdk --profile cognito-poc bootstrap",
-    "deploy": "cdk --profile cognito-poc deploy"
+    "cog-poc": "cdk --profile cognito-poc",
+    "synth": "npm run cog-poc synth",
+    "diff": "npm run cog-poc diff",
+    "bootstrap": "npm run cog-poc bootstrap",
+    "deploy": "npm run cog-poc deploy",
+    "destroy": "npm run cog-poc donot_destroy",
+    "doctor": "npm run cog-poc doctor"
   },
   "devDependencies": {
     "@types/jest": "27.4.1",
