@@ -13,20 +13,13 @@ import {
   NodejsFunctionProps
 } from "aws-cdk-lib/aws-lambda-nodejs";
 import { join } from "path";
-import { sourceCode } from "Main";
 
 const lambdaBaseDir = "../../lambda";
 const lambdaSrcDir = `${lambdaBaseDir}/src`;
 
 export class LambdaStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
-    super(scope, id, {
-      tags: {
-        ManagedBy: sourceCode,
-        ...props?.tags
-      },
-      ...props
-    });
+    super(scope, id, props);
 
 
     const nodeJsFunctionProps: NodejsFunctionProps = {
