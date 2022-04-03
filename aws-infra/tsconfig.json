@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",
     "target": "ES2018",
     "module": "commonjs",
     "lib": [
@@ -23,9 +24,9 @@
       "./node_modules/@types"
     ]
   },
+  "include": [
+    "src"
+  ],
   "exclude": [
-    "node_modules",
-    "cdk.out",
-    "lib/poc-lambda/**/*"
   ]
 }

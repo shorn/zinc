@@ -1,7 +1,7 @@
 {
   "name": "poc-lambda",
   "version": "1.0.0",
-  "description": "Lambdas for cofgito-poc",
+  "description": "Lambdas for cognito-poc",
   "private": true,
   "license": "MIT",
   "scripts": {

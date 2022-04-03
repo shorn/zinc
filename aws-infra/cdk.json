@@ -1,20 +1,11 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/aws-cdk.ts",
+  "app": "npx ts-node -r tsconfig-paths/register --prefer-ts-exts src/Main.ts",
   "requireApproval": "never",
   "watch": {
     "include": [
-      "**"
+      "src/**"
     ],
     "exclude": [
-      "readme.md",
-      "cdk*.json",
-      "**/*.d.ts",
-      "**/*.js",
-      "tsconfig.json",
-      "package*.json",
-      "yarn.lock",
-      "node_modules",
-      "test"
     ]
   },
   "context": {

@@ -1,6 +1,5 @@
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { sourceCode } from "../bin/aws-cdk";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import {
   IResource,
@@ -14,9 +13,10 @@ import {
   NodejsFunctionProps
 } from "aws-cdk-lib/aws-lambda-nodejs";
 import { join } from "path";
+import { sourceCode } from "Main";
 
-const baseDir = "poc-lambda";
-const srcDir = `${baseDir}/src`;
+const lambdaBaseDir = "../../lambda";
+const lambdaSrcDir = `${lambdaBaseDir}/src`;
 
 export class LambdaStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -35,7 +35,7 @@ export class LambdaStack extends Stack {
           'aws-sdk', // Use the 'aws-sdk' available in the Lambda runtime
         ],
       },
-      depsLockFilePath: join(__dirname, baseDir, 'package-lock.json'),
+      depsLockFilePath: join(__dirname, lambdaBaseDir, 'package-lock.json'),
       environment: {
       },
       runtime: Runtime.NODEJS_14_X,
@@ -44,12 +44,12 @@ export class LambdaStack extends Stack {
     }
 
     const authUser = new NodejsFunction(this, 'AuthUser', {
-      entry: join(__dirname, srcDir, 'AuthUser.ts'),
+      entry: join(__dirname, lambdaSrcDir, 'AuthUser.ts'),
       ...nodeJsFunctionProps,
     });
 
     const addUser = new NodejsFunction(this, 'AddUser', {
-      entry: join(__dirname, srcDir, 'AddUser.ts'),
+      entry: join(__dirname, lambdaSrcDir, 'AddUser.ts'),
       ...nodeJsFunctionProps,
     });
 
