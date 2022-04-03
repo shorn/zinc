@@ -21,3 +21,9 @@ region=us-east-1
 
 This config will defines the account/region that the CDK will use to create
 resources.
+
+
+### Paths
+
+I like absolute paths for my imports, got the implementation from: 
+https://github.com/moltar/cdk-ts-path-mapping
