@@ -3,7 +3,7 @@
  * The config values used by the app are decided when this file is run (i.e.
  * when the app is loaded into the browser), based on the value of
  * environmentName, which is compiled in at build time via the
- * REACT_APP_POC_ENV environment variable.
+ * REACT_APP_COG_POC_ENV environment variable.
  * <p>
  * Config values are embedded into the raw client javascript artifact - it is
  * designed only for static, publicly visible config (i.e. not per user stuff
@@ -55,11 +55,11 @@ export interface EnvironmentConfig {
 function initConfig(){
   const newConfig = {
     ...buildConfig,
-    ...chooseEnvironmentConfig(process.env.REACT_APP_POC_ENV),
+    ...chooseEnvironmentConfig(process.env.REACT_APP_COG_POC_ENV),
   };
 
   // don't print the key; it's not a secret, but it's ugly
-  const {supabaseAnonKey, ...printConfig} = newConfig;
+  const {...printConfig} = newConfig;
   log.debug("Application config",
     process.env.REACT_APP_CABBAGE_ENV, printConfig);
   return newConfig;
@@ -68,13 +68,15 @@ function initConfig(){
 const buildConfig = {
   buildDate: process.env.REACT_APP_BUILD_DATE_MS ||
     new Date().getTime().toString(),
-  supabaseAnonKey: process.env.REACT_APP_SUPABASE_ANON_KEY,
   gitCommit: process.env.REACT_APP_COMMIT_REF ?? "unknown commit",
 };
 
 
 function chooseEnvironmentConfig(env: string | undefined){
-  env = env?.toLowerCase();
+  /* trim() because env var can get polluted with whitespace when set via
+  npm scripts.
+  */
+  env = env?.toLowerCase()?.trim();
   if( env === 'prd' ){
     return prdConfig
   }
@@ -92,20 +94,20 @@ function chooseEnvironmentConfig(env: string | undefined){
 const ciConfig: EnvironmentConfig = {
   environmentName: "ci",
   isProd: false,
-  cognitoAwsRegion: "us-east-1",
-  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
-  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
-  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
-  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
-  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
+  cognitoAwsRegion: "unused",
+  cognitoEmailUserPoolId: "unused",
+  cognitoEmailUserPoolClientId: "unused",
+  cognitoGoogleUserPoolDomain: "unused",
+  cognitoGoogleUserPoolId: "unused",
+  cognitoGoogleUserPoolClientId: "unused",
 };
 
 const devConfig: EnvironmentConfig = {
-  ...ciConfig,
+  environmentName: "dev",
   isProd: false,
   cognitoAwsRegion: "ap-southeast-2",
-  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
-  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
+  cognitoEmailUserPoolId: "ap-southeast-2_CQVVulGz5",
+  cognitoEmailUserPoolClientId: "5olqlrovoqjtgnb6orcl2larnd",
   cognitoGoogleUserPoolDomain: "cog-poc-google",
   cognitoGoogleUserPoolId: "ap-southeast-2_zSlXOOXMW",
   cognitoGoogleUserPoolClientId: "1qpbf20mhuv25oml8p24lipb57",
@@ -114,23 +116,23 @@ const devConfig: EnvironmentConfig = {
 const tstConfig: EnvironmentConfig = {
   environmentName: "tst",
   isProd: false,
-  cognitoAwsRegion: "us-east-1",
-  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
-  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
-  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
-  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
-  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
+  cognitoAwsRegion: "unused",
+  cognitoEmailUserPoolId: "unused",
+  cognitoEmailUserPoolClientId: "unused",
+  cognitoGoogleUserPoolDomain: "unused",
+  cognitoGoogleUserPoolId: "unused",
+  cognitoGoogleUserPoolClientId: "unused",
 };
 
 const prdConfig: EnvironmentConfig = {
   environmentName: "prd",
   isProd: true,
-  cognitoAwsRegion: "us-east-1",
+  cognitoAwsRegion: "ap-southeast-2",
   cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
   cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
-  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
-  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
-  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
+  cognitoGoogleUserPoolDomain: "cog-poc-google",
+  cognitoGoogleUserPoolId: "ap-southeast-2_zSlXOOXMW",
+  cognitoGoogleUserPoolClientId: "1qpbf20mhuv25oml8p24lipb57",
 };
 
 

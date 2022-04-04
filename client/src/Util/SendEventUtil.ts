@@ -44,7 +44,7 @@ class SentrySupabaseTransport extends Sentry.Transports.BaseTransport {
       method: 'POST', cache: 'no-cache', credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': Config.supabaseAnonKey!,
+        'apikey': 'xxx',
       },
       body: JSON.stringify({json_content: event})
     }).then((response) => {
