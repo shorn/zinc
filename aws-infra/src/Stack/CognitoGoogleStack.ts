@@ -28,7 +28,7 @@ export class CognitoGoogleStack extends Stack {
         email: true
       },
       accountRecovery: AccountRecovery.NONE,
-
+      selfSignUpEnabled: true,
       autoVerify: {},
 
       // emails are not case sensitive
