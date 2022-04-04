@@ -5,6 +5,7 @@ import { SimpleTestStack } from "Stack/SimpleTestStack";
 import { LambdaStack } from "Stack/LambdaStack";
 import { CloudFrontStack } from "Stack/CloudFrontStack";
 import { CognitoGoogleStack } from "Stack/CognitoGoogleStack";
+import { CognitoEmailStack } from "Stack/CognitoEmailStack";
 
 export const sourceCode = "github.com/shorn/cognito-poc/aws-infra";
 
@@ -14,6 +15,7 @@ const main = new App();
 new LambdaStack(main, 'LambdaStack', sharedStackProps());
 new CloudFrontStack(main, 'CloudFrontStack', sharedStackProps());
 new CognitoGoogleStack(main, 'CognitoGoogleStack', sharedStackProps());
+new CognitoEmailStack(main, 'CognitoEmailStack', sharedStackProps());
 
 function sharedStackProps(){
   return {

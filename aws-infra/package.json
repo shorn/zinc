@@ -20,6 +20,8 @@
     "destroy-cloudfront": "cdk --profile cognito-poc donot_destroy CloudFrontStack",
     "deploy-cog-google": "npm run cog-poc deploy CognitoGoogleStack",
     "destroy-cog-google": "cdk --profile cognito-poc donot_destroy CognitoGoogleStack",
+    "deploy-cog-email": "npm run cog-poc deploy CognitoEmailStack",
+    "destroy-cog-email": "cdk --profile cognito-poc donot_destroy CognitoEmailStack",
     "hotswap-lambda": "cdk --hotswap --profile cognito-poc deploy LambdaStack",
     "destroy-all": "cdk --all --profile cognito-poc donot-destroy",
     "doctor": "npm run cog-poc doctor",
