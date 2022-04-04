@@ -13,7 +13,7 @@
     "synth": "npm run cog-poc synth",
     "diff": "npm run cog-poc diff",
     "bootstrap": "npm run cog-poc bootstrap",
-    "deploy": "npm run cog-poc deploy",
+    "deploy": "cdk --all --profile cognito-poc deploy",
     "deploy-teststack": "npm run cog-poc deploy SimpleTestStack",
     "deploy-lambda": "npm run cog-poc deploy LambdaStack",
     "deploy-cloudfront": "npm run cog-poc deploy CloudFrontStack",
