@@ -103,12 +103,12 @@ const ciConfig: EnvironmentConfig = {
 const devConfig: EnvironmentConfig = {
   ...ciConfig,
   isProd: false,
-  cognitoAwsRegion: "us-east-1",
+  cognitoAwsRegion: "ap-southeast-2",
   cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
   cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
-  cognitoGoogleUserPoolDomain: "poc-google-pool-domain",
-  cognitoGoogleUserPoolId: "us-east-1_phlr5GrfJ",
-  cognitoGoogleUserPoolClientId: "6olsngp2ggjgpo4lubgmi8dbvq",
+  cognitoGoogleUserPoolDomain: "cog-poc-google",
+  cognitoGoogleUserPoolId: "ap-southeast-2_zSlXOOXMW",
+  cognitoGoogleUserPoolClientId: "1qpbf20mhuv25oml8p24lipb57",
 };
 
 const tstConfig: EnvironmentConfig = {
