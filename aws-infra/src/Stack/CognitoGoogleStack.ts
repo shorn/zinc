@@ -41,6 +41,15 @@ export class CognitoGoogleStack extends Stack {
     new UserPoolDomain(this, "CognitoGoogleUserPoolDomain", {
       userPool,
       cognitoDomain: {
+        /* this value along with region, needs to be set in google developer
+        console credentials:
+        Authz JS origins: 
+          https://cog-poc-google.auth.ap-southeast-2.amazoncognito.com
+        Authz redirect URIs: 
+          https://cog-poc-google.auth.ap-southeast-2.amazoncognito.com/oauth2/idpresponse
+        Contrast with the the value in google developer console 
+        "OAuth consent screen / Authorized domains" which is a static value of
+        `amazoncognito.com`. */
         domainPrefix: "cog-poc-google"
       }
     });
