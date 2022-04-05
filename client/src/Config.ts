@@ -41,12 +41,18 @@ export interface EnvironmentConfig {
    */
   isProd: boolean,
 
-  cognitoAwsRegion: string;
-  cognitoEmailUserPoolId: string,
-  cognitoEmailUserPoolClientId: string;
-  cognitoGoogleUserPoolDomain: string;
-  cognitoGoogleUserPoolId: string;
-  cognitoGoogleUserPoolClientId: string;
+  cognito: {
+    region: string,
+    email: {
+      userPoolId: string,
+      userPoolClientId: string,
+    },
+    google: {
+      userPoolId: string,
+      userPoolClientId: string,
+      userPoolDomain: string,
+    }
+  },
   
   /** Used to submit logs to Sentry instead of the Cabbage endpoint */
   sentryDsn?: string,
@@ -94,45 +100,69 @@ function chooseEnvironmentConfig(env: string | undefined){
 const ciConfig: EnvironmentConfig = {
   environmentName: "ci",
   isProd: false,
-  cognitoAwsRegion: "unused",
-  cognitoEmailUserPoolId: "unused",
-  cognitoEmailUserPoolClientId: "unused",
-  cognitoGoogleUserPoolDomain: "unused",
-  cognitoGoogleUserPoolId: "unused",
-  cognitoGoogleUserPoolClientId: "unused",
+  cognito : {
+    region: "unused",
+    email: {
+      userPoolId: "unused",
+      userPoolClientId: "unused"
+    },
+    google: {
+      userPoolId: "unused",
+      userPoolClientId: "unused",
+      userPoolDomain: "unused",
+    }
+  },
 };
 
 const devConfig: EnvironmentConfig = {
   environmentName: "dev",
   isProd: false,
-  cognitoAwsRegion: "ap-southeast-2",
-  cognitoEmailUserPoolId: "ap-southeast-2_CQVVulGz5",
-  cognitoEmailUserPoolClientId: "5olqlrovoqjtgnb6orcl2larnd",
-  cognitoGoogleUserPoolDomain: "cog-poc-google",
-  cognitoGoogleUserPoolId: "ap-southeast-2_zSlXOOXMW",
-  cognitoGoogleUserPoolClientId: "1qpbf20mhuv25oml8p24lipb57",
+  cognito : {
+    region: "ap-southeast-2",
+    email: {
+      userPoolId: "ap-southeast-2_CQVVulGz5",
+      userPoolClientId: "5olqlrovoqjtgnb6orcl2larnd"
+    },
+    google: {
+      userPoolId: "ap-southeast-2_sxSfqgfX6",
+      userPoolClientId: "7bjopbg1nl44qgsgqa89almsrv",
+      userPoolDomain: "cog-poc-google2",
+    }
+  },
 };
 
 const tstConfig: EnvironmentConfig = {
   environmentName: "tst",
   isProd: false,
-  cognitoAwsRegion: "unused",
-  cognitoEmailUserPoolId: "unused",
-  cognitoEmailUserPoolClientId: "unused",
-  cognitoGoogleUserPoolDomain: "unused",
-  cognitoGoogleUserPoolId: "unused",
-  cognitoGoogleUserPoolClientId: "unused",
+  cognito : {
+    region: "unused",
+    email: {
+      userPoolId: "unused",
+      userPoolClientId: "unused"
+    },
+    google: {
+      userPoolId: "unused",
+      userPoolClientId: "unused",
+      userPoolDomain: "unused",
+    }
+  },
 };
 
 const prdConfig: EnvironmentConfig = {
   environmentName: "prd",
   isProd: true,
-  cognitoAwsRegion: "ap-southeast-2",
-  cognitoEmailUserPoolId: "us-east-1_XH4uV1BPd",
-  cognitoEmailUserPoolClientId: "5dqa18blg48cnavccajm0635ip",
-  cognitoGoogleUserPoolDomain: "cog-poc-google",
-  cognitoGoogleUserPoolId: "ap-southeast-2_zSlXOOXMW",
-  cognitoGoogleUserPoolClientId: "1qpbf20mhuv25oml8p24lipb57",
+  cognito : {
+    region: "ap-southeast-2",
+    email: {
+      userPoolId: "ap-southeast-2_CQVVulGz5",
+      userPoolClientId: "5olqlrovoqjtgnb6orcl2larnd"
+    },
+    google: {
+      userPoolId: "ap-southeast-2_sxSfqgfX6",
+      userPoolClientId: "7bjopbg1nl44qgsgqa89almsrv",
+      userPoolDomain: "cog-poc-google2",
+    }
+  }
 };
 
 

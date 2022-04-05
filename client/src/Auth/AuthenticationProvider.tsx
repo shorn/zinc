@@ -24,8 +24,8 @@ import { TextSpan } from "Component/TextSpan";
 import { parseJwtDate } from "Util/DateUtil";
 
 export const emailPool = new CognitoUserPool({
-  UserPoolId: Config.cognitoEmailUserPoolId,
-  ClientId: Config.cognitoEmailUserPoolClientId,
+  UserPoolId: Config.cognito.email.userPoolId,
+  ClientId: Config.cognito.email.userPoolClientId,
 });
 
 /*
@@ -33,8 +33,8 @@ UserPool without IdentityPool cannot do auto-refresh
 https://github.com/aws-amplify/amplify-js/issues/3619#issuecomment-510654531
  */
 export const googlePool = new CognitoUserPool({
-  UserPoolId: Config.cognitoGoogleUserPoolId,
-  ClientId: Config.cognitoGoogleUserPoolClientId,
+  UserPoolId: Config.cognito.google.userPoolId,
+  ClientId: Config.cognito.google.userPoolClientId,
 });
 
 export interface AuthenticationState {
@@ -275,8 +275,8 @@ export function IntroContainer(){
 }
 
 function getCognitoGoogleLoginDomain(){
-  return `https://${Config.cognitoGoogleUserPoolDomain}`+
-    `.auth.${Config.cognitoAwsRegion}.amazoncognito.com`
+  return `https://${Config.cognito.google.userPoolDomain}`+
+    `.auth.${Config.cognito.region}.amazoncognito.com`
 }
 
 export function GoogleSignInContainer(){
@@ -287,7 +287,7 @@ export function GoogleSignInContainer(){
     console.debug("redirect to:", redirectUri);
     const googleLoginUrl = getCognitoGoogleLoginDomain() +
       "/login?response_type=token" +
-      `&client_id=${Config.cognitoGoogleUserPoolClientId}` +
+      `&client_id=${Config.cognito.google.userPoolClientId}` +
       `&redirect_uri=${redirectUri}`
     setIsWorking(true);
     navBrowserByAssign(googleLoginUrl);

@@ -9,6 +9,8 @@ import {
 } from "aws-cdk-lib/aws-cloudfront";
 
 export class CloudFrontStack extends Stack {
+  cfDistro: CloudFrontWebDistribution;
+  
   constructor(scope: Construct, id: string, props?: StackProps){
     super(scope, id, props);
     
@@ -21,7 +23,7 @@ export class CloudFrontStack extends Stack {
     });
     this.enableCorsOnBucket(s3Site);
 
-    const cfDistro = new CloudFrontWebDistribution(
+    this.cfDistro = new CloudFrontWebDistribution(
       this, `cf-distribution`,
       {
         originConfigs: [
@@ -59,12 +61,13 @@ export class CloudFrontStack extends Stack {
     new BucketDeployment(this, `client-s3bucketdeployment`, {
       sources: [Source.asset("../client/build")],
       destinationBucket: s3Site,
-      distribution: cfDistro,
+      distribution: this.cfDistro,
       distributionPaths: ["/*"]
     });
 
-    new CfnOutput(this, "CloudFront URL", {
-      value: cfDistro.distributionDomainName
+    new CfnOutput(this, id+"DistributionDomainOut", {
+      exportName: id+"DistributionDomainOut",
+      value: this.cfDistro.distributionDomainName
     });
   }
 

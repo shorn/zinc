@@ -1,26 +1,47 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import { App, } from "aws-cdk-lib";
-import { SimpleTestStack } from "Stack/SimpleTestStack";
+import { App, StackProps, } from "aws-cdk-lib";
 import { LambdaStack } from "Stack/LambdaStack";
 import { CloudFrontStack } from "Stack/CloudFrontStack";
-import { CognitoGoogleStack } from "Stack/CognitoGoogleStack";
 import { CognitoEmailStack } from "Stack/CognitoEmailStack";
-
-export const sourceCode = "github.com/shorn/cognito-poc/aws-infra";
+import { CognitoGoogleStackV2 } from "Stack/CognitoGoogleStackV2";
 
 const main = new App();
 
-// new SimpleTestStack(main, 'SimpleStack', sharedStackProps());
-new LambdaStack(main, 'LambdaStack', sharedStackProps());
-new CloudFrontStack(main, 'CloudFrontStack', sharedStackProps());
-new CognitoGoogleStack(main, 'CognitoGoogleStack', sharedStackProps());
-new CognitoEmailStack(main, 'CognitoEmailStack', sharedStackProps());
+new LambdaStack(main, 'LambdaStack', agnosticStackProps());
 
-function sharedStackProps(){
+new CognitoEmailStack(main, 'CognitoEmailStack', agnosticStackProps());
+
+const cloudfront = new CloudFrontStack(main, 'CloudFrontStackV2', boundStackProps());
+new CognitoGoogleStackV2(main, 'CognitoGoogleStackV2',{
+  ...boundStackProps(),
+  callbackUrls: [
+    // port defined in /client/.env 
+    "http://localhost:9090",
+    `https://${(cloudfront.cfDistro.distributionDomainName)}`,
+  ],
+  domainPrefix: "cog-poc-google2", // unique?
+});
+
+function agnosticStackProps(){
   return {
     tags: {
-      ManagedBy: sourceCode,
+      ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
     },
   }
 }
+
+function boundStackProps(): StackProps{
+  return {
+    /* Note, using CDK node vars like this is special: 
+     https://docs.aws.amazon.com/cdk/v2/guide/environments.html */
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: process.env.CDK_DEFAULT_REGION,
+    },
+    tags: {
+      ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
+    },
+  }
+}
+

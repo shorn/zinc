@@ -1,4 +1,4 @@
-import { Duration, Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Duration, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import {
   AccountRecovery, ClientAttributes,
@@ -76,7 +76,7 @@ export class CognitoEmailStack extends Stack {
       }
     });
     
-    new UserPoolClient(this, "CognitoEmailUserPoolClient", {
+    const client = new UserPoolClient(this, "CognitoEmailUserPoolClient", {
       userPool,
       disableOAuth: true,
       enableTokenRevocation: true,
@@ -99,6 +99,14 @@ export class CognitoEmailStack extends Stack {
         email: true,
       })
     });
+
+    new CfnOutput(this, id+"CognitoEmailUserPoolId", {
+      value: userPool.userPoolId
+    });
+    new CfnOutput(this, id+"CognitoEmailUserPoolClientId", {
+      value: client.userPoolClientId
+    });
+    
   }
 }
 

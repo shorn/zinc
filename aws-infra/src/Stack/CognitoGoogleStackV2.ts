@@ -1,4 +1,4 @@
-import { Duration, Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Duration, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import {
   AccountRecovery,
@@ -11,19 +11,29 @@ import {
   UserPoolEmail,
   UserPoolIdentityProviderGoogle
 } from "aws-cdk-lib/aws-cognito";
-import { ParameterTier, StringParameter } from "aws-cdk-lib/aws-ssm";
 
-export class CognitoGoogleStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps){
+interface ThisStackProps extends StackProps {
+  callbackUrls : string[],
+  /* I think this has to be unique? */
+  domainPrefix: string,
+}
+
+export class CognitoGoogleStackV2 extends Stack {
+  
+  props: ThisStackProps;
+  userPool: UserPool;
+  client: UserPoolClient;
+  
+  constructor(
+    scope: Construct, 
+    id: string,
+    props: ThisStackProps,
+){
     super(scope, id, props);
-
-    const clientIdParam = new StringParameter(this, 'GoogleClientId', {
-      stringValue: 'set me via the console',
-      // advanced costs money
-      tier: ParameterTier.STANDARD,
-    });
-
-    const userPool = new UserPool(this, "CognitoGoogleUserPool", {
+    this.props = props;
+    const {callbackUrls, domainPrefix} = props;
+    
+    this.userPool = new UserPool(this, `${id}UserPool`, {
       signInAliases: {
         email: true
       },
@@ -39,28 +49,36 @@ export class CognitoGoogleStack extends Stack {
     });
 
     new UserPoolDomain(this, "CognitoGoogleUserPoolDomain", {
-      userPool,
+      userPool: this.userPool,
       cognitoDomain: {
-        /* this value along with region, needs to be set in google developer
-        console credentials:
-        Authz JS origins: 
-          https://cog-poc-google.auth.ap-southeast-2.amazoncognito.com
-        Authz redirect URIs: 
-          https://cog-poc-google.auth.ap-southeast-2.amazoncognito.com/oauth2/idpresponse
-        Contrast with the the value in google developer console 
-        "OAuth consent screen / Authorized domains" which is a static value of
-        `amazoncognito.com`. */
-        domainPrefix: "cog-poc-google"
+        domainPrefix
       }
     });
+    console.log(`Copy to Google dev console
+      "Authorized JS origin": ${this.getAuthBaseUri()}
+      "Authorized redirect URIs": ${this.getAuthBaseUri()}/oauth2/idpresponse
+      "Authorized domains": ${cognitoDomain} `);
+
+
+    //const clientIdParam = new StringParameter(this, 'GoogleClientId', {
+    //  stringValue: 'set me via the console',
+    //  // advanced costs money
+    //  tier: ParameterTier.STANDARD,
+    //});
 
     // will fail at diff time:
     // Error: Cannot retrieve value from context provider ssm since account/region are not specified at the stack level. Configure "env" with an account and region when you def
     // ine your stack.
     // const clientIdVfp = StringParameter.valueFromLookup(this, clientIdParam.parameterName);
 
+    //  Error('Unable to determine ARN separator for SSM parameter since the parameter name is an unresolved token. Use "fromAttributes" and specify "simpleName" explicitly');
+    //const clientIdFspa = StringParameter.fromStringParameterAttributes(this, 'MyValue', {
+    //  parameterName: clientIdParam.parameterName,
+    //  // 'version' can be specified but is optional.
+    //}).stringValue;
+    
     // will fail at diff time:
-    // Unable to determine ARN separator for SSM parameter since the parameter name is an unresolved token. Use "fromAttributes" and specify "simpleNam e" explicitly'
+    // Unable to determine ARN separator for SSM parameter since the parameter name is an unresolved token. Use "fromAttributes" and specify "simpleName" explicitly'
     // const clientIdVfsp = StringParameter.valueForStringParameter(
     //   this, clientIdParam.parameterName, 2);  
 
@@ -69,9 +87,12 @@ export class CognitoGoogleStack extends Stack {
     // const clientIdFspa: IStringParameter = StringParameter.fromStringParameterAttributes(
     //   this, "clientIdFspa", {simpleName: true, parameterName: clientIdParam.node.id });
 
-    // name might have to be "Google"; not sure, haven't tested yet
-    const idp = new UserPoolIdentityProviderGoogle(this, "Google", {
-      userPool,
+    console.log("Copy credentials from Google dev console to " +
+      " / Cognito user pool" + " / Sign-in experience" +
+      " / Federated identity provider sign-in / Google");
+    // I believe name has to be "Google"; not sure why.
+    const idProvider = new UserPoolIdentityProviderGoogle(this, "Google", {
+      userPool: this.userPool,
 
       /* If you set these values here, you will compromise your Google 
       dev credentials. Once they detect that, Google may or may not shut down 
@@ -84,7 +105,7 @@ export class CognitoGoogleStack extends Stack {
       reset the creds after any time you deploy a change to this resource,
       because the credetentials will get reset to these values.  
       */
-      clientId: "DO NOT SET IN CODE",
+      clientId: 'DO NOT SET IN CODE',
       clientSecret: 'DO NOT SET IN CODE',
 
       attributeMapping: {
@@ -96,8 +117,9 @@ export class CognitoGoogleStack extends Stack {
       scopes: ["profile", "email", "openid"],
     });
 
-    new UserPoolClient(this, "CognitoGoogleUserPoolClient", {
-      userPool,
+    console.log(id + " callbackUrls: ", callbackUrls);
+    this.client = new UserPoolClient(this, "CognitoGoogleUserPoolClient", {
+      userPool: this.userPool,
       disableOAuth: false,
       oAuth: {
         /* when it was just "code", I was getting "unauthorized client" from 
@@ -109,11 +131,7 @@ export class CognitoGoogleStack extends Stack {
           clientCredentials: false,
         },
         scopes: [OAuthScope.EMAIL, OAuthScope.OPENID, OAuthScope.PROFILE],
-        callbackUrls: [
-          "http://localhost:9090",
-          /* need to import this from the CloudFront stack. */
-          "https://d18cqbvz409npy.cloudfront.net"
-        ],
+        callbackUrls,
       },
 
       /* not needed if we squish id_token down to 5 min and
@@ -130,6 +148,36 @@ export class CognitoGoogleStack extends Stack {
 
       supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE]
     });
+
+    // after deployment, populate these values in /client/src/Config.ts
+    new CfnOutput(this, id+"CognitoGoogleUserPoolRegion", {
+      value: this.region
+    });
+    new CfnOutput(this, id+"CognitoGoogleUserPoolId", {
+      value: this.userPool.userPoolId
+    });
+    new CfnOutput(this, id+"CognitoGoogleUserPoolClientId", {
+      value: this.client.userPoolClientId
+    });
+    new CfnOutput(this, id+"CognitoGoogleUserPoolDomain", {
+      value: this.props.domainPrefix
+    });
+
   }
+
+  /* set in google developer console credentials "Authz JS origins" */
+  getAuthBaseUri(){
+    return `https://${this.props.domainPrefix}` +
+      `.auth.${this.region}.${cognitoDomain}`
+  }
+
+  /* set in google developer console credentials "Authz redirect URIs" */
+  getAuthRedirectUri(){
+    return this.getAuthBaseUri() + "/oauth2/idpresponse";
+  }
+  
 }
+
+/* Add to Google dev console OAuth consent screen "Authorized domains" */
+export const cognitoDomain = "amazoncognito.com";
 

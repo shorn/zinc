@@ -16,16 +16,17 @@
     "deploy": "cdk --all --profile cognito-poc deploy",
     "deploy-teststack": "npm run cog-poc deploy SimpleTestStack",
     "deploy-lambda": "npm run cog-poc deploy LambdaStack",
-    "deploy-cloudfront": "npm run cog-poc deploy CloudFrontStack",
-    "destroy-cloudfront": "cdk --profile cognito-poc donot_destroy CloudFrontStack",
-    "deploy-cog-google": "npm run cog-poc deploy CognitoGoogleStack",
-    "destroy-cog-google": "cdk --profile cognito-poc donot_destroy CognitoGoogleStack",
+    "deploy-cloudfront": "npm run cog-poc deploy CloudFrontStackV2",
+    "destroy-cloudfront": "cdk --profile cognito-poc donot_destroy CloudFrontStackV2",
+    "deploy-cog-google": "npm run cog-poc deploy CognitoGoogleStackV2",
+    "destroy-cog-google": "cdk --profile cognito-poc donot_destroy CognitoGoogleStackV2",
     "deploy-cog-email": "npm run cog-poc deploy CognitoEmailStack",
     "destroy-cog-email": "cdk --profile cognito-poc donot_destroy CognitoEmailStack",
     "hotswap-lambda": "cdk --hotswap --profile cognito-poc deploy LambdaStack",
     "destroy-all": "cdk --all --profile cognito-poc donot-destroy",
     "doctor": "npm run cog-poc doctor",
-    "context": "npm run cog-poc context"
+    "context": "npm run cog-poc context",
+    "outputs": "cdk --all --profile cognito-poc --outputs-file cdk.out/outputs.json deploy"
   },
   "devDependencies": {
     "esbuild": "0.14.29",

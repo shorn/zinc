@@ -70,6 +70,7 @@ CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolRegion = ap-southe
   them to the S3 bucket and clear the CloudFront cache
 
 That's it - you should now be able to navigate to the URL for the app and 
-sign in (look in the CloudFront console under "Distribution domain name").
+sign in (look in the CloudFront console under "Distribution domain name", 
+there's also an "Output" for the CloudFront domain printed be `deploy`).
 
 
