@@ -71,6 +71,6 @@ CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolRegion = ap-southe
 
 That's it - you should now be able to navigate to the URL for the app and 
 sign in (look in the CloudFront console under "Distribution domain name", 
-there's also an "Output" for the CloudFront domain printed be `deploy`).
+there's also an "Output" for the CloudFront domain printed by `deploy`).
 
 
