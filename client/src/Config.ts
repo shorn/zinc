@@ -64,16 +64,12 @@ function initConfig(){
     ...chooseEnvironmentConfig(process.env.REACT_APP_COG_POC_ENV),
   };
 
-  // don't print the key; it's not a secret, but it's ugly
-  const {...printConfig} = newConfig;
-  log.debug("Application config",
-    process.env.REACT_APP_CABBAGE_ENV, printConfig);
+  log.debug("Application config", process.env.REACT_APP_CABBAGE_ENV, newConfig);
   return newConfig;
 }
 
 const buildConfig = {
-  buildDate: process.env.REACT_APP_BUILD_DATE_MS ||
-    new Date().getTime().toString(),
+  buildDate: process.env.REACT_APP_BUILD_DATE_MS ?? "0",
   gitCommit: process.env.REACT_APP_COMMIT_REF ?? "unknown commit",
 };
 
