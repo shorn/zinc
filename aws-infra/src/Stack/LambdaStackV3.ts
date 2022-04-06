@@ -1,12 +1,10 @@
-import { Duration, Stack, StackProps } from "aws-cdk-lib";
+import { Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { Runtime, Version } from "aws-cdk-lib/aws-lambda";
 import {
   IResource,
-  LambdaIntegration,
   MockIntegration,
-  PassthroughBehavior,
-  RestApi
+  PassthroughBehavior
 } from "aws-cdk-lib/aws-apigateway";
 import {
   NodejsFunction,
@@ -17,9 +15,8 @@ import { join } from "path";
 const lambdaBaseDir = "../../lambda";
 const lambdaSrcDir = `${lambdaBaseDir}/src`;
 
-export class LambdaStack extends Stack {
-  authUser: NodejsFunction;
-  api: RestApi;
+export class LambdaStackV3 extends Stack {
+  authUserVersion5: Version;
   
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -39,32 +36,32 @@ export class LambdaStack extends Stack {
       timeout: Duration.seconds(5),
     }
 
-    this.authUser = new NodejsFunction(this, 'AuthUser', {
-      entry: join(__dirname, lambdaSrcDir, 'AuthUser.ts'),
+    const authUserV5 = new NodejsFunction(this, id+'AuthUserV5', {
+      entry: join(__dirname, lambdaSrcDir, 'AuthUserV5.ts'),
       ...nodeJsFunctionProps,
     });
 
-    const addUser = new NodejsFunction(this, 'AddUser', {
-      entry: join(__dirname, lambdaSrcDir, 'AddUser.ts'),
-      ...nodeJsFunctionProps,
-    });
+    this.authUserVersion5 = new Version(this, 'AuthUserVersion5', { lambda: authUserV5, });
+    // arn:aws:lambda:us-east-1:669305508162:function:LambdaStackV3-LambdaStackV3AuthUserV4E4121FCD-quVSKiz0hAwt:1
+    
+    //const addUser = new NodejsFunction(this, 'AddUser', {
+    //  entry: join(__dirname, lambdaSrcDir, 'AddUser.ts'),
+    //  ...nodeJsFunctionProps,
+    //});
 
-    // Create an API Gateway resource for each of the CRUD operations
-    this.api = new RestApi(this, 'CognitoPocPublicApi', {
-      restApiName: id+' Cognito POC public API',
-      //deployOptions: {
-      //  stageName: "api-prd"
-      //}
-    });
-
-    // the resource controls the url
-    const authUserResource = this.api.root.addResource('auth-user');
-    authUserResource.addMethod('GET', new LambdaIntegration(this.authUser));
-    addCorsOptions(authUserResource);
-
-    const addUserResource = this.api.root.addResource('add-user');
-    addUserResource.addMethod('POST', new LambdaIntegration(addUser));
-    addCorsOptions(addUserResource);
+    //// Create an API Gateway resource for each of the CRUD operations
+    //const api = new RestApi(this, 'CognitoPocPublicApi', {
+    //  restApiName: 'Cognito POC public API'
+    //});
+    //
+    //// the resource controls the url
+    //const authUserResource = api.root.addResource('auth-user');
+    //authUserResource.addMethod('GET', new LambdaIntegration(this.authUser));
+    //addCorsOptions(authUserResource);
+    //
+    //const addUserResource = api.root.addResource('add-user');
+    //addUserResource.addMethod('POST', new LambdaIntegration(addUser));
+    //addCorsOptions(addUserResource);
 
   }
 }
