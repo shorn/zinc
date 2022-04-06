@@ -1,6 +1,12 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { helloWorld } from "Util/SharedData";
-import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import {
+  APIGatewayEventRequestContextV2,
+  APIGatewayProxyEventV2WithRequestContext,
+  APIGatewayProxyHandlerV2,
+  Context
+} from "aws-lambda";
+import { APIGatewayProxyEventV2 } from "aws-lambda/trigger/api-gateway-proxy";
 
 const TABLE_NAME = process.env.TABLE_NAME || '';
 
@@ -32,6 +38,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (
         headers: event.headers,
         parthParams: event.pathParameters,
         queryParams: event.queryStringParameters,
+        tableName: TABLE_NAME,
     }, null, 4) };
 
   } catch (dbError) {

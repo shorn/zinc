@@ -67,8 +67,6 @@ export class CloudFrontStackV3 extends Stack {
         ],
       },
       depsLockFilePath: join(__dirname, lambdaBaseDir, 'package-lock.json'),
-      environment: {
-      },
       runtime: Runtime.NODEJS_14_X,
       memorySize: 512,
       timeout: Duration.seconds(5),
@@ -77,6 +75,9 @@ export class CloudFrontStackV3 extends Stack {
     const authUser = new NodejsFunction(this, 'AuthUser', {
       entry: join(__dirname, lambdaSrcDir, 'AuthUserV5.ts'),
       ...nodeJsFunctionProps,
+      environment: {
+        TABLE_NAME: 'xxx'
+      },
     });
 
     const authUserDirect = new NodejsFunction(this, 'AuthUserDirect', {
