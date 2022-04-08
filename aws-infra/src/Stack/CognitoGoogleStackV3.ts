@@ -143,8 +143,8 @@ export class CognitoGoogleStackV3 extends Stack {
 
       preventUserExistenceErrors: true,
 
-      idTokenValidity: Duration.minutes(5),
-      accessTokenValidity: Duration.minutes(5),
+      idTokenValidity: Duration.minutes(60),
+      accessTokenValidity: Duration.minutes(60),
       refreshTokenValidity: Duration.minutes(60),
 
       supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE]

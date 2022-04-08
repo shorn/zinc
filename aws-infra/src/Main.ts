@@ -9,6 +9,7 @@ import { CloudFrontStackV3 } from "Stack/CloudFrontStackV3";
 import { LambdaStackV3 } from "Stack/LambdaStackV3";
 import { CredentialSsmStack } from "Stack/CredentialSsmStack";
 import { CognitoGoogleStackV3 } from "Stack/CognitoGoogleStackV3";
+import { CredentialSsmStackV2 } from "Stack/CredentialSsmStackV2";
 
 const main = new App();
 
@@ -31,13 +32,17 @@ new CognitoGoogleStackV2(main, 'CognitoGoogleStackV2',{
 
 
 // WIP stacks
-const creds = new CredentialSsmStack(main, `CredentialSsmStack`, {
+//const creds = new CredentialSsmStack(main, `CredentialSsmStack`, {
+//  ...usEast1StackProps(),
+//});
+
+const creds = new CredentialSsmStackV2(main, `CredentialSsmStackV2`, {
   ...usEast1StackProps(),
 });
 
 const cloudfront3 = new CloudFrontStackV3(main, 'CloudFrontStackV3', {
   ...usEast1StackProps(),
-  //lambda: lambda4
+  creds: creds
 });
 
 new CognitoGoogleStackV3(main, 'CognitoGoogleStackV3',{

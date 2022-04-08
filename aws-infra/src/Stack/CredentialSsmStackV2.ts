@@ -6,19 +6,19 @@ import {
   StringParameter
 } from "aws-cdk-lib/aws-ssm";
 
-export const initialParamValue = 'set me via the console';
-
 /**
  * This should use SecureStrings but AWS intentionally don't support them, in 
  * a fundamentally misguided attempt to force people to use Secrets Manager. 
  */
-export class CredentialSsmStack extends Stack {
+export class CredentialSsmStackV2 extends Stack {
   GoogleCredsClientId: StringParameter;
   GoogleCredsClientSecret: StringParameter;
   GoogleCognitoUserPoolRegion: StringParameter;
   GoogleCognitoUserPoolId: StringParameter;
   GoogleCognitoUserPoolClientId: StringParameter;
+  GoogleCognitoUserPoolDomain: StringParameter;
   AuthzSecrets: StringListParameter;
+  AuthzSecrets2: StringListParameter;
 
   constructor(
     scope: Construct,
@@ -37,15 +37,17 @@ export class CredentialSsmStack extends Stack {
     this.GoogleCognitoUserPoolId = this.string('GoogleCognitoUserPoolId');
     this.GoogleCognitoUserPoolClientId = 
       this.string('GoogleCognitoUserPoolClientId');
+    this.GoogleCognitoUserPoolDomain = 
+      this.string('GoogleCognitoUserPoolDomain');
     
     // this is for creating the accessToken
-    this.AuthzSecrets = this.stringList('AuthzSecrets');
+    this.AuthzSecrets2 = this.stringList('AuthzSecrets2');
   }
   
   string(name:string): StringParameter{
     return new StringParameter(this, name, {
       parameterName: name,
-      stringValue: initialParamValue,
+      stringValue: 'set me via the console',
       // advanced costs money
       tier: ParameterTier.STANDARD,
     })  
@@ -53,7 +55,7 @@ export class CredentialSsmStack extends Stack {
   stringList(name:string): StringListParameter{
     return new StringListParameter(this, name, {
       parameterName: name,
-      stringListValue: [initialParamValue],
+      stringListValue: ['set me via the console'],
       // advanced costs money
       tier: ParameterTier.STANDARD,
     })  
