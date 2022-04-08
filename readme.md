@@ -1,5 +1,8 @@
 This repo is for learning about Cognito and aws-cdk.
 
+**NOTE:** It is currently very much a work in progress, the instructions here 
+are likely not up to date and the app itself is not working yet.
+
 # Running you own infrastructure
 
 ## Pre-requisites
