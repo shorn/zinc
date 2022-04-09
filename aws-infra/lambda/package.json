@@ -9,6 +9,8 @@
     "watch": "tsc --watch --noEmit --baseUrl src"
   },
   "devDependencies": {
+    "jest": "27.5.1",
+    "ts-jest": "27.1.4",
     "@types/jsonwebtoken": "8.5.8",
     "@types/node": "14.18.12",
     "@types/uuid": "8.3.4",
@@ -21,4 +23,5 @@
     "@aws-sdk/client-ssm": "3.58.0",
     "uuid": "8.3.2"
   }
+  
 }

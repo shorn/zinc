@@ -4,23 +4,23 @@ import { JwtRsaVerifier } from "aws-jwt-verify";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import {
   ApiRequest,
-  AuthorizeRequest,
+  AuthorizationRequest,
+  AuthorizedRequest,
   AuthorizeResponse,
+  AuthzTokenPayload,
   CognitoConfig,
   SignUpResponse,
   SignUpUserRequest,
   User
 } from "../../../shared/ApiTypes";
-import {
-  GetParameterCommand,
-  GetParameterCommandOutput,
-  SSMClient
-} from "@aws-sdk/client-ssm";
-import { decode, sign } from "jsonwebtoken";
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
 import { initialParamValue } from "../../src/Stack/CredentialSsmStack";
+import { forceError } from "Util/Error";
+import { readStringListParam, readStringParam } from "Util/Ssm";
+import { signAuthzToken, verifyAuthzToken } from "Jwt/AuthzToken";
 
 const name = "AuthUserDb"
+const accessTokenLifeSeconds = 1 * 24 * 60 * 60;
 
 
 const db = {
@@ -33,10 +33,11 @@ console.log(name + " init");
 //}
 
 
-interface LambdaConfig {
+export interface LambdaConfig {
   cognito: CognitoConfig,
   verifier: {
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
+    //aauthorization: JwtRsaVerifierSingleIssuer<AuthzVerifierProps>,
   },
   authzSecrets: string[],
 }
@@ -45,6 +46,11 @@ export interface CognitoVerifierProps {
   issuer: string,
   audience: string,
   jwksUri: string,
+}
+
+export interface AuthzVerifierProps {
+  issuer: string,
+  audience: string,
 }
 
 async function initConfig(reload = false): Promise<LambdaConfig>{
@@ -90,88 +96,18 @@ async function initConfig(reload = false): Promise<LambdaConfig>{
 
 }
 
-const client = new SSMClient({});
-
+// executes at lambda init-time
 let config: Promise<LambdaConfig> = initConfig();
-
-
-async function readStringParam(name: string | undefined): Promise<string>{
-
-  if( !name ){
-    throw new Error("no SSM param name provided");
-  }
-
-  const command = new GetParameterCommand({Name: name});
-  const response: GetParameterCommandOutput = await client.send(command);
-
-  const paramValue = response.Parameter?.Value;
-  if( !paramValue ){
-    throw new Error(`no value for SSM param ${name}`);
-  }
-
-  return paramValue;
-}
-
-
-async function readStringListParam(name: string | undefined): Promise<string[]>{
-  const command = new GetParameterCommand({Name: name});
-  const response: GetParameterCommandOutput = await client.send(command);
-
-  const paramValue = response.Parameter?.Value;
-  if( !paramValue ){
-    throw new Error(`no value for SSM param ${name}`);
-  }
-
-  const values = paramValue.split(",");
-
-  if( !values || values.length < 1 ){
-    throw new Error(`no values in ${name}`);
-  }
-
-  return values;
-}
-
-//async function readAuthzSecrets(){
-//  if( authzSecrets ){
-//    return authzSecrets;
-//  }
-//  const command = new GetParameterCommand({Name: env.authzSecretsSsmParam});
-//  const response: GetParameterCommandOutput = await client.send(command);
-//
-//  const paramValue = response.Parameter?.Value;
-//  if( !paramValue ){
-//    throw new AuthError("while authorizing",
-//      new Error(`no value for SSM param ${env.authzSecretsSsmParam}`));
-//  }
-//
-//  const secrets = paramValue.split(",");
-//
-//  if( !secrets || secrets.length < 1 ){
-//    throw new AuthError("while authorizing",
-//      new Error(`no secrets in ${env.authzSecretsSsmParam}`));
-//  }
-//
-//  secrets.forEach((it, index) => {
-//    if( !it || it.length < 16 ){
-//      throw new AuthError("while authorizing",
-//        new Error(`secrets ${index} is too short:  ${it?.length}`));
-//    }
-//  })
-//
-//  authzSecrets = secrets;
-//  return authzSecrets;
-//}
 
 export const handler: APIGatewayProxyHandlerV2 = async (
   event, context
 ): Promise<object> => {
   //console.log(name+" exec", event, context);
   console.log(name + " exec");
-  const execConfig: LambdaConfig = await config;
 
   try {
     const req = parseApiRequest(event);
-    const res = await dispatchRequest(req, execConfig);
+    const res = await dispatchRequest(req);
 
     return {statusCode: 200, body: JSON.stringify(res, null, 4)};
 
@@ -199,41 +135,84 @@ function parseApiRequest(event: APIGatewayProxyEventV2): ApiRequest{
     throw new Error("request body has no [type] field");
   }
 
-  //if( !body.payload ){
-  //  throw new Error(`request [type]=[${body.type}] has no [payload] field`);
-  //}
-
   return body as ApiRequest;
 }
 
-async function dispatchRequest(req: ApiRequest,
-  config: LambdaConfig
-): Promise<object>{
+async function dispatchRequest(req: ApiRequest): Promise<object>{
   console.log("dispatching", req.type);
   switch( req.type ){
     case "SignUpUser":
-      return signUpUser(req.payload, config);
+      return signUpUser(req.payload, await config);
     case "Authorize":
-      return authorizeUser(req.payload, config);
+      return authorizeUser(req.payload, await config);
+    case "ListUsers":
+      return listPublicUserData(req.payload, await config);
     case "ReadConfig":
       // do not return secrets
-      return (await initConfig()).cognito;
+      return (await config).cognito;
     case "ReloadConfig":
-      return (await initConfig(true)).cognito;
+      config = initConfig(true);
+      return (await config).cognito;
     case "KeepAlive":
       return {};
   }
 }
 
+export interface ServerAuthzContainer {
+  access: AuthzTokenPayload,
+  user: User,
+}
 
+/** This is for verifying the AccessToken sent by the client.
+ * Called by endpoints that restrict access.  
+ */
+async function guardAuthz(req: AuthorizedRequest, config: LambdaConfig)
+: Promise<ServerAuthzContainer>{
+  console.log("verifying", req.accessToken);
+
+  //const decoded = decode(req.accessToken) as JwtPayload;
+  //console.log("JWT expires", parseJwtDate(decoded.exp))
+
+  const auth: AuthzTokenPayload = verifyAuthzToken({
+    accessToken: req.accessToken, 
+    secrets: config.authzSecrets });
+  
+  const userEmail: string = auth.email;
+
+  let user = await findUser(userEmail);
+
+  if( !user ){
+    throw new AuthError("while authorizing", 
+      new Error("no such user: " + userEmail) );
+  }
+  
+  if( !user.enabled ){
+    throw new AuthError("while authorizing", new Error("user disabled"));
+  }
+  
+  if( user.onlyAfter ){
+    if( user.onlyAfter.getTime() > new Date().getTime() ){
+      throw new AuthError("while authorizing",
+        new Error("authz only allowed after: " +
+          user.onlyAfter.toISOString()));
+    }
+  }
+
+  return {
+    access: auth,
+    user
+  };
+}
+
+/** This is for turning an IdToken into an AccessToken */
 async function authorizeUser(
-  req: AuthorizeRequest,
+  req: AuthorizationRequest,
   config: LambdaConfig
 ): Promise<AuthorizeResponse>{
   console.log("verifying", req.idToken);
 
-  const decoded = decode(req.idToken) as JwtPayload;
-  console.log("JWT expires", parseJwtDate(decoded.exp))
+  //const decoded = decode(req.idToken) as JwtPayload;
+  //console.log("JWT expires", parseJwtDate(decoded.exp))
   let payload: JwtPayload;
   try {
     payload = await config.verifier.google.verify(req.idToken);
@@ -246,12 +225,13 @@ async function authorizeUser(
   }
   const userEmail: string = payload.email;
 
-  let user = db.users.find(it => it.email === userEmail);
+  let user = await findUser(userEmail);
 
   if( !user ){
-    throw new AuthError("while authorizing",
-      new Error(`user not exist: ${userEmail}`));
+    // no sign up button for Google, just add them
+    user = await addUser(userEmail);
   }
+  
   if( !user.enabled ){
     throw new AuthError("while authorizing", new Error("user disabled"));
   }
@@ -276,22 +256,29 @@ async function authorizeUser(
       new Error("authzSecret[0] is too short, pick a better value"));
   }
 
-  const accessToken = sign(
-    {
-      email: user.email,
-      role: "user",
-    },
-    // always sign with first secret, always rotate by adding to beginning
-    authzSecrets[0],
-    {
-      algorithm: "HS256",
-      expiresIn: 1 * 24 * 60 * 60
-    });
+  const accessToken = signAuthzToken({
+    email: user.email, 
+    secret: authzSecrets[0], 
+    expiresInSeconds: accessTokenLifeSeconds });
 
   return {
     succeeded: true,
     accessToken,
   }
+}
+
+async function addUser(email:string): Promise<User>{
+  const user = {
+    email: email,
+    enabled: true,
+  };
+  db.users.push(user)
+
+  return user;
+}
+
+async function findUser(email: string): Promise<User|undefined>{
+  return db.users.find(it => it.email === email);
 }
 
 async function signUpUser(
@@ -314,42 +301,23 @@ async function signUpUser(
   }
   const userEmail: string = payload.email;
 
-  let existingUser = db.users.find(it => it.email === userEmail);
+  let existingUser = await findUser(userEmail);
   if( existingUser ){
     console.log("user already exists", existingUser);
     return {user: existingUser};
   }
 
-  const user = {
-    email: payload.email as string,
-    enabled: true,
-  };
-  db.users.push(user)
-
+  const user = await addUser(userEmail);
   return {user};
 }
 
-// don't leak emails
-function listPublicUserData(){
-
+// this is bad, don't leak emails
+async function listPublicUserData(req: AuthorizedRequest, config: LambdaConfig): Promise<User[]>{
+  await guardAuthz(req, config);
+  return db.users;
 }
 
-export function forceError(e: unknown): Error{
-  if( !e ){
-    return new Error("[null or undefined]");
-  }
-  if( e instanceof Error ){
-    return e;
-  }
-  if( typeof e === 'string' ){
-    return new Error(e);
-  }
-  if( typeof e === 'object' ){
-    return new Error(e.toString());
-  }
-  return new Error("unknown error");
-}
-
+// structure is too opaque, rename to "public" and "private" messages 
 class AuthError extends Error {
   cause: Error;
 

@@ -8,7 +8,9 @@ import {
 
 /**
  * This should use SecureStrings but AWS intentionally don't support them, in 
- * a fundamentally misguided attempt to force people to use Secrets Manager. 
+ * a misguided attempt to force people to use Secrets Manager. 
+ * So you end up with example code like this; or even better, all the CDK 
+ * examples and doco where they just embed secrets in source code.
  */
 export class CredentialSsmStackV2 extends Stack {
   GoogleCredsClientId: StringParameter;
