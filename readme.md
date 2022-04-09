@@ -3,6 +3,12 @@ This repo is for learning about Cognito and aws-cdk.
 **NOTE:** It is currently very much a work in progress, the instructions here 
 are likely not up to date and the app itself is not working yet.
 
+# Doc todo
+* don't copy contents of Config.ts any more
+* copy values into the SSM params and lambda will serve that to the client
+* copy the cloudfront url to pacakge.json/proxy for local dev
+
+
 # Running you own infrastructure
 
 ## Pre-requisites
