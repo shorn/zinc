@@ -11,29 +11,28 @@ import {
   UserPoolEmail,
   UserPoolIdentityProviderGoogle
 } from "aws-cdk-lib/aws-cognito";
-import { StringParameter } from "aws-cdk-lib/aws-ssm";
-
-interface ThisStackProps extends StackProps {
-  callbackUrls : string[],
-  /* I think this has to be unique? */
-  domainPrefix: string,
-}
 
 export class CognitoGoogleStackV3 extends Stack {
-  
-  props: ThisStackProps;
+
   userPool: UserPool;
   client: UserPoolClient;
-  
+  domainPrefix: string;
+  debug: boolean;
+
   constructor(
-    scope: Construct, 
+    scope: Construct,
     id: string,
-    props: ThisStackProps,
-){
+    {callbackUrls, domainPrefix, debug = true, ...props}: StackProps & {
+      callbackUrls: string[],
+      /* I think this has to be unique? */
+      domainPrefix: string,
+      debug?: boolean,
+    },
+  ){
     super(scope, id, props);
-    this.props = props;
-    const {callbackUrls, domainPrefix} = props;
-    
+    this.domainPrefix = domainPrefix;
+    this.debug = debug;
+
     this.userPool = new UserPool(this, `${id}UserPool`, {
       signInAliases: {
         email: true
@@ -55,7 +54,7 @@ export class CognitoGoogleStackV3 extends Stack {
         domainPrefix
       }
     });
-    console.log(`Copy to Google dev console
+    this.print(`Copy to Google dev console
       "Authorized JS origin": ${this.getAuthBaseUri()}
       "Authorized redirect URIs": ${this.getAuthBaseUri()}/oauth2/idpresponse
       "Authorized domains": ${cognitoDomain} `);
@@ -77,7 +76,7 @@ export class CognitoGoogleStackV3 extends Stack {
     //  parameterName: clientIdParam.parameterName,
     //  // 'version' can be specified but is optional.
     //}).stringValue;
-    
+
     // will fail at diff time:
     // Unable to determine ARN separator for SSM parameter since the parameter name is an unresolved token. Use "fromAttributes" and specify "simpleName" explicitly'
     // const clientIdVfsp = StringParameter.valueForStringParameter(
@@ -88,7 +87,7 @@ export class CognitoGoogleStackV3 extends Stack {
     // const clientIdFspa: IStringParameter = StringParameter.fromStringParameterAttributes(
     //   this, "clientIdFspa", {simpleName: true, parameterName: clientIdParam.node.id });
 
-    console.log("Copy credentials from Google dev console to " +
+    this.print("Copy credentials from Google dev console to " +
       " / Cognito user pool" + " / Sign-in experience" +
       " / Federated identity provider sign-in / Google");
     // I believe name has to be "Google"; not sure why.
@@ -118,7 +117,7 @@ export class CognitoGoogleStackV3 extends Stack {
       scopes: ["profile", "email", "openid"],
     });
 
-    console.log(id + " callbackUrls: ", callbackUrls);
+    this.print(id + " callbackUrls: ", callbackUrls);
     this.client = new UserPoolClient(this, "CognitoGoogleUserPoolClient", {
       userPool: this.userPool,
       disableOAuth: false,
@@ -151,24 +150,24 @@ export class CognitoGoogleStackV3 extends Stack {
     });
 
     // after deployment, populate these values in /client/src/Config.ts
-    new CfnOutput(this, id+"CognitoGoogleUserPoolRegion", {
+    new CfnOutput(this, id + "CognitoGoogleUserPoolRegion", {
       value: this.region
     });
-    new CfnOutput(this, id+"CognitoGoogleUserPoolId", {
+    new CfnOutput(this, id + "CognitoGoogleUserPoolId", {
       value: this.userPool.userPoolId
     });
-    new CfnOutput(this, id+"CognitoGoogleUserPoolClientId", {
+    new CfnOutput(this, id + "CognitoGoogleUserPoolClientId", {
       value: this.client.userPoolClientId
     });
-    new CfnOutput(this, id+"CognitoGoogleUserPoolDomain", {
-      value: this.props.domainPrefix
+    new CfnOutput(this, id + "CognitoGoogleUserPoolDomain", {
+      value: domainPrefix
     });
 
   }
 
   /* set in google developer console credentials "Authz JS origins" */
   getAuthBaseUri(){
-    return `https://${this.props.domainPrefix}` +
+    return `https://${this.domainPrefix}` +
       `.auth.${this.region}.${cognitoDomain}`
   }
 
@@ -176,7 +175,13 @@ export class CognitoGoogleStackV3 extends Stack {
   getAuthRedirectUri(){
     return this.getAuthBaseUri() + "/oauth2/idpresponse";
   }
-  
+
+  print(message?: any, ...optionalParams: any[]){
+    if( !this.debug ){
+      return;
+    }
+    console.log(message, optionalParams);
+  }
 }
 
 /* Add to Google dev console OAuth consent screen "Authorized domains" */

@@ -15,7 +15,6 @@ import {
   CachePolicy,
   CacheQueryStringBehavior,
   Distribution,
-  OriginRequestPolicy,
   ViewerProtocolPolicy
 } from "aws-cdk-lib/aws-cloudfront";
 import {
@@ -31,8 +30,6 @@ import {
   RestApi
 } from "aws-cdk-lib/aws-apigateway";
 import { HttpOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
-import { CredentialSsmStack } from "Stack/CredentialSsmStack";
-import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { CredentialSsmStackV2 } from "Stack/CredentialSsmStackV2";
 
 export interface ThisProps extends StackProps {

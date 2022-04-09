@@ -13,13 +13,15 @@ import {
  * examples and doco where they just embed secrets in source code.
  */
 export class CredentialSsmStackV2 extends Stack {
+  // these aren't used yet, haven't been able to figure it out
   GoogleCredsClientId: StringParameter;
   GoogleCredsClientSecret: StringParameter;
+  
   GoogleCognitoUserPoolRegion: StringParameter;
   GoogleCognitoUserPoolId: StringParameter;
   GoogleCognitoUserPoolClientId: StringParameter;
   GoogleCognitoUserPoolDomain: StringParameter;
-  AuthzSecrets: StringListParameter;
+  
   AuthzSecrets2: StringListParameter;
 
   constructor(
