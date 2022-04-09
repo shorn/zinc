@@ -17,7 +17,7 @@
     "deploy-teststack": "npm run cog-poc deploy SimpleTestStack",
     "deploy-lambda": "npm run cog-poc deploy LambdaStackV3",
     "deploy-dev": "npm run cog-poc deploy CredentialSsmStack",
-    "destroy-dev": "cdk --profile cognito-poc destroy CloudFrontStackV3 CognitoGoogleStackV3",
+    "destroy-dev": "cdk --profile cognito-poc destroy LambdaStack CloudFrontStackV2 CognitoGoogleStackV2",
     "deploy-cloudfront": "npm run cog-poc deploy CloudFrontStackV2",
     "deploy-cloudfront3": "npm run cog-poc deploy CloudFrontStackV3",
     "hotswap-cloudfront3": "cdk --hotswap --profile cognito-poc deploy CloudFrontStackV3",
@@ -30,12 +30,12 @@
     "outputs": "cdk --all --profile cognito-poc --outputs-file cdk.out/outputs.json deploy"
   },
   "devDependencies": {
-    "esbuild": "0.14.29",
+    "esbuild": "0.14.34",
     "@types/jest": "27.4.1",
     "@types/node": "10.17.27",
     "jest": "27.5.1",
     "ts-jest": "27.1.4",
-    "aws-cdk": "2.19.0",
+    "aws-cdk": "2.20.0",
     "ts-node": "10.7.0",
     "tsconfig-paths": "3.14.1",    
     "typescript": "4.6.3"
