@@ -1,11 +1,4 @@
-import {
-  decode,
-  Jwt,
-  JwtPayload,
-  sign,
-  SignOptions,
-  verify
-} from "jsonwebtoken";
+import { JwtPayload, sign, SignOptions, verify } from "jsonwebtoken";
 import { forceError } from "Util/Error";
 import { AuthzTokenPayload } from "../../../../shared/ApiTypes";
 

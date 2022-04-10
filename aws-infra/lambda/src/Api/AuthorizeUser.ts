@@ -1,21 +1,21 @@
 import {
-  AuthorizationRequest,
-  AuthorizeResponse
+  AuthorizeUserRequest,
+  AuthorizeUserResponse
 } from "shared/ApiTypes";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import { AuthError, forceError } from "Util/Error";
 import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV2";
 import { signAuthzToken } from "Jwt/AuthzToken";
-import { AuthUserConfig } from "AuthUserDb";
 import { addUser, findUser } from "Db/LambdaDb";
+import { LambaApiV2Config } from "LambdaApiV2";
 
 const accessTokenLifeSeconds = 1 * 24 * 60 * 60;
 
 /** Turns an IdToken into an AccessToken */
 export async function authorizeUser(
-  req: AuthorizationRequest,
-  config: AuthUserConfig
-): Promise<AuthorizeResponse>{
+  req: AuthorizeUserRequest,
+  config: LambaApiV2Config
+): Promise<AuthorizeUserResponse>{
   console.log("verifying", req.idToken);
 
   //const decoded = decode(req.idToken) as JwtPayload;
@@ -53,7 +53,7 @@ export async function authorizeUser(
     }
   }
 
-  console.log("User is valid, generation access token");
+  console.log("idToken and User is valid, generating accessToken");
 
   const {authzSecrets} = config;
   if( !authzSecrets || authzSecrets.length === 0 ){

@@ -1,13 +1,15 @@
 import { AuthorizedRequest, AuthzTokenPayload } from "shared/ApiTypes";
 import { verifyAuthzToken } from "Jwt/AuthzToken";
 import { AuthError } from "Util/Error";
-import { AuthUserConfig, ServerAuthzContainer } from "AuthUser";
 import { findUser } from "Db/LambdaDb";
+import { LambaApiV2Config, ServerAuthzContainer } from "LambdaApiV2";
 
-/** Verify the AccessToken sent by the client.
+/** Verify the AccessToken sent by the client, verify the user is still allowed
+ * to use the API.
  * Called by endpoints that restrict access.
+ * @throws AuthError if there's an issue with token or access verification.
  */
-export async function guardAuthz(req: AuthorizedRequest, config: AuthUserConfig)
+export async function guardAuthz(req: AuthorizedRequest, config: LambaApiV2Config)
   : Promise<ServerAuthzContainer>{
   console.log("verifying", req.accessToken);
 

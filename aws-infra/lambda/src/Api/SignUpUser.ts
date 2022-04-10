@@ -1,12 +1,12 @@
 import { SignUpResponse, SignUpUserRequest } from "shared/ApiTypes";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import { AuthError, forceError } from "Util/Error";
-import { AuthUserConfig } from "AuthUser";
 import { addUser, findUser } from "Db/LambdaDb";
+import { LambaApiV2Config } from "LambdaApiV2";
 
 export async function signUpUser(
   req: SignUpUserRequest,
-  config: AuthUserConfig
+  config: LambaApiV2Config
 ): Promise<SignUpResponse>{
   console.log("verifying", req.idToken);
 

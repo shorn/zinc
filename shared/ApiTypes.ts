@@ -1,27 +1,34 @@
-export type ApiRequest = {
-  type: "SignUpUser",
-  payload: SignUpUserRequest,
-} | {
-  type: "Authorize",
-  payload: AuthorizationRequest,
-} | {
-  type: "ListUsers",
-  payload: AuthorizedRequest,
-} | {
-  type: "ReloadConfig",
-} | {
-  type: "ReadConfig",
-} | {
-  type: "KeepAlive",
+export type ApiCall = {
+  type: string
 }
 
-export interface SignUpUserRequest {
-  idToken: string,
+export type ApiMap = {
+  authorize: {
+    post: (req: AuthorizeUserRequest) => Promise<AuthorizeUserResponse>
+  },
+  readConfig: {
+    post: () => Promise<CognitoConfig>
+  },
+  initConfig: {
+    post: () => Promise<CognitoConfig>
+  },
+  listUsers: {
+    post: (req: AuthorizedRequest) => Promise<User[]>
+  },
 }
 
 // used to authorize the idToken and get an accessToken
-export interface AuthorizationRequest {
+export interface AuthorizeUserRequest {
   idToken: string,
+}
+
+
+export type AuthorizeUserResponse = {
+  succeeded: true,
+  accessToken: string,
+} | {
+  succeeded: false,
+  message: string,
 }
 
 // used in the payload of any "authorized" call, each call must
@@ -30,13 +37,8 @@ export interface AuthorizedRequest {
   accessToken: string,
 }
 
-
-export type AuthorizeResponse = {
-  succeeded: true,
-  accessToken: string,
-} | {
-  succeeded: false,
-  message: string,
+export interface SignUpUserRequest {
+  idToken: string,
 }
 
 export interface SignUpResponse {

@@ -70,15 +70,6 @@ export class CloudFrontStackV3 extends Stack {
       timeout: Duration.seconds(5),
     }
 
-    const authUser = new NodejsFunction(this, 'AuthUser', {
-      entry: join(__dirname, lambdaSrcDir, 'AuthUserV5.ts'),
-      ...nodeJsFunctionProps,
-      environment: {
-        TABLE_NAME: 'xxx'
-      },
-
-    });
-
     const apiPrd = new RestApi(this, id + 'PublicApi', {
       restApiName: id + ' public API',
       deployOptions: {

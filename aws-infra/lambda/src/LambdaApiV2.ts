@@ -16,30 +16,44 @@ import { listPublicUserData } from "Api/ListUsers";
 const name = "LambdaApiV2";
 
 
+let config: Promise<LambaApiV2Config> = initConfig();
+
 export const api: ApiMap = {
-  authorize: {
-    post: async req => authorizeUser(req, await config),
-  },
+  // unauthorized calls
+  /** client app boots off this, supplies details about Cognito details
+   * to use for authentication */
   readConfig: {
     post: async () => (await config).cognito,
   },
+  
+  /** Causes the lambda to re-read its config.
+   * Pretty useless for normal lambdas.
+   * Generally you'd use an AWS mechanism to achieve this (new version,
+   * throttle, etc.)
+   */
   initConfig: {
     post: async () => {
       config = initConfig(true);
       return (await config).cognito;
     },
   },
+
+  /** Turns an IdToken into an AccessToken */
+  authorize: {
+    post: async req => authorizeUser(req, await config),
+  },
+  
+  // authorized calls
   listUsers: {
     post: async req => listPublicUserData(req, await config),
   },
 }
 
 
-export interface AuthUserConfig {
+export interface LambaApiV2Config {
   cognito: CognitoConfig,
   verifier: {
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
-    //aauthorization: JwtRsaVerifierSingleIssuer<AuthzVerifierProps>,
   },
   authzSecrets: string[],
 }
@@ -50,7 +64,7 @@ export interface CognitoVerifierProps {
   jwksUri: string,
 }
 
-async function initConfig(reload = false): Promise<AuthUserConfig>{
+async function initConfig(reload = false): Promise<LambaApiV2Config>{
   if( !reload && config ){
     return config;
   }
@@ -93,12 +107,7 @@ async function initConfig(reload = false): Promise<AuthUserConfig>{
 
 }
 
-// executes at lambda init-time
-let config: Promise<AuthUserConfig> = initConfig();
-
-export const handler: APIGatewayProxyHandler = async (
-  event, context
-)=> {
+export const handler: APIGatewayProxyHandler = async (event, context)=> {
   //console.log(name+" exec", event, context);
   console.log(name + " exec");
 
