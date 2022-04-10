@@ -4,7 +4,7 @@ import {
 } from "shared/ApiTypes";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import { AuthError, forceError } from "Util/Error";
-import { initialParamValue } from "../../../src/Stack/CredentialSsmStack";
+import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV2";
 import { signAuthzToken } from "Jwt/AuthzToken";
 import { AuthUserConfig } from "AuthUserDb";
 import { addUser, findUser } from "Db/LambdaDb";

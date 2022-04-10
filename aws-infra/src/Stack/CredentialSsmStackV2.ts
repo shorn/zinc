@@ -6,6 +6,8 @@ import {
   StringParameter
 } from "aws-cdk-lib/aws-ssm";
 
+export const initialParamValue = 'set me via the console';
+
 /**
  * This should use SecureStrings but AWS intentionally don't support them, in 
  * a misguided attempt to force people to use Secrets Manager. 
@@ -51,7 +53,7 @@ export class CredentialSsmStackV2 extends Stack {
   string(name:string): StringParameter{
     return new StringParameter(this, name, {
       parameterName: name,
-      stringValue: 'set me via the console',
+      stringValue: initialParamValue,
       // advanced costs money
       tier: ParameterTier.STANDARD,
     })  
@@ -59,7 +61,7 @@ export class CredentialSsmStackV2 extends Stack {
   stringList(name:string): StringListParameter{
     return new StringListParameter(this, name, {
       parameterName: name,
-      stringListValue: ['set me via the console'],
+      stringListValue: [initialParamValue],
       // advanced costs money
       tier: ParameterTier.STANDARD,
     })  
