@@ -1,14 +1,5 @@
 This repo is for learning about Cognito and aws-cdk.
 
-**NOTE:** It is currently very much a work in progress, the instructions here 
-are likely not up to date and the app itself is not working yet.
-
-# Doc todo
-* don't copy contents of Config.ts any more
-* copy values into the SSM params and lambda will serve that to the client
-* copy the cloudfront url to pacakge.json/proxy for local dev
-
-
 # Running you own infrastructure
 
 ## Pre-requisites
@@ -50,24 +41,22 @@ you'll needed [set up credentials](./doc/aws-credentials.md) for the
   Federated identity provider sign-in / Google", though Amazon are also prone to 
   changing their UI too
 
-## Configure the client app to know about our stack details
-* populate [client Config.ts](./client/src/Config.ts) with the details for
-the Cognito "Email" and "Google" user-pools
-  * copy the values from teh various `Ouputs` sections in the output of the 
-  `deploy` script (you can safely re-run `deploy` if needed)
+## Configure the SSM parameters that configure the lambda
+* go to the AWS SSM parameter store console, there will be various SSM params
+  with value "set me in the console"
+* copy the values from teh various `Ouputs` sections in the output of the 
+`deploy` script (you can safely re-run `deploy` if needed)
 ```
 Outputs:
-CognitoEmailStack.CognitoEmailStackCognitoEmailUserPoolClientId = 5olqlrovoqjtgnb6orcl2larnd
-CognitoEmailStack.CognitoEmailStackCognitoEmailUserPoolId = ap-southeast-2_CQVVulGz5
+CognitoEmailStack.CognitoEmailStackCognitoEmailUserPoolClientId = xxx
+CognitoEmailStack.CognitoEmailStackCognitoEmailUserPoolId = region_xxx
 
 Outputs:
-CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolClientId = 7bjopbg1nl44qgsgqa89almsrv
-CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolDomain = cog-poc-google2
-CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolId = ap-southeast-2_sxSfqgfX6
-CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolRegion = ap-southeast-2
+CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolClientId = xxx
+CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolDomain = domain-name
+CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolId = region_xxx
+CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolRegion = region
 ```
-  * the current values in the `Config.ts` are for my own test infrastructure, 
-  you need to change them over to point to your own infrastructure
 
 ## Build and deploy the client app
 * `cd <repo>/client`
@@ -81,5 +70,13 @@ CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolRegion = ap-southe
 That's it - you should now be able to navigate to the URL for the app and 
 sign in (look in the CloudFront console under "Distribution domain name", 
 there's also an "Output" for the CloudFront domain printed by `deploy`).
+
+# Local development 
+* edit the `proxy` setting in [client/package.json](./client/package.json) and
+set it to the cloudfront url
+* run `client` `npm start-dev` to start the client locally, the `proxy` setting 
+will proxy calls out to the lambda running under cloudfront
+* run `aws-infra` `npm run hotswap-cloudfront` to do a fast deployment of 
+changed lambda code
 
 
