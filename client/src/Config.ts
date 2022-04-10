@@ -18,7 +18,7 @@
  * "shared" environment configuration.  
  * Each config (`prd` / `tst` etc.) should be reviewable as a stand-alone unit
  * (in a non-IDE context).
- * Don't force reviewers to guess what the `prd` or `tst`config looks like by 
+ * Don't force reviewers to guess what the `prd` or `tst` config looks like by 
  * mentally reproducing your "shared config merging logic".  Preventing 
  * accidental/unexpected usage of bad config (e.g. a test or prod environment 
  * accidentally using a wrong DB or other system dependency) is more important
@@ -41,19 +41,6 @@ export interface EnvironmentConfig {
    */
   isProd: boolean,
 
-  //cognito: {
-  //  region: string,
-  //  email: {
-  //    userPoolId: string,
-  //    userPoolClientId: string,
-  //  },
-  //  google: {
-  //    userPoolId: string,
-  //    userPoolClientId: string,
-  //    userPoolDomain: string,
-  //  }
-  //},
-  
   /** Used to submit logs to Sentry instead of the Cabbage endpoint */
   sentryDsn?: string,
 }
@@ -96,69 +83,21 @@ function chooseEnvironmentConfig(env: string | undefined){
 const ciConfig: EnvironmentConfig = {
   environmentName: "ci",
   isProd: false,
-  //cognito : {
-  //  region: "unused",
-  //  email: {
-  //    userPoolId: "unused",
-  //    userPoolClientId: "unused"
-  //  },
-  //  google: {
-  //    userPoolId: "unused",
-  //    userPoolClientId: "unused",
-  //    userPoolDomain: "unused",
-  //  }
-  //},
 };
 
 const devConfig: EnvironmentConfig = {
   environmentName: "dev",
   isProd: false,
-  //cognito : {
-  //  region: "ap-southeast-2",
-  //  email: {
-  //    userPoolId: "ap-southeast-2_CQVVulGz5",
-  //    userPoolClientId: "5olqlrovoqjtgnb6orcl2larnd"
-  //  },
-  //  google: {
-  //    userPoolId: "ap-southeast-2_sxSfqgfX6",
-  //    userPoolClientId: "7bjopbg1nl44qgsgqa89almsrv",
-  //    userPoolDomain: "cog-poc-google2",
-  //  }
-  //},
 };
 
 const tstConfig: EnvironmentConfig = {
   environmentName: "tst",
   isProd: false,
-  //cognito : {
-  //  region: "unused",
-  //  email: {
-  //    userPoolId: "unused",
-  //    userPoolClientId: "unused"
-  //  },
-  //  google: {
-  //    userPoolId: "unused",
-  //    userPoolClientId: "unused",
-  //    userPoolDomain: "unused",
-  //  }
-  //},
 };
 
 const prdConfig: EnvironmentConfig = {
   environmentName: "prd",
   isProd: true,
-  //cognito : {
-  //  region: "ap-southeast-2",
-  //  email: {
-  //    userPoolId: "ap-southeast-2_CQVVulGz5",
-  //    userPoolClientId: "5olqlrovoqjtgnb6orcl2larnd"
-  //  },
-  //  google: {
-  //    userPoolId: "ap-southeast-2_sxSfqgfX6",
-  //    userPoolClientId: "7bjopbg1nl44qgsgqa89almsrv",
-  //    userPoolDomain: "cog-poc-google2",
-  //  }
-  //}
 };
 
 
