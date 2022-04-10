@@ -14,3 +14,17 @@ export function forceError(e: unknown): Error{
   return new Error("unknown error");
 }
 
+export class AuthError extends Error {
+  privateMsg: string;
+
+  constructor({publicMsg, privateMsg}:{
+    publicMsg: string,
+    privateMsg: string,
+  }){
+    super(publicMsg);
+    this.privateMsg = privateMsg;
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, AuthError.prototype);
+  }
+}
+

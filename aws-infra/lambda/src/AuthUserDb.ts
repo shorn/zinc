@@ -1,9 +1,9 @@
-import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { APIGatewayProxyEventV2 } from "aws-lambda/trigger/api-gateway-proxy";
+import { APIGatewayProxyHandler } from "aws-lambda";
+import { APIGatewayProxyEvent } from "aws-lambda/trigger/api-gateway-proxy";
 import { JwtRsaVerifier } from "aws-jwt-verify";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import {
-  ApiRequest,
+  ApiMap,
   AuthorizationRequest,
   AuthorizedRequest,
   AuthorizeResponse,
@@ -12,12 +12,12 @@ import {
   SignUpResponse,
   SignUpUserRequest,
   User
-} from "../../../shared/ApiTypes";
+} from "shared/ApiTypes";
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
-import { initialParamValue } from "../../src/Stack/CredentialSsmStack";
-import { forceError } from "Util/Error";
+import { AuthError, forceError } from "Util/Error";
 import { readStringListParam, readStringParam } from "Util/Ssm";
 import { signAuthzToken, verifyAuthzToken } from "Jwt/AuthzToken";
+import { initialParamValue } from "../../src/Stack/CredentialSsmStack";
 
 const name = "AuthUserDb"
 const accessTokenLifeSeconds = 1 * 24 * 60 * 60;
@@ -29,11 +29,26 @@ const db = {
 
 console.log(name + " init");
 
-//const env = {
-//}
+export const api: ApiMap = {
+  authorize: {
+    post: async req => authorizeUser(req, await config),
+  },
+  readConfig: {
+    post: async () => (await config).cognito,
+  },
+  initConfig: {
+    post: async () => {
+      config = initConfig(true);
+      return (await config).cognito;
+    },
+  },
+  listUsers: {
+    post: async req => listPublicUserData(req, await config),
+  },
+}
 
 
-export interface LambdaConfig {
+export interface AuthUserConfig {
   cognito: CognitoConfig,
   verifier: {
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
@@ -48,12 +63,7 @@ export interface CognitoVerifierProps {
   jwksUri: string,
 }
 
-export interface AuthzVerifierProps {
-  issuer: string,
-  audience: string,
-}
-
-async function initConfig(reload = false): Promise<LambdaConfig>{
+async function initConfig(reload = false): Promise<AuthUserConfig>{
   if( !reload && config ){
     return config;
   }
@@ -97,35 +107,39 @@ async function initConfig(reload = false): Promise<LambdaConfig>{
 }
 
 // executes at lambda init-time
-let config: Promise<LambdaConfig> = initConfig();
+let config: Promise<AuthUserConfig> = initConfig();
 
-export const handler: APIGatewayProxyHandlerV2 = async (
+export const handler: APIGatewayProxyHandler = async (
   event, context
-): Promise<object> => {
+)=> {
   //console.log(name+" exec", event, context);
   console.log(name + " exec");
 
   try {
-    const req = parseApiRequest(event);
-    const res = await dispatchRequest(req);
+    //const req = parseApiRequest(event);
+    //const res = await dispatchRequest(req);
+    
+    const res = await dispatchApiCall(event);
 
     return {statusCode: 200, body: JSON.stringify(res, null, 4)};
 
   } catch( err ){
     if( err instanceof AuthError ){
-      console.error("auth error", err.message, err.cause);
+      console.error("auth error", err.message, err.privateMsg);
       return {
         statusCode: 400,
         body: err.message,
       };
     }
     console.error("error", err);
-    //return { statusCode: 500, body: JSON.stringify(err, null, 4) };
-    return {statusCode: 500, body: err};
+    return {statusCode: 500, body: forceError(err).message};
   }
 };
 
-function parseApiRequest(event: APIGatewayProxyEventV2): ApiRequest{
+/** Does JSON parsing, validates the body.type field is a valid API Call.
+ */
+function parseApiCallType(event: APIGatewayProxyEvent)
+: object & { type: keyof ApiMap} {
   if( !event.body ){
     throw new Error("no event body");
   }
@@ -135,38 +149,41 @@ function parseApiRequest(event: APIGatewayProxyEventV2): ApiRequest{
     throw new Error("request body has no [type] field");
   }
 
-  return body as ApiRequest;
+  /* note that there is no runtime validation of the the request, so WHEN 
+   I stuff up version syncing, it's going to be a pain to diagnose :( */
+
+  let validApiCalls = Object.keys(api);
+  if( !(validApiCalls.includes(body.type)) ){
+    console.error("unknown ApiCall.type", body.type, event)
+    throw new Error("unknown ApiCall.type="+body.type);
+  }
+
+  return body;
 }
 
-async function dispatchRequest(req: ApiRequest): Promise<object>{
-  console.log("dispatching", req.type);
-  switch( req.type ){
-    case "SignUpUser":
-      return signUpUser(req.payload, await config);
-    case "Authorize":
-      return authorizeUser(req.payload, await config);
-    case "ListUsers":
-      return listPublicUserData(req.payload, await config);
-    case "ReadConfig":
-      // do not return secrets
-      return (await config).cognito;
-    case "ReloadConfig":
-      config = initConfig(true);
-      return (await config).cognito;
-    case "KeepAlive":
-      return {};
+async function dispatchApiCall(event: APIGatewayProxyEvent){
+  if( event.httpMethod !== "POST"){
+    throw new Error("this api only supports POST at the moment");
   }
+
+  const apiCall = parseApiCallType(event);
+  console.log("apiCall", apiCall);
+  
+  const call = api[apiCall.type].post;
+  
+  return await call(apiCall as any);
 }
+
 
 export interface ServerAuthzContainer {
   access: AuthzTokenPayload,
   user: User,
 }
 
-/** This is for verifying the AccessToken sent by the client.
+/** Verify the AccessToken sent by the client.
  * Called by endpoints that restrict access.  
  */
-async function guardAuthz(req: AuthorizedRequest, config: LambdaConfig)
+async function guardAuthz(req: AuthorizedRequest, config: AuthUserConfig)
 : Promise<ServerAuthzContainer>{
   console.log("verifying", req.accessToken);
 
@@ -182,19 +199,20 @@ async function guardAuthz(req: AuthorizedRequest, config: LambdaConfig)
   let user = await findUser(userEmail);
 
   if( !user ){
-    throw new AuthError("while authorizing", 
-      new Error("no such user: " + userEmail) );
+    throw new AuthError({publicMsg: "while authorizing", 
+      privateMsg: "no such user: " + userEmail });
   }
   
   if( !user.enabled ){
-    throw new AuthError("while authorizing", new Error("user disabled"));
+    throw new AuthError({publicMsg: "while authorizing",
+      privateMsg: "user disabled" });
   }
   
   if( user.onlyAfter ){
     if( user.onlyAfter.getTime() > new Date().getTime() ){
-      throw new AuthError("while authorizing",
-        new Error("authz only allowed after: " +
-          user.onlyAfter.toISOString()));
+      throw new AuthError({publicMsg: "while authorizing",
+        privateMsg: "authz only allowed after: " +
+          user.onlyAfter.toISOString() });
     }
   }
 
@@ -204,10 +222,10 @@ async function guardAuthz(req: AuthorizedRequest, config: LambdaConfig)
   };
 }
 
-/** This is for turning an IdToken into an AccessToken */
+/** Turns an IdToken into an AccessToken */
 async function authorizeUser(
   req: AuthorizationRequest,
-  config: LambdaConfig
+  config: AuthUserConfig
 ): Promise<AuthorizeResponse>{
   console.log("verifying", req.idToken);
 
@@ -217,11 +235,13 @@ async function authorizeUser(
   try {
     payload = await config.verifier.google.verify(req.idToken);
   } catch( err ){
-    throw new AuthError("while verifying", forceError(err));
+    throw new AuthError({publicMsg: "while verifying", 
+      privateMsg: forceError(err).message });
   }
 
   if( !payload.email || typeof (payload.email) !== "string" ){
-    throw new AuthError("while verifying", new Error("payload.email invalid"));
+    throw new AuthError({publicMsg: "while verifying",
+      privateMsg: "payload.email invalid" });
   }
   const userEmail: string = payload.email;
 
@@ -233,13 +253,14 @@ async function authorizeUser(
   }
   
   if( !user.enabled ){
-    throw new AuthError("while authorizing", new Error("user disabled"));
+    throw new AuthError({publicMsg: "while authorizing",
+      privateMsg: "user disabled" });
   }
   if( user.onlyAfter ){
     if( user.onlyAfter.getTime() > new Date().getTime() ){
-      throw new AuthError("while authorizing",
-        new Error("authz only allowed after: " +
-          user.onlyAfter.toISOString()));
+      throw new AuthError({publicMsg: "while authorizing",
+        privateMsg: "authz only allowed after: " +
+          user.onlyAfter.toISOString() });
     }
   }
 
@@ -247,13 +268,13 @@ async function authorizeUser(
 
   const {authzSecrets} = config;
   if( !authzSecrets || authzSecrets.length === 0 ){
-    throw new AuthError("while authorizing",
-      new Error("no authzSecrets defined"));
+    throw new AuthError({publicMsg: "while authorizing",
+      privateMsg: "no authzSecrets defined" });
   }
   
   if( authzSecrets[0].length <= initialParamValue.length ){
-    throw new AuthError("while authorizing",
-      new Error("authzSecret[0] is too short, pick a better value"));
+    throw new AuthError({publicMsg: "while authorizing",
+      privateMsg: "authzSecret[0] is too short, pick a better value" });
   }
 
   const accessToken = signAuthzToken({
@@ -283,7 +304,7 @@ async function findUser(email: string): Promise<User|undefined>{
 
 async function signUpUser(
   req: SignUpUserRequest,
-  config: LambdaConfig
+  config: AuthUserConfig
 ): Promise<SignUpResponse>{
   console.log("verifying", req.idToken);
 
@@ -291,7 +312,8 @@ async function signUpUser(
   try {
     payload = await config.verifier.google.verify(req.idToken);
   } catch( err ){
-    throw new AuthError("while verifying", forceError(err));
+    throw new AuthError({publicMsg: "while verifying",
+      privateMsg: forceError(err).message });
   }
 
   console.log("Token is valid. Payload:", payload);
@@ -311,34 +333,12 @@ async function signUpUser(
   return {user};
 }
 
-// this is bad, don't leak emails
-async function listPublicUserData(req: AuthorizedRequest, config: LambdaConfig): Promise<User[]>{
+// this is bad, don't leak emails like this
+async function listPublicUserData(
+  req: AuthorizedRequest, 
+  config: AuthUserConfig): Promise<User[]>
+{
   await guardAuthz(req, config);
   return db.users;
 }
 
-// structure is too opaque, rename to "public" and "private" messages 
-class AuthError extends Error {
-  cause: Error;
-
-  constructor(msg: string, cause: Error){
-    super(msg);
-    this.cause = cause;
-    // Set the prototype explicitly.
-    Object.setPrototypeOf(this, AuthError.prototype);
-  }
-
-}
-
-export function parseJwtDate(date: string | number | undefined): Date | undefined{
-  if( !date ){
-    return undefined;
-  }
-
-  if( !Number.isInteger(date) ){
-    console.debug("date was not an integer", date);
-    return undefined;
-  }
-
-  return new Date(Number(date) * 1000);
-}

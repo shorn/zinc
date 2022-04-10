@@ -23,7 +23,6 @@ import {
 } from "aws-cdk-lib/aws-lambda-nodejs";
 import { join } from "path";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
-import { addCorsOptions } from "Stack/LambdaStack";
 import {
   LambdaIntegration,
   MethodLoggingLevel,
@@ -40,13 +39,12 @@ const lambdaBaseDir = "../../lambda";
 const lambdaSrcDir = `${lambdaBaseDir}/src`;
 
 export class CloudFrontStackV3 extends Stack {
-  //cfDistro: CloudFrontWebDistribution;
   newDistro: Distribution;
 
   constructor(
     scope: Construct,
     id: string,
-    props: StackProps & {
+    {creds, ...props}: StackProps & {
       creds: CredentialSsmStackV2,
     },
   ){
@@ -90,13 +88,9 @@ export class CloudFrontStackV3 extends Stack {
       },
     });
 
-    // the resource controls the path suffix
-    const authUserResource = apiPrd.root.addResource('auth-user');
-    authUserResource.addMethod('GET', new LambdaIntegration(authUser), {});
 
-    const {creds} = props;
-    let authUserDb = new NodejsFunction(this, 'AuthUserDb', {
-      entry: join(__dirname, lambdaSrcDir, 'AuthUserDb.ts'),
+    let apiV2 = new NodejsFunction(this, 'LambdaApiV2', {
+      entry: join(__dirname, lambdaSrcDir, 'LambdaApiV2.ts'),
       ...nodeJsFunctionProps,
       reservedConcurrentExecutions: 1,
       environment: {
@@ -112,19 +106,20 @@ export class CloudFrontStackV3 extends Stack {
         AUTHZ_SECRETS_SSM_PARAM: creds.AuthzSecrets2.parameterName,
       }
     });
-    apiPrd.root.addResource('auth-user-db').addMethod('POST',
-      new LambdaIntegration(authUserDb), {});
+    apiPrd.root.addResource('lambda-v2').addMethod('POST',
+      new LambdaIntegration(apiV2), {});
 
-    props.creds.GoogleCognitoUserPoolRegion.grantRead(authUserDb);
-    props.creds.GoogleCognitoUserPoolId.grantRead(authUserDb);
-    props.creds.GoogleCognitoUserPoolDomain.grantRead(authUserDb);
-    props.creds.GoogleCognitoUserPoolClientId.grantRead(authUserDb);
-    props.creds.AuthzSecrets2.grantRead(authUserDb);
+    creds.GoogleCognitoUserPoolRegion.grantRead(apiV2);
+    creds.GoogleCognitoUserPoolId.grantRead(apiV2);
+    creds.GoogleCognitoUserPoolDomain.grantRead(apiV2);
+    creds.GoogleCognitoUserPoolClientId.grantRead(apiV2);
+    creds.AuthzSecrets2.grantRead(apiV2);
 
     // don't need CORS if calling via cloudfront?
-    addCorsOptions(authUserResource);
+    //addCorsOptions(authUserResource);
 
-    const apiPrdUrl = `${apiPrd.restApiId}.execute-api.${this.region}.${this.urlSuffix}`;
+    const apiPrdUrl = `${apiPrd.restApiId}.execute-api`+
+      `.${this.region}.${this.urlSuffix}`;
 
     const apiCachePolicy = new CachePolicy(this, id + "ApiCachePolicy", {
       queryStringBehavior: CacheQueryStringBehavior.all(),
@@ -140,7 +135,6 @@ export class CloudFrontStackV3 extends Stack {
 
     this.newDistro = new Distribution(this, id + "NewDistro", {
       comment: id + "NewCfDistro",
-      //defaultRootObject: "index.html",
       defaultBehavior: {
         origin: new S3Origin(s3Site),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -150,10 +144,7 @@ export class CloudFrontStackV3 extends Stack {
           compress: true,
           // this is what causes the weird "Cannot contact system" error?
           //originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
-          origin: new HttpOrigin(apiPrdUrl, {
-            //customHeaders: {
-            //}
-          }),
+          origin: new HttpOrigin(apiPrdUrl, {}),
           allowedMethods: AllowedMethods.ALLOW_ALL,
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
           // error when create stack new from scratch wotj CACHING_DISABLED:
@@ -194,4 +185,5 @@ export class CloudFrontStackV3 extends Stack {
       ]
     });
   };
+  
 }
