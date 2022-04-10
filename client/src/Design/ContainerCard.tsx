@@ -31,6 +31,8 @@ export function ContainerCard({ title, action, children}:{
         padding: "1em",
         // deal with possibility of long date / time strings on mobile
         overflowX: "auto",
+        // home page users list was very narrow then jumping out, ugly
+        minWidth: "200px",
       }}
     >
       {children}

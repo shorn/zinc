@@ -1,8 +1,8 @@
-import {NavTransition} from "Design/NavigationProvider";
+import { NavTransition } from "Design/NavigationProvider";
 import React from "react";
-import {CardMargin} from "Design/ContainerCard";
-import {FlexContentMain} from "Design/LayoutMain";
-import {TextSpan} from "../Component/TextSpan";
+import { ContainerCard } from "Design/ContainerCard";
+import { FlexContentMain } from "Design/LayoutMain";
+import { TextSpan } from "../Component/TextSpan";
 
 const log = console;
 
@@ -25,10 +25,9 @@ export function ScratchPage(){
 
 function Content(){
   return <FlexContentMain>
-    <CardMargin>
-      <TextSpan>Scratch stuff</TextSpan>
-    </CardMargin>
-    
+    <ContainerCard title={"Scratch"}>
+      <TextSpan>Nothing here yet</TextSpan> 
+    </ContainerCard>
   </FlexContentMain>
 }
 

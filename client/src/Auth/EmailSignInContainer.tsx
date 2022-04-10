@@ -8,75 +8,76 @@ import { ContainerCard } from "Design/ContainerCard";
 import { Grid, Link, Stack, TextField } from "@mui/material";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
-import { AuthnState, emailPool } from "Auth/AuthenticationProvider";
+import { AuthnState } from "Auth/AuthenticationProvider";
 import { ErrorInfo } from "Error/ErrorUtil";
 
-export async function resolveEmailSession(
-  pool: CognitoUserPool
-): Promise<AuthnState>{
-  return new Promise<AuthnState>((resolve, reject) => {
-    const user = pool.getCurrentUser();
-    if( !user ){
-      return resolve({status: "not-logged-in"});
-    }
-    user.getSession((
-      error: null | Error,
-      session: null | CognitoUserSession,
-    ) => {
-      if( error ){
-        console.log("problem calling getSession()", error.message);
-        return resolve({
-          status: "error", error: {
-            message: "while getting email session",
-            problem: error
-          }
-        });
-      }
-      // console.log("getCurrentUser()", pool.getCurrentUser());
-      // console.log("getSignInUserSession()", user.getSignInUserSession());
-
-      if( session == null ){
-        console.log("no session was got");
-        return resolve({status: "not-logged-in"});
-      }
-
-      if( !session.getIdToken() ){
-        return resolve({
-          status: "error", error: {
-            message: "no session idtoken", problem: session
-          }
-        });
-      }
-
-      if( !session.getIdToken().payload ){
-        return resolve({
-          status: "error", error: {
-            message: "session idtoken has no payload", problem: session
-          }
-        });
-      }
-
-      const email: string | undefined = session.getIdToken().payload.email;
-      const emailVerified = Boolean(
-        session.getIdToken().payload.email_verified);
-      console.log("idToken.payload",
-        emailVerified, session.getIdToken().payload);
-
-      if( !email ){
-        // defensive logic: never seen this state 
-        console.log("session returned with no email",
-          session, session.getIdToken(), session.getIdToken()?.payload);
-        return resolve({status: "not-logged-in"});
-      }
-
-      if( !emailVerified ){
-        return resolve({status: "unverified-email", email});
-      }
-
-      return resolve({status: "logged-in", session});
-    });
-  });
-}
+//export async function resolveEmailSession(
+//  pool: CognitoUserPool
+//): Promise<AuthnState>{
+//  return new Promise<AuthnState>((resolve, reject) => {
+//    const user = pool.getCurrentUser();
+//    if( !user ){
+//      return resolve({status: "not-signed-in"});
+//    }
+//    user.getSession((
+//      error: null | Error,
+//      session: null | CognitoUserSession,
+//    ) => {
+//      if( error ){
+//        console.log("problem calling getSession()", error.message);
+//        return resolve({
+//          status: "error", error: {
+//            message: "while getting email session",
+//            problem: error
+//          }
+//        });
+//      }
+//      // console.log("getCurrentUser()", pool.getCurrentUser());
+//      // console.log("getSignInUserSession()", user.getSignInUserSession());
+//
+//      if( session == null ){
+//        console.log("no session was got");
+//        return resolve({status: "not-signed-in"});
+//      }
+//
+//      if( !session.getIdToken() ){
+//        return resolve({
+//          status: "error", error: {
+//            message: "no session idtoken", problem: session
+//          }
+//        });
+//      }
+//
+//      if( !session.getIdToken().payload ){
+//        return resolve({
+//          status: "error", error: {
+//            message: "session idtoken has no payload", problem: session
+//          }
+//        });
+//      }
+//
+//      const email: string | undefined = session.getIdToken().payload.email;
+//      const emailVerified = Boolean(
+//        session.getIdToken().payload.email_verified);
+//      console.log("idToken.payload",
+//        emailVerified, session.getIdToken().payload);
+//
+//      if( !email ){
+//        // defensive logic: never seen this state 
+//        console.log("session returned with no email",
+//          session, session.getIdToken(), session.getIdToken()?.payload);
+//        return resolve({status: "not-signed-in"});
+//      }
+//
+//      if( !emailVerified ){
+//        return resolve({status: "unverified-email", email});
+//      }
+//
+//      
+//      return resolve({status: "signed-in", session});
+//    });
+//  });
+//}
 
 export type SignInState =
   {status: "succeeded", email: string} |

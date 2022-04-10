@@ -117,7 +117,7 @@ function AccountMenu(){
         // log.debug("authn identity and claims", identity, claim);
         onClose();
       }}>
-        <Typography>Email {authn.email}</Typography>
+        <Typography>Email {authn.session.email}</Typography>
       </MenuItem>
       <MenuItem onClick={async ()=>{
         log.debug("clicked logout");

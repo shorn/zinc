@@ -7,14 +7,10 @@ import {
   NewWindowLink
 } from "Component/ExternalLinks";
 import {
-  CognitoAccessToken,
-  CognitoIdToken,
   CognitoUserPool,
   CognitoUserSession
 } from "amazon-cognito-identity-js";
-import { Config } from "Config";
 import { SmallPageSpinner } from "Component/SmallPageSpinner";
-import { EmailContainer, resolveEmailSession } from "Auth/EmailSignInContainer";
 import { ErrorInfoComponent } from "Error/ErrorInforComponent";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
@@ -22,45 +18,62 @@ import { ContainerCard } from "Design/ContainerCard";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { TextSpan } from "Component/TextSpan";
 import { parseJwtDate } from "Util/DateUtil";
+import { api, CognitoConfig } from "Server/Api";
+import jwtDecode from "jwt-decode";
 
-export const emailPool = new CognitoUserPool({
-  UserPoolId: Config.cognito.email.userPoolId,
-  ClientId: Config.cognito.email.userPoolClientId,
-});
+//export const emailPool = new CognitoUserPool({
+//  UserPoolId: Config.cognito.email.userPoolId,
+//  ClientId: Config.cognito.email.userPoolClientId,
+//});
 
 /*
 UserPool without IdentityPool cannot do auto-refresh
 https://github.com/aws-amplify/amplify-js/issues/3619#issuecomment-510654531
  */
-export const googlePool = new CognitoUserPool({
-  UserPoolId: Config.cognito.google.userPoolId,
-  ClientId: Config.cognito.google.userPoolClientId,
-});
+//export const googlePool = new CognitoUserPool({
+//  UserPoolId: Config.cognito.google.userPoolId,
+//  ClientId: Config.cognito.google.userPoolClientId,
+//});
 
 export interface AuthenticationState {
   signOut: ()=>void,
-  email: string,
+  session: AuthorizedSession,
 }
 
-const AuthenticationContext = React.createContext({} as AuthenticationState );
-export const useAuthn = ()=> useContext(AuthenticationContext);
+const AuthenticationContext = React.createContext(
+  undefined as unknown as AuthenticationState );
+export const useAuthn = ()=> {
+  let ctx = useContext(AuthenticationContext);
+  if( !ctx ){
+    throw new Error("No AuthenticationProvider present in component hierarchy");
+  }
+  return ctx;
+};
+
+export interface AuthorizedSession{
+  email: string;
+  accessToken: string;
+} 
 
 export type AuthnState =
   // in-progress
   { status: "init" } |
+  { status: "reading-config" } |
   { status: "getting-session" } |
+  { status: "authorizing" } |
   { status: "signing-out" } |
   
   // terminal states
-  { status: "not-logged-in" } |
+  { status: "not-signed-in" } |
   { status: "error", error: ErrorInfo } |
   { status: "unverified-email", email: string } |
-  { status: "logged-in", session: CognitoUserSession } 
+  { status: "signed-in", authSession: AuthorizedSession } 
 ; 
 
 function debugSession(session: CognitoUserSession){
   const idToken = session.getIdToken();
   const payload = idToken.payload;
+  console.log(idToken.getJwtToken());
   console.debug("idToken", {
     exp: parseJwtDate(payload.exp),
     iat: parseJwtDate(payload.iat),
@@ -69,53 +82,114 @@ function debugSession(session: CognitoUserSession){
 }
 
 
-async function resolveGoogleAuthn(pool: CognitoUserPool): Promise<AuthnState>{
-  return new Promise<AuthnState>((resolve, reject)=> {
-    const user = pool.getCurrentUser();
-    console.debug("resolveGoogleAuthn()", user);
+async function resolveGoogleAuthn(
+  serverConfig: CognitoConfig,
+  resolve: (value: AuthnState) => void,  
+): Promise<void>{
+  const pool = new CognitoUserPool({
+    UserPoolId: serverConfig.google.userPoolId,
+    ClientId: serverConfig.google.userPoolClientId,
+  });
 
-    const parsedHash = new URLSearchParams(
-      window.location.hash.substring(1) // skip the first char (#)
-    );    
-    
-    const IdToken = parsedHash.get("id_token");
-    // console.log("id_token", IdToken);
-    if( !IdToken ){
-      console.log("no IdToken", window.location.hash);
-      resolve({status: "not-logged-in"});
-      return;
+  const user = pool.getCurrentUser();
+  console.debug("resolveGoogleAuthn()", user);
 
+  const parsedHash = new URLSearchParams(
+    window.location.hash.substring(1) // skip the first char (#)
+  );
+
+  const IdToken = parsedHash.get("id_token");
+  // console.log("id_token", IdToken);
+  if( !IdToken ){
+    console.log("no IdToken", window.location.hash);
+    resolve({status: "not-signed-in"});
+    return;
+
+  }
+  //const AccessToken = parsedHash.get("access_token");
+  //if( !AccessToken ){
+  //  console.log("no AccessToken", window.location.hash);
+  //  resolve({status: "not-logged-in"});
+  //  return;
+  //}
+  //
+  //const session = new CognitoUserSession({
+  //  IdToken: new CognitoIdToken({IdToken}),
+  //  AccessToken: new CognitoAccessToken({AccessToken})
+  //})
+  //
+  // don't leave tokens in the url
+  window.location.hash = "";
+
+  resolve({status: "authorizing"});
+  
+  //const authzResponse = await authorize(IdToken);
+  //const authzResponse = await post({
+  //  type: "Authorize2", 
+  //  payload: {idToken: IdToken} });
+  const authzResponse = await api.authorize.post({
+      idToken: IdToken, 
+  });
+  console.log("authzResponse", authzResponse);
+  
+  if( !authzResponse.succeeded ){
+    resolve({
+      status: "error",
+      error: {
+        message: authzResponse.message, 
+        problem: authzResponse
+      }
+    });
+    return;
+  }
+
+  const decoded: any = jwtDecode(authzResponse.accessToken);
+  console.log("decoded", decoded);
+  
+  if( !decoded ){
+    resolve({status: "error", error: {message: "accessToken decode issue", problem: decoded}})
+    return;
+  }
+
+  if( typeof decoded !== "object" ){
+    resolve({status: "error", error: {message: "decoded token is not object", problem: decoded}})
+    return;
+  }
+  
+  if( !decoded.email ){
+    resolve({status: "error", error: {message: "no accessToken payload email", problem: decoded}})
+    return;
+  }
+
+  resolve({ status: "signed-in", 
+    authSession: {
+      accessToken: authzResponse.accessToken,
+      email: decoded.email,
     }
-    const AccessToken = parsedHash.get("access_token");
-    if( !AccessToken ){
-      console.log("no AccessToken", window.location.hash);
-      resolve({status: "not-logged-in"});
-      return;
-    }
-    
-    const session = new CognitoUserSession({
-      IdToken: new CognitoIdToken({IdToken}),
-      AccessToken: new CognitoAccessToken({AccessToken}) 
-    })
-    
-    // don't leave tokens in the url
-    window.location.hash = "";
-    
-    resolve({status: "logged-in", session});
-  });  
+  });
 }
 
-export async function resolveSignOutFromAll(): Promise<void>{
+export async function resolveSignOutFromAll({serverConfig}: {
+  serverConfig: CognitoConfig,
+}): Promise<void>{
+  const emailPool: CognitoUserPool|undefined = undefined;
+  const googlePool = new CognitoUserPool({
+    UserPoolId: serverConfig.google.userPoolId,
+    ClientId: serverConfig.google.userPoolClientId,
+  });
+
   return new Promise((resolve, reject) =>{
     console.log("signing out from all");
-    if( emailPool.getCurrentUser() ){
-      console.log("signing out email");
-      emailPool.getCurrentUser()?.signOut(()=>{
-        console.log("signed out from email")
-        return resolve();
-      });
-    }
-    else if( googlePool.getCurrentUser() ){
+    //if( emailPool?.getCurrentUser() ){
+    //  console.log("signing out email");
+    //  emailPool.getCurrentUser()?.signOut(()=>{
+    //    console.log("signed out from email")
+    //    return resolve();
+    //  });
+    //}
+    //else
+      
+    if( googlePool.getCurrentUser() ){
       console.log("signing out google");
       googlePool.getCurrentUser()?.signOut(()=>{
         console.log("signed out from google")
@@ -129,28 +203,50 @@ export async function resolveSignOutFromAll(): Promise<void>{
   });
 }
 
+//let globalGooglePool: CognitoUserPool|undefined;
+
 export function AuthenticationProvider({children}: {children: React.ReactNode}){
   const [state, setState] = React.useState<AuthnState>({status:"init"});
+  const [serverConfig, setServerConfig] = React.useState<CognitoConfig|undefined>(undefined);
   
   const checkLoginState = React.useCallback( async () => {
+    setState({status: "reading-config"});
+    const serverConfig = await api.readConfig.post();
+
+    //export const emailPool = new CognitoUserPool({
+    //  UserPoolId: serverConfig.email.userPoolId,
+    //  ClientId: serverConfig.email.userPoolClientId,
+    //});
+
+    /*
+    https://cog-poc-google2.auth.us-east-1.amazoncognito.com/login?response_type=token&client_id=7bjopbg1nl44qgsgqa89almsrv&redirect_uri=http://localhost:9090
+     */
+    setServerConfig(serverConfig);
+    
     setState({status: "getting-session"});
     try {
-      const emailUser = emailPool.getCurrentUser();
-      const googleUser = googlePool.getCurrentUser();
-      console.log("checkLoginState() email,google", emailUser, googleUser);
-      if( emailUser ){
-        console.log("resolving email authn");
-        const emailState = await resolveEmailSession(emailPool);
-        setState(emailState);
-        if( emailState.status !== "not-logged-in" ){
-          // don't fire the google check
-          return;
-        }
-      }
+      //const emailUser = emailPool.getCurrentUser();
+      //const googleUser = googlePool.getCurrentUser();
+      //console.log("checkLoginState() email,google", emailUser, googleUser);
+      //if( emailUser ){
+      //  console.log("resolving email authn");
+      //  const emailState = await resolveEmailSession(emailPool);
+      //  setState(emailState);
+      //  if( emailState.status !== "not-logged-in" ){
+      //    // don't fire the google check
+      //    return;
+      //  }
+      //}
 
       console.log("resolving google authn");
-      const googleState = await resolveGoogleAuthn(emailPool);
-      setState(googleState);
+      try {
+        await resolveGoogleAuthn(serverConfig, setState);
+      } catch( e ){
+        setState({status: "error", error: {
+            message: "while resolving google auth",
+            problem: e
+          }});
+      }
       
     }
     catch( e ){
@@ -163,11 +259,20 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
   
   const signOut = React.useCallback(async ()=>{
     setState({status: "signing-out"});
-    await resolveSignOutFromAll();
+    if( !serverConfig ){
+      setState({
+        status: "error", error: {
+          message: "serverConfig should be set by now",
+          problem: serverConfig
+        }
+      })
+      return;
+    }
+    await resolveSignOutFromAll({serverConfig});
     // this should result in "not-logged-in" state
     await checkLoginState();
     console.log("signOut() checkLogingState done");
-  }, [checkLoginState]);
+  }, [checkLoginState, serverConfig]);
   
   React.useEffect(()=>{
     try {
@@ -189,6 +294,10 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
   
   if( state.status === "init" || state.status === "getting-session" ){
     return <SmallPageSpinner message={"Signing in"}/>
+  }
+
+  if( state.status === "reading-config" ){
+    return <SmallPageSpinner message={"Reading config"}/>
   }
 
   if( state.status === "signing-out" ){
@@ -220,42 +329,53 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
     </SmallContentMain>
   }
   
-  if( state.status === "not-logged-in" ){
+  if( state.status === "not-signed-in" ){
+    
+    if( !serverConfig ){
+      return <ErrorInfoComponent error={{
+        message:"Server config must be set by now", 
+        problem: state.status
+      }}/>
+    }
     return <LargeContentMain>
       <IntroContainer/>
       <SmallContentMain>
-        <EmailContainer pool={emailPool}
-          onSignInSucceeded={() => {
-            // noinspection JSIgnoredPromiseFromCall
-            checkLoginState();
-          }}
-        />
+        {/*<EmailContainer pool={emailPool}*/}
+        {/*  onSignInSucceeded={() => {*/}
+        {/*    // noinspection JSIgnoredPromiseFromCall*/}
+        {/*    checkLoginState();*/}
+        {/*  }}*/}
+        {/*/>*/}
         <br/>
-        <GoogleSignInContainer />
+        <GoogleSignInContainer serverConfig={serverConfig}/>
         
       </SmallContentMain>
     </LargeContentMain>
   }
   
-  if( !state.session.getIdToken() ){
-    return <ErrorInfoComponent error={{
-      message: "session has no IdToken", 
-      problem: state.session
-    }}/>
+  if( state.status === "authorizing" ){
+    return <SmallPageSpinner message={"Authorizing"}/>
   }
   
-  if( !state.session.getIdToken().payload ){
-    return <ErrorInfoComponent error={{
-      message: "IdToken has no payload", 
-      problem: state.session
-    }}/>
-  }
-  
-  debugSession(state.session);
+  //if( !state.session.getIdToken() ){
+  //  return <ErrorInfoComponent error={{
+  //    message: "session has no IdToken", 
+  //    problem: state.session
+  //  }}/>
+  //}
+  //
+  //if( !state.session.getIdToken().payload ){
+  //  return <ErrorInfoComponent error={{
+  //    message: "IdToken has no payload", 
+  //    problem: state.session
+  //  }}/>
+  //}
+  //
+  //debugSession(state.session);
   
   return <AuthenticationContext.Provider value={{
     signOut: signOut,
-    email: state.session.getIdToken().payload.email,
+    session: state.authSession,
   }}>
     {children}
   </AuthenticationContext.Provider>;
@@ -274,20 +394,20 @@ export function IntroContainer(){
   </SmallContentMain>
 }
 
-function getCognitoGoogleLoginDomain(){
-  return `https://${Config.cognito.google.userPoolDomain}`+
-    `.auth.${Config.cognito.region}.amazoncognito.com`
+function getCognitoGoogleLoginDomain(config: CognitoConfig){
+  return `https://${config.google.userPoolDomain}`+
+    `.auth.${config.region}.amazoncognito.com`
 }
 
-export function GoogleSignInContainer(){
+export function GoogleSignInContainer({serverConfig}:{serverConfig: CognitoConfig}){
   const [isWorking, setIsWorking] = React.useState(false);
 
   async function googleSignIn(){
     const redirectUri = serverLocationUrl();
     console.debug("redirect to:", redirectUri);
-    const googleLoginUrl = getCognitoGoogleLoginDomain() +
+    const googleLoginUrl = getCognitoGoogleLoginDomain(serverConfig) +
       "/login?response_type=token" +
-      `&client_id=${Config.cognito.google.userPoolClientId}` +
+      `&client_id=${serverConfig.google.userPoolClientId}` +
       `&redirect_uri=${redirectUri}`
     setIsWorking(true);
     navBrowserByAssign(googleLoginUrl);
