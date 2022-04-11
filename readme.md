@@ -1,4 +1,19 @@
 This repo is for learning about Cognito and aws-cdk.
+It is a pure Typescript codebase, using NPM to build.
+
+# Structure
+
+* [aws-infra/](aws-infra/readme.md)
+  * `aws-cdk` project for building the infrastructure
+  * [lambda /](aws-infra/lambda)
+    * contains all code for the API served by Lambda  
+* [client/](client)
+  * React based SPA, using Material UI for components 
+* [doc/](doc)
+  * documentation topics to link to from readme files / source code  
+* [shared/](shared)
+  * Types shared between `client` and `aws-infra`
+  * in a real app, I'd likely use an IDL such as  jsonschema or similar 
 
 # Running you own infrastructure
 
