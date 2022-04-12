@@ -1,6 +1,3 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as CdkInit from '../lib/cdk-init-stack';
 
 import { signAuthzToken, verifyAuthzToken } from "../src/Jwt/AuthzToken";
 

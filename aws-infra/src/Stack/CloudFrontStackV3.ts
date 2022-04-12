@@ -30,6 +30,7 @@ import {
 } from "aws-cdk-lib/aws-apigateway";
 import { HttpOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { CredentialSsmStackV2 } from "Stack/CredentialSsmStackV2";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
 
 export interface ThisProps extends StackProps {
 
@@ -44,8 +45,9 @@ export class CloudFrontStackV3 extends Stack {
   constructor(
     scope: Construct,
     id: string,
-    {creds, ...props}: StackProps & {
+    {creds, user, ...props}: StackProps & {
       creds: CredentialSsmStackV2,
+      user: Table,
     },
   ){
     super(scope, id, props);
@@ -100,12 +102,16 @@ export class CloudFrontStackV3 extends Stack {
     apiPrd.root.addResource('lambda-v2').addMethod('POST',
       new LambdaIntegration(apiV2), {});
 
+    /* blech: either make a list construct or something, or smoosh it all the
+    config into one param stored as a blob of JSON. */
     creds.GoogleCognitoUserPoolRegion.grantRead(apiV2);
     creds.GoogleCognitoUserPoolId.grantRead(apiV2);
     creds.GoogleCognitoUserPoolDomain.grantRead(apiV2);
     creds.GoogleCognitoUserPoolClientId.grantRead(apiV2);
     creds.AuthzSecrets2.grantRead(apiV2);
 
+    user.grantReadWriteData(apiV2);
+    
     // don't need CORS if calling via cloudfront?
     //addCorsOptions(authUserResource);
 

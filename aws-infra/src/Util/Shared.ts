@@ -23,14 +23,27 @@ export function boundStackProps(): StackProps{
 }
 
 /*
-Because cloudfront demands functions be in us-east-1, then CDK demands that
-all cross-stack references be in the same region.
+Originally because cloudfront demanded functions be in us-east-1, then CDK 
+demanded that all cross-stack references be in the same region.
+Actually, not using cloudfront functions any more, can probably go back to au.
  */
-export function usEast1StackProps(): StackProps{
+export function usStackProps(): StackProps{
   return {
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
       region: "us-east-1",
+    },
+    tags: {
+      ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
+    },
+  }
+}
+
+export function auStackProps(): StackProps{
+  return {
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: "ap-southeast-2",
     },
     tags: {
       ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
