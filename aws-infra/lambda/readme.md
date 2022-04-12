@@ -28,6 +28,23 @@ Stuff that might work the way I want, but I haven't tried yet.
 * https://til.hashrocket.com/posts/lmnsdtce3y-import-absolute-paths-in-typescript-jest-tests
 
 
+# Dynamo ORMs investigated
+
+## dynamodb-onetable
+
+https://github.com/sensedeep/dynamodb-onetable
+
+* example code shows a one-off setup process `Table.create()` is the usual 
+flow - obviously, that doesn't work with doing stuff in CDK (e.g. giving 
+lambda read access to table).
+  * I integrated by just eyeballing a `Table.create()` table and modifying the 
+  CDK code until the two looked the same and the test seemed to work.
+* error messages were really poor, if you didn't already know what mistake
+you made, you'd never know from the error message
+* I eventually got the "find" operation working, but it was trial and error,
+no idea what I'm doing and the doco wasn't much help.
+
+
 # ORMs discarded
 
 ## ddb-table
@@ -36,23 +53,3 @@ https://github.com/neuledge/ddb-table
 Really liked the API for this, but didn't work with AWS credential profiles
 for working locally.
 
-## dynamodb-onetable
-
-https://github.com/sensedeep/dynamodb-onetable
-
-* example code shows a one-off setup process `Table.create()` is the usual 
-flow - obviously, that doesn't work with doing stuff in CDK (e.g. giving 
-lambda read access to table).  
-  * maybe could integrate it with CDK though.
-  * other plan was just to eyeball two side-by-side and do my best to replicate
-  whatever setup it did in CDK 
-* error messages were really poor, if you didn't already know what mistake
-you made, you'd never know from the error message
-* got put/get operations working but couldn't get "find" to work:
-`Empty hash key. Check hash key and any value template variable references.`
-I think this is likely because I messed up the "schema" trying to adapt it
-from the example code.  But the doco is poor, so I don't know what 
-I'm doing (exacerbated by my non-existent knowledge of Dynamo).  This was
-after I tried a new table that was initialised by `Table.create()`.
-
-See commit `6f9fa0bd` for an example of what I couldn't get working.
