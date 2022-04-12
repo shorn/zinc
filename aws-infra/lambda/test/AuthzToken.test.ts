@@ -1,4 +1,3 @@
-
 import { signAuthzToken, verifyAuthzToken } from "../src/Jwt/AuthzToken";
 
 /*
@@ -17,11 +16,12 @@ import { signAuthzToken, verifyAuthzToken } from "../src/Jwt/AuthzToken";
 
 describe("Authz token signing verificaiton", () => {
   const secrets = ["blah", "bleah"];
+  const userId = "someIdpIdentifier";
   const email = "test@example.com";
 
   test("it should verify against first secret", () => {
     const accessToken = signAuthzToken({
-      email, secret: secrets[0], expiresInSeconds: 5 });
+      userId, email, secret: secrets[0], expiresInSeconds: 5 });
     const result = verifyAuthzToken({accessToken: accessToken, secrets});
 
     expect(result.email).toEqual(email);
@@ -29,15 +29,16 @@ describe("Authz token signing verificaiton", () => {
   
   test("it should verify against second secret", () => {
     const accessToken = signAuthzToken({
-      email, secret: secrets[1], expiresInSeconds: 5 });
+      userId, email, secret: secrets[1], expiresInSeconds: 5 });
     const result = verifyAuthzToken({accessToken: accessToken, secrets});
 
+    expect(result.userId).toEqual(userId);
     expect(result.email).toEqual(email);
   });
   
   test("it should fail against an unknown secret", () => {
     const accessToken = signAuthzToken({
-      email, secret: "something else", expiresInSeconds: 5 });
+      userId, email, secret: "something else", expiresInSeconds: 5 });
     
     expect(()=>{
       verifyAuthzToken({accessToken: accessToken, secrets});

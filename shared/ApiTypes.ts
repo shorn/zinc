@@ -46,9 +46,10 @@ export interface SignUpResponse {
 }
 
 export interface User {
+  userId: string,
   email: string,
-  enabled: boolean,
-  onlyAfter?: Date,
+  //enabled: boolean,
+  //onlyAfter?: Date,
 }
 
 /** must not contain secrets */
@@ -66,6 +67,7 @@ export interface CognitoConfig {
 }
 
 export interface AuthzTokenPayload {
+  userId: string,
   email: string,
   /* role in access token is for client's convenience, actual authz checks 
   should be done against the DB, not the claim.

@@ -12,7 +12,7 @@ const db = {
   users: [] as User[],
 }
 
-export async function addUser(email:string): Promise<User>{
+async function addUser(email:string): Promise<User>{
   const user = {
     email: email,
     enabled: true,
@@ -22,10 +22,10 @@ export async function addUser(email:string): Promise<User>{
   return user;
 }
 
-export async function findUser(email: string): Promise<User|undefined>{
+async function findUser(email: string): Promise<User|undefined>{
   return db.users.find(it => it.email === email);
 }
 
-export async function listUsers(){
+async function listUsers(){
   return db.users;
 }

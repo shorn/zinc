@@ -14,7 +14,7 @@ export const initialParamValue = 'set me via the console';
  * So you end up with example code like this; or even better, all the CDK 
  * examples and doco where they just embed secrets in source code.
  */
-export class CredentialSsmStackV2 extends Stack {
+export class CredentialSsmStackV3 extends Stack {
   // these aren't used yet, haven't been able to figure it out
   GoogleCredsClientId: StringParameter;
   GoogleCredsClientSecret: StringParameter;
@@ -52,7 +52,7 @@ export class CredentialSsmStackV2 extends Stack {
   
   string(name:string): StringParameter{
     return new StringParameter(this, name, {
-      parameterName: name,
+      //parameterName: name,
       stringValue: initialParamValue,
       // advanced costs money
       tier: ParameterTier.STANDARD,
@@ -60,7 +60,7 @@ export class CredentialSsmStackV2 extends Stack {
   }
   stringList(name:string): StringListParameter{
     return new StringListParameter(this, name, {
-      parameterName: name,
+      //parameterName: name,
       stringListValue: [initialParamValue],
       // advanced costs money
       tier: ParameterTier.STANDARD,

@@ -1,49 +1,64 @@
 import { UserTableV1Db } from "../../lambda/src/Db/UserTableV1Db";
-//import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { v4 } from "uuid";
+import { tableName as oneTableName } from "../../src/Stack/OneTableV1";
 
 const {fromIni} = require("@aws-sdk/credential-provider-ini");
 
-
+/** This isn't a unit test - it's  a dev harness.
+ * It relies on too much environment bingding ("cofnito-poc") and environment
+ * setup.
+ * It's not intended to be run as part of the automated test suite.
+ */
 describe("DynamoDb dev harness", () => {
-  
+
   const db = new DynamoDB({
-    region: "us-east-1", 
+    region: "us-east-1",
     credentials: fromIni({profile: 'cognito-poc'}),
   });
-  const userTable = new UserTableV1Db(db, "inittest");
-  
+  const userTable = new UserTableV1Db(db, oneTableName);
+
   test("findUser", async () => {
 
-    const userId = "dev-harness-"+v4();
-    
-    const putResult = await userTable.addUser({
-      userId, email: "1@example.com"
-    });
+    const uniqueId = v4();
+    const userId = "dev-harness-" + uniqueId;
+    const email = uniqueId + "@example.com";
 
+    const putResult = await userTable.addUser({userId, email: email});
+    console.log("putResult", putResult);
 
     const getResult = await userTable.getUser(userId);
+    expect(getResult).toBeTruthy();
+    expect(getResult!.email).toEqual(email);
     console.log("getResult", getResult);
 
+    // different userId, same email
+    await userTable.addUser({userId: userId + "a", email: email});
+    const foundByEmail = await userTable.findByEmail(email);
+    expect(foundByEmail).toHaveLength(2);
+    // Dunno about ordering, but seems to pass reliably at the moment
+    expect(foundByEmail[0].userId).toEqual(userId);
+    expect(foundByEmail[1].userId).toEqual(userId + "a");
+    console.log("foundByEmail", foundByEmail);
+
     const allUsers = await userTable.listAllUsers();
-    console.log("allUsers", allUsers);
+    const foundUser = allUsers.find(it => it.userId === userId);
+    expect(foundUser).toBeTruthy();
+    expect(foundUser!.email).toEqual(email);
+    console.log("allUsers.length", allUsers.length);
   });
 
-  test("init", async () => {
-    /* this creates the DynamoDb table - useless
-     will give "Table already exists: usersV1" because we already created
-     it in CDK. 
-     Also tried it on a new tablename, it does create first exec, second time
-     throws the "already exists" error.
+  /* this creates the AWS DynamoDb table. - use this when 
+     The second time this is called, will give "Table already exists: usersV1"
+     Instead of this, the table is created via the OneTableStack, so that
+     permissions can be granted, etc. 
+     Was useful when creating the CDK stack first time, just looked at
+     what this did and reproduced with the CDK resources.
+     That means the CDK resourc ei shard-coded to things like "pk", "sk", etc. 
+     Oh well.
     */
-     await userTable.table.createTable();
-     
-     /* 
-      Validation Error in "User" for "pk, sk, userId, email"
-      OneTableError: Validation Error in "User" for "pk, sk, userId, email"
-      */
-    //await userTable.table.create("User", {});
-  });  
+  //test("init", async () => {
+  //  await userTable.table.createTable();
+  //});
 });
 

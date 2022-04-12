@@ -149,6 +149,13 @@ export class CognitoGoogleStackV3 extends Stack {
       supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE]
     });
 
+    /* To hopefully avoid error: 
+    "The provider Google does not exist for User Pool ap-southeast-xxx."
+    Though I just ran `deploy` again and it worked. 
+    https://github.com/aws/aws-cdk/issues/15692#issuecomment-884495678
+    */
+    this.client.node.addDependency(idProvider);
+    
     // after deployment, populate these values in /client/src/Config.ts
     new CfnOutput(this, id + "CognitoGoogleUserPoolRegion", {
       value: this.region

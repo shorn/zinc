@@ -1,5 +1,4 @@
 import { AuthorizedRequest, User } from "shared/ApiTypes";
-import { listUsers } from "Db/LambdaDb";
 import { guardAuthz } from "Api/Authz";
 import { LambaApiV2Config } from "LambdaApiV2";
 
@@ -9,5 +8,5 @@ export async function listPublicUserData(
   config: LambaApiV2Config): Promise<User[]>
 {
   await guardAuthz(req, config);
-  return listUsers();
+  return config.database.listAllUsers();
 }

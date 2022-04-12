@@ -12,6 +12,9 @@ import { AuthError, forceError } from "Util/Error";
 import { readStringListParam, readStringParam } from "Util/Ssm";
 import { authorizeUser } from "Api/AuthorizeUser";
 import { listPublicUserData } from "Api/ListUsers";
+import { UserTableV1Db } from "Db/UserTableV1Db";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { tableName } from "../../src/Stack/OneTableV1";
 
 const name = "LambdaApiV2";
 
@@ -56,6 +59,7 @@ export interface LambaApiV2Config {
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
   },
   authzSecrets: string[],
+  database: UserTableV1Db,
 }
 
 export interface CognitoVerifierProps {
@@ -103,8 +107,8 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
       google: googleVerifier,
     },
     authzSecrets: await authzSecretsSsmParam,
+    database: new UserTableV1Db(new DynamoDB({}), tableName),
   }
-
 }
 
 export const handler: APIGatewayProxyHandler = async (event, context)=> {

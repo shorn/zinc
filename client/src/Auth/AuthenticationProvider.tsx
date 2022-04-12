@@ -51,8 +51,9 @@ export const useAuthn = ()=> {
 };
 
 export interface AuthorizedSession{
-  email: string;
-  accessToken: string;
+  userId: string,
+  email: string,
+  accessToken: string,
 } 
 
 export type AuthnState =
@@ -156,7 +157,12 @@ async function resolveGoogleAuthn(
     return;
   }
   
-  if( !decoded.email ){
+  if( !decoded.userId || typeof(decoded.userId) !== "string" ){
+    resolve({status: "error", error: {message: "no accessToken payload userId", problem: decoded}})
+    return;
+  }
+
+  if( !decoded.email  || typeof(decoded.email) !== "string" ){
     resolve({status: "error", error: {message: "no accessToken payload email", problem: decoded}})
     return;
   }
@@ -164,6 +170,7 @@ async function resolveGoogleAuthn(
   resolve({ status: "signed-in", 
     authSession: {
       accessToken: authzResponse.accessToken,
+      userId: decoded.userId,
       email: decoded.email,
     }
   });

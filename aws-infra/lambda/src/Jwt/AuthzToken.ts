@@ -61,6 +61,11 @@ function attemptAuthzTokenVerify({accessToken, secret}:{
     return {succeeded: false, problem: result};
   }
 
+  if( !result.userId || typeof (result.userId) !== "string" ){
+    console.error("malformed AuthzToken.userId", result);
+    return {succeeded: false, problem: "malformed AuthzToken.userId"};
+  }
+  
   if( !result.email || typeof (result.email) !== "string" ){
     console.error("malformed AuthzToken.email", result);
     return {succeeded: false, problem: "malformed AuthzToken.email"};
@@ -71,17 +76,18 @@ function attemptAuthzTokenVerify({accessToken, secret}:{
     return {succeeded: false, problem: "malformed AuthzToken.role"};
   }
   
-  
   return {succeeded: true, payload: result as JwtPayload & AuthzTokenPayload};
 }
 
-export function signAuthzToken({email, secret, expiresInSeconds}: {
+export function signAuthzToken({userId, email, secret, expiresInSeconds}: {
+  userId: string,
   email: string,
   secret: string,
   expiresInSeconds: number,
 }): string{
   return sign(
     {
+      userId: userId,
       email: email,
       // not used yet
       role: "user",

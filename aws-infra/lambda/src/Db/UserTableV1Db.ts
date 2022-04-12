@@ -19,13 +19,14 @@ const UserSchema = {
   },
   models: {
     User: {
+      // I really have no idea what I'm doing with the pk/sk/gs1 stuff.
       pk: {type: String, value: 'user#${userId}'},
       sk: {type: String, value: 'user#${email}'},
       userId: {type: String, required: true},
       email: {type: String, required: true},
-      //  Search by user email or by type
       gs1pk:      { type: String, value: 'user#' },
-      gs1sk:      { type: String, value: 'user#${email}#${userId}' },    }
+      gs1sk:      { type: String, value: 'user#${email}#${userId}' },    
+    }
   },
   params: {
     'isoDates': true,
@@ -52,46 +53,57 @@ export class UserTableV1Db {
   }
 
   async getUser(id: string): Promise<User | undefined>{
-    //const params = {
-    //  TableName: this.tableName,
-    //  Key: {
-    //    [userKeyName]: {S: id},
-    //  },
-    //  //ProjectionExpression: "ATTRIBUTE_NAME",
-    //};
-    //
-    //const data: GetItemCommandOutput = await this.db.send(
-    //  new GetItemCommand(params));
-    //console.log("Success", data);
-
     return await this.user.get({userId: id});
   }
 
-  async addUser(user: User): Promise<void>{
+  async addUser(user: User): Promise<User>{
     /* If duplicate userId (hashKey), gives:
      | Conditional create failed for "User"
      | OneTableError: Conditional create failed for "User"
      Not very diagnosable, bad sign. :/     
      */
-    const result = await this.user.create(user);
-    console.log("put result", result);
-    return;
+    return await this.user.create(user);
   }
 
   async listAllUsers(): Promise<User[]>{
     const result: User[] = [];
 
-    let userPage: Paged<User> = await this.user.find({});
+    let userPage: Paged<User> = await this.user.scan({});
     let next: any = null
     do {
 
-      result.concat(userPage);
+      result.push(...userPage);
 
-      userPage = await this.user.find({}, {next, limit: 100})
+      userPage = await this.user.scan({}, {next})
       next = userPage.next
     } while( userPage.next );
 
     return result;
   }
+
+  async findByEmailByListAll(email:string): Promise<User[]>{
+    const all = await this.listAllUsers();
+    return all.filter(it=>it.email === email);
+  }
+  
+  async findByEmail(email:string): Promise<User[]>{
+    let userPage: Paged<User> = await this.user.find({
+        email
+      },
+      {
+        index: 'gs1',
+        follow: true,
+      }
+    )
+
+    /* not good, doesn't iterate pages
+     but I don't expect to see many dupe mails, should be ok for the moment
+    */
+
+    const result: User[] = [];
+    result.push(...userPage);
+    return result;
+  }
+  
 }
 

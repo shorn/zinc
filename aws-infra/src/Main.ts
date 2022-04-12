@@ -1,47 +1,66 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import { App, } from "aws-cdk-lib";
-import { CloudFrontStackV3 } from "Stack/CloudFrontStackV3";
 import { CognitoGoogleStackV3 } from "Stack/CognitoGoogleStackV3";
-import { CredentialSsmStackV2 } from "Stack/CredentialSsmStackV2";
-import { usStackProps } from "Util/Shared";
-import { UserTableV1 } from "Stack/UserTableV1";
+import { auStackProps } from "Util/Shared";
+import { OneTableV1 } from "Stack/OneTableV1";
+import { ClientBucketStackV1 } from "Stack/ClientBucketStack";
+import { CloudFrontStackV4 } from "Stack/CloudFrontStackV4";
+import { LambdaApiStackV1 } from "Stack/LambdaApiStackV1";
+import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
+import {
+  ClientBucketDeploymentStackV1
+} from "Stack/ClientBucketDeploymentStack";
 
 const main = new App();
 
-// Current Prd stacks
-const creds = new CredentialSsmStackV2(main, `CredentialSsmStackV2`, {
-  ...usStackProps(),
+// AU stacks
+
+const auOneTableV1 = new OneTableV1(main, 'AuOneTableV1', {
+  ...auStackProps(),
 });
 
-const userTableV1 = new UserTableV1(main, 'UserTableV1', {
-  ...usStackProps(),
+const auClientBucket = new ClientBucketStackV1(main, `ClientBucketStackV1`, {
+  ...auStackProps()
 });
 
-const cloudfront3 = new CloudFrontStackV3(main, 'CloudFrontStackV3', {
-  ...usStackProps(),
-  creds: creds,
-  user: userTableV1.user,
+const auCreds = new CredentialSsmStackV3(main, `AuCredentialSsmStack`, {
+  ...auStackProps(),
 });
 
-new CognitoGoogleStackV3(main, 'CognitoGoogleStackV3',{
-  ...usStackProps(),
+const auLambdaApi = new LambdaApiStackV1(main, `LambdaApiStackV1`, {
+  ...auStackProps(),
+  creds: auCreds,
+  table: auOneTableV1.table,
+});
+
+const auCloudFront = new CloudFrontStackV4(main, `CloudFrontStackV4`, {
+  ...auStackProps(),
+  api: auLambdaApi.api,
+  s3Site: auClientBucket.s3Site,
+})
+
+
+const auClientDeployment = new ClientBucketDeploymentStackV1(main, 'ClientBucketDeploymentStackV1', {
+  ...auStackProps(),
+  distribution: auCloudFront.distribution,
+  s3Site: auClientBucket.s3Site,
+});
+
+const auGoogleCognito = new CognitoGoogleStackV3(main, 'AuCognitoGoogleStackV3',{
+  ...auStackProps(),
   callbackUrls: [
     // port defined in /client/.env 
     "http://localhost:9090",
-    `https://${(cloudfront3.newDistro.distributionDomainName)}`,
+    `https://${(auCloudFront.distribution.distributionDomainName)}`,
   ],
-  domainPrefix: "cog-poc-google3", // unique?
+  domainPrefix: "cog-poc-google-au", // unique?
 });
 
 
 // to be deleted 
 
 
-// WIP stacks
-//const creds = new CredentialSsmStack(main, `CredentialSsmStack`, {
-//  ...usEast1StackProps(),
-//});
 
 
 
