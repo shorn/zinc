@@ -14,7 +14,7 @@ import { authorizeUser } from "Api/AuthorizeUser";
 import { listPublicUserData } from "Api/ListUsers";
 import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { tableName } from "../../src/Stack/OneTableV1";
+import { tableName } from "../../src/Stack/OneTableStackV1";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();

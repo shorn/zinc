@@ -1,7 +1,7 @@
 import { UserTableV1Db } from "../../lambda/src/Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { v4 } from "uuid";
-import { tableName as oneTableName } from "../../src/Stack/OneTableV1";
+import { tableName as oneTableName } from "aws-infra/src/Stack/OneTableStackV1";
 
 const {fromIni} = require("@aws-sdk/credential-provider-ini");
 

@@ -3,7 +3,7 @@ import 'source-map-support/register';
 import { App, } from "aws-cdk-lib";
 import { CognitoGoogleStackV3 } from "Stack/CognitoGoogleStackV3";
 import { auStackProps } from "Util/Shared";
-import { OneTableV1 } from "Stack/OneTableV1";
+import { OneTableStackV1 } from "Stack/OneTableStackV1";
 import { ClientBucketStackV1 } from "Stack/ClientBucketStack";
 import { CloudFrontStackV4 } from "Stack/CloudFrontStackV4";
 import { LambdaApiStackV1 } from "Stack/LambdaApiStackV1";
@@ -16,7 +16,7 @@ const main = new App();
 
 // AU stacks
 
-const auOneTableV1 = new OneTableV1(main, 'AuOneTableV1', {
+const auOneTableV1 = new OneTableStackV1(main, 'AuOneTableV1', {
   ...auStackProps(),
 });
 

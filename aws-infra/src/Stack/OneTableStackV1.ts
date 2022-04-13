@@ -13,7 +13,7 @@ export const pkName = "pk";
 export const skName = "sk";
 export const gsIndexName = "gs1";
 
-export class OneTableV1 extends Stack {
+export class OneTableStackV1 extends Stack {
   table: Table;
 
   constructor(
