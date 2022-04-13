@@ -1,7 +1,7 @@
 import { NavTransition } from "Design/NavigationProvider";
 import React from "react";
 import { ContainerCard } from "Design/ContainerCard";
-import { FlexContentMain } from "Design/LayoutMain";
+import { FlexContentMain, LargeContentMain } from "Design/LayoutMain";
 import { TextSpan } from "Component/TextSpan";
 import { useAuthn } from "Auth/AuthenticationProvider";
 import { api } from "Server/Api";
@@ -76,7 +76,7 @@ function Content(){
     listUsers();
   }, [listUsers]);
   
-  return <FlexContentMain>
+  return <LargeContentMain>
     <ContainerCard title={"Users"} 
       action={<RefreshIconButton refreshing={state.current === "loading"}
         onClick={listUsers}
@@ -111,6 +111,6 @@ function Content(){
       </Table></TableContainer>      
     </ContainerCard>
     
-  </FlexContentMain>
+  </LargeContentMain>
 }
 
