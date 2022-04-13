@@ -5,7 +5,7 @@ import { LargeContentMain } from "Design/LayoutMain";
 import { TextSpan } from "Component/TextSpan";
 import { useAuthn } from "Auth/AuthenticationProvider";
 import { api } from "Server/Api";
-import { PublicUserData, User } from "shared/ApiTypes";
+import { PublicUserData } from "shared/ApiTypes";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { RefreshIconButton } from "Component/RefreshIconButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";

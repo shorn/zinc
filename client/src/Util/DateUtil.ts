@@ -31,7 +31,7 @@ const shorTimeformatOptions: Intl.DateTimeFormatOptions = {
   hour12: false, hour: "2-digit", minute: "2-digit"
 };
 
-export function parseJwtDate(date: string|undefined): Date | undefined{
+export function parseJwtDate(date: string|number|undefined): Date | undefined{
   if( !date ){
     return undefined;
   }

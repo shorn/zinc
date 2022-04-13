@@ -5,7 +5,9 @@ import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV3";
 import { signAuthzToken } from "Jwt/AuthzToken";
 import { LambaApiV2Config } from "LambdaApiV2";
 
-const accessTokenLifeSeconds = 1 * 24 * 60 * 60;
+const oneDaySeconds = 1 * 24 * 60 * 60;
+const tenMinutesSeconds = 10 * 60;
+const accessTokenLifeSeconds = tenMinutesSeconds;
 
 /** Turns an IdToken into an AccessToken */
 export async function authorizeUser(

@@ -53,6 +53,7 @@ export const useAuthn = ()=> {
 
 export interface AuthorizedSession{
   payload: AuthzTokenPayload,
+  accessTokenExpiry: Date,
   accessToken: string,
 } 
 
@@ -144,50 +145,85 @@ async function resolveGoogleAuthn(
     return;
   }
 
-  const decoded: any = jwtDecode(authzResponse.accessToken);
-  console.log("decoded", decoded);
+  const parseResult = parseAccessToken(authzResponse.accessToken);
+  if( !parseResult.succeeded ){
+    resolve({status: "error", error: {
+      message: parseResult.message, 
+        problem: parseResult.decoded }});
+    return;
+  }
+
+  localStorage.setItem(accessTokenStorageKey, authzResponse.accessToken);
   
-  if( !decoded ){
-    resolve({status: "error", error: {message: "accessToken decode issue", problem: decoded}})
-    return;
-  }
-
-  if( typeof decoded !== "object" ){
-    resolve({status: "error", error: {message: "decoded token is not object", problem: decoded}})
-    return;
-  }
-  
-  if( !decoded.userId || typeof(decoded.userId) !== "string" ){
-    resolve({status: "error", error: {message: "no accessToken payload userId", problem: decoded}})
-    return;
-  }
-
-  if( !decoded.email  || typeof(decoded.email) !== "string" ){
-    resolve({status: "error", error: {message: "no accessToken payload email", problem: decoded}})
-    return;
-  }
-
-  if( !decoded.role  || typeof(decoded.role) !== "string" ){
-    resolve({status: "error", error: {message: "no accessToken payload role", problem: decoded}})
-    return;
-  }
-
-  if( !decoded.userCreated  || typeof(decoded.userCreated) !== "string" ){
-    resolve({status: "error", error: {message: "no accessToken payload userCreated", problem: decoded}})
-    return;
-  }
-
   resolve({ status: "signed-in", 
     authSession: {
       accessToken: authzResponse.accessToken,
-      payload: {
-        userId: decoded.userId,
-        email: decoded.email,
-        role: decoded.role,
-        userCreated: parseServerDate(decoded.userCreated),
-      },
+      accessTokenExpiry: parseResult.accessTokenExpiry,
+      payload: parseResult.payload,
     }
   });
+}
+
+export function parseAccessToken(accessToken: string):{
+  succeeded: true,
+  accessTokenExpiry: Date,
+  payload: AuthzTokenPayload,
+} | {
+  succeeded: false,
+  message: string,
+  decoded: string|undefined,
+}{
+  const decoded: any = jwtDecode(accessToken);
+  console.log("decoded", decoded);
+
+  if( !decoded ){
+    return {succeeded: false, message: "accessToken decode issue", decoded};
+  }
+
+  if( typeof decoded !== "object" ){
+    return {succeeded: false, message: "decoded token is not object", decoded};
+  }
+
+  if( !decoded.userId || typeof(decoded.userId) !== "string" ){
+    return {succeeded: false, message: "no accessToken payload userId", decoded};
+  }
+
+  if( !decoded.email  || typeof(decoded.email) !== "string" ){
+    return {succeeded: false, message: "no accessToken payload email", decoded};
+  }
+
+  if( !decoded.role  || typeof(decoded.role) !== "string" ){
+    return {succeeded: false, message: "no accessToken payload role", decoded};
+  }
+
+  if( !decoded.userCreated  || typeof(decoded.userCreated) !== "string" ){
+    return {succeeded: false, message: "no accessToken payload userCreated", decoded};
+  }
+  
+  if( !decoded.exp || typeof(decoded.exp) !== "number" ){
+    return {succeeded: false, message: "malformed accessToken payload exp", decoded};
+  }
+
+  const accessTokenExpiry: Date|undefined = parseJwtDate(decoded.exp);
+  if( !accessTokenExpiry ){
+    return {succeeded: false, message: "malformed accessToken payload exp", decoded};
+  }
+  
+  if( accessTokenExpiry <= new Date() ){
+    console.warn("accessTokenExpiry", accessTokenExpiry);
+    return {succeeded: false, message: "accessToken is expired", decoded};
+  }
+  
+  return {
+    succeeded: true,
+    accessTokenExpiry,
+    payload: {
+      ...decoded,
+      /* date needs to be converted since it was decoded from a JWT, not passed
+      through our API parsing routine. */
+      userCreated: parseServerDate(decoded.userCreated)
+    },
+  }
 }
 
 export async function resolveSignOutFromAll({serverConfig}: {
@@ -226,6 +262,8 @@ export async function resolveSignOutFromAll({serverConfig}: {
 
 //let globalGooglePool: CognitoUserPool|undefined;
 
+const accessTokenStorageKey = "cognitoPocAccessToken";
+
 export function AuthenticationProvider({children}: {children: React.ReactNode}){
   const [state, setState] = React.useState<AuthnState>({status:"init"});
   const [serverConfig, setServerConfig] = React.useState<CognitoConfig|undefined>(undefined);
@@ -243,6 +281,25 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
     https://cog-poc-google2.auth.us-east-1.amazoncognito.com/login?response_type=token&client_id=7bjopbg1nl44qgsgqa89almsrv&redirect_uri=http://localhost:9090
      */
     setServerConfig(serverInfo.cognito);
+
+    const storedAccessToken = localStorage.getItem(accessTokenStorageKey);
+    if( storedAccessToken ){
+      const parseResult = parseAccessToken(storedAccessToken);
+      if( parseResult.succeeded ){
+        setState({
+          status: "signed-in", authSession: {
+            accessToken: storedAccessToken,
+            accessTokenExpiry: parseResult.accessTokenExpiry,
+            payload: parseResult.payload
+          }
+        });
+        return;
+      }
+      else {
+        console.warn("problem parsing accessToken from storage, ignoring",
+          parseResult.message, parseResult.decoded);
+      }
+    }
     
     setState({status: "getting-session"});
     try {
@@ -289,6 +346,9 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
       })
       return;
     }
+    
+    localStorage.removeItem(accessTokenStorageKey);
+    
     await resolveSignOutFromAll({serverConfig});
     // this should result in "not-logged-in" state
     await checkLoginState();
