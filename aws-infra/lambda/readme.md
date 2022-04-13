@@ -6,12 +6,13 @@
   * The `api` constant defines how the `ApiMap` defined in the shared 
   [ApiTypes.ts](../../shared/ApiTypes.ts) maps to implementations.
 * [/src/Api](src/Api) 
-  * individual functions that implement "API calls"
+  * Individual functions that implement "API calls".
 * [/src/Db](src/Db)
-  * the logic for reading/writing for DynamoDb
+  * The logic for reading/writing with DynamoDb using 
+  [dynamodb-onetable](https://github.com/sensedeep/dynamodb-onetable).
 * [/src/Jwt](src/Jwt)
-  * needs renaming, contins logic for verifying idTokens and turning them into
-  accessTokens
+  * Needs renaming, contins logic for verifying idTokens and turning them into
+  accessTokens.
 
 # Tests
 
