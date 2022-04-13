@@ -18,6 +18,7 @@
     "destroy-dev": "cdk --profile cognito-poc destroy CredentialSsmStackV2 UserTableV1 OneTableV1 CloudFrontStackV3 CognitoGoogleStackV3",
     "deploy-lambda": "npm run cog-poc deploy LambdaApiStackV1",
     "hotswap-lambda": "cdk --hotswap --profile cognito-poc deploy LambdaApiStackV1",
+    "deploy-client": "npm run cog-poc deploy ClientBucketDeploymentStackV1",
     "deploy-cloudfront": "npm run cog-poc deploy CloudFrontStackV4",
     "deploy-cog-google": "npm run cog-poc deploy AuCognitoGoogleStackV3",
     "deploy-cog-email": "npm run cog-poc deploy CognitoEmailStack",
