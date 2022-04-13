@@ -1,3 +1,17 @@
+# Structure
+
+* [src/LambdaApiV2.ts](src/LambdaApiV2.ts)
+  * The lambda handler definition. It "dispatches" to various implementation 
+  functions. 
+  * The `api` constant defines how the `ApiMap` defined in the shared 
+  [ApiTypes.ts](../../shared/ApiTypes.ts) maps to implementations.
+* [/src/Api](src/Api) 
+  * individual functions that implement "API calls"
+* [/src/Db](src/Db)
+  * the logic for reading/writing for DynamoDb
+* [/src/Jwt](src/Jwt)
+  * needs renaming, contins logic for verifying idTokens and turning them into
+  accessTokens
 
 # Tests
 
@@ -34,15 +48,20 @@ Stuff that might work the way I want, but I haven't tried yet.
 
 https://github.com/sensedeep/dynamodb-onetable
 
+This is what the lambda code currently uses for working with DynamoDB.
+
 * example code shows a one-off setup process `Table.create()` is the usual 
 flow - obviously, that doesn't work with doing stuff in CDK (e.g. giving 
 lambda read access to table).
   * I integrated by just eyeballing a `Table.create()` table and modifying the 
   CDK code until the two looked the same and the test seemed to work.
+  * I do wonder if you could integrate the onetable code with CDK somehow.
 * error messages were really poor, if you didn't already know what mistake
-you made, you'd never know from the error message
+you made, you'd never know from the error message.  This one would likely
+be a blocker for me in terms of adoption on a real project.
 * I eventually got the "find" operation working, but it was trial and error,
-no idea what I'm doing and the doco wasn't much help.
+no idea what I'm doing and the doco wasn't much help.  Another big issue, but
+this might be mitigated by me just learning WTF I'm doing with DDB.
 
 
 # ORMs discarded
