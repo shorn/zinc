@@ -1,9 +1,11 @@
 import { StackProps } from "aws-cdk-lib";
 
+const sourceCodeUrl = "github.com/shorn/cognito-poc/aws-infra";
+
 export function agnosticStackProps(){
   return {
     tags: {
-      ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
+      ManagedBy: sourceCodeUrl,
     },
   }
 }
@@ -17,7 +19,7 @@ export function boundStackProps(): StackProps{
       region: process.env.CDK_DEFAULT_REGION,
     },
     tags: {
-      ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
+      ManagedBy: sourceCodeUrl,
     },
   }
 }
@@ -34,7 +36,7 @@ export function usStackProps(): StackProps{
       region: "us-east-1",
     },
     tags: {
-      ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
+      ManagedBy: sourceCodeUrl,
     },
   }
 }
@@ -46,7 +48,7 @@ export function auStackProps(): StackProps{
       region: "ap-southeast-2",
     },
     tags: {
-      ManagedBy: "github.com/shorn/cognito-poc/aws-infra",
+      ManagedBy: sourceCodeUrl,
     },
   }
 }
