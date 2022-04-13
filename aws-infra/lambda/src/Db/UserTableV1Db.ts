@@ -44,7 +44,6 @@ export class UserTableV1Db {
   table: Table;
 
   constructor(private db: DynamoDB, public tableName: string){
-    //this.db = new DynamoDB({region, credentials: {}});
     this.oneDb = new Dynamo({client: db});
 
     this.table = new Table({
