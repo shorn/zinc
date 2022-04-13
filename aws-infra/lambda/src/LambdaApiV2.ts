@@ -17,7 +17,7 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { tableName } from "../../src/Stack/OneTableV1";
 
 const name = "LambdaApiV2";
-
+const lambdaCreateDate = new Date();
 
 let config: Promise<LambaApiV2Config> = initConfig();
 
@@ -26,7 +26,10 @@ export const api: ApiMap = {
   /** client app boots off this, supplies details about Cognito details
    * to use for authentication */
   readConfig: {
-    post: async () => (await config).cognito,
+    post: async () => ({
+      cognito: (await config).cognito,
+      lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,  
+    }),
   },
   
   /** Causes the lambda to re-read its config.
@@ -51,7 +54,6 @@ export const api: ApiMap = {
     post: async req => listPublicUserData(req, await config),
   },
 }
-
 
 export interface LambaApiV2Config {
   cognito: CognitoConfig,

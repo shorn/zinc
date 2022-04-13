@@ -79,19 +79,13 @@ function attemptAuthzTokenVerify({accessToken, secret}:{
   return {succeeded: true, payload: result as JwtPayload & AuthzTokenPayload};
 }
 
-export function signAuthzToken({userId, email, secret, expiresInSeconds}: {
-  userId: string,
-  email: string,
+export function signAuthzToken({payload, secret, expiresInSeconds}: {
+  payload: AuthzTokenPayload,
   secret: string,
   expiresInSeconds: number,
 }): string{
   return sign(
-    {
-      userId: userId,
-      email: email,
-      // not used yet
-      role: "user",
-    },
+    payload,
     secret,
     {...authzOptions, expiresIn: expiresInSeconds},
   );

@@ -71,8 +71,13 @@ export async function authorizeUser(
   }
 
   const accessToken = signAuthzToken({
-    userId,
-    email: user.email,
+    payload: {
+      userId,
+      email: user.email,
+      userCreated: user.created,
+      // not used yet
+      role: "user"
+    },
     secret: authzSecrets[0],
     expiresInSeconds: accessTokenLifeSeconds });
 

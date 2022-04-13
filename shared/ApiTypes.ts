@@ -7,13 +7,13 @@ export type ApiMap = {
     post: (req: AuthorizeUserRequest) => Promise<AuthorizeUserResponse>
   },
   readConfig: {
-    post: () => Promise<CognitoConfig>
+    post: () => Promise<ServerInfo>
   },
   initConfig: {
     post: () => Promise<CognitoConfig>
   },
   listUsers: {
-    post: (req: AuthorizedRequest) => Promise<User[]>
+    post: (req: AuthorizedRequest) => Promise<PublicUserData[]>
   },
 }
 
@@ -45,12 +45,33 @@ export interface SignUpResponse {
   user: User,
 }
 
+/** This is for user by an individual client on that user's signed-in browser.
+ * Don't return this type from APIs where you're looking one user is looking
+ * at other users data (like listPuclic). 
+ */
 export interface User {
   userId: string,
   email: string,
+  displayName?: string,
+  publicMessage?: string,
   //enabled: boolean,
   //onlyAfter?: Date,
 }
+
+/** This is data where we don't mind if non-users see this data.
+ */
+export interface PublicUserData {
+  userId: string,
+  displayName?: string,
+  publicMessage?: string,
+  userCreated: Date,
+}
+
+export interface ServerInfo {
+  cognito: CognitoConfig,
+  lambdaCreateDate: Date,
+}
+
 
 /** must not contain secrets */
 export interface CognitoConfig {
@@ -73,4 +94,5 @@ export interface AuthzTokenPayload {
   should be done against the DB, not the claim.
   Not even using it at the moment. */
   role: string,
+  userCreated: Date,
 }

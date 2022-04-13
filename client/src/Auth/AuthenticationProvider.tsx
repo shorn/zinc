@@ -17,9 +17,10 @@ import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
 import { ContainerCard } from "Design/ContainerCard";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { TextSpan } from "Component/TextSpan";
-import { parseJwtDate } from "Util/DateUtil";
+import { parseJwtDate, parseServerDate } from "Util/DateUtil";
 import { api, CognitoConfig } from "Server/Api";
 import jwtDecode from "jwt-decode";
+import { AuthzTokenPayload } from "shared";
 
 //export const emailPool = new CognitoUserPool({
 //  UserPoolId: Config.cognito.email.userPoolId,
@@ -51,8 +52,7 @@ export const useAuthn = ()=> {
 };
 
 export interface AuthorizedSession{
-  userId: string,
-  email: string,
+  payload: AuthzTokenPayload,
   accessToken: string,
 } 
 
@@ -167,11 +167,25 @@ async function resolveGoogleAuthn(
     return;
   }
 
+  if( !decoded.role  || typeof(decoded.role) !== "string" ){
+    resolve({status: "error", error: {message: "no accessToken payload role", problem: decoded}})
+    return;
+  }
+
+  if( !decoded.userCreated  || typeof(decoded.userCreated) !== "string" ){
+    resolve({status: "error", error: {message: "no accessToken payload userCreated", problem: decoded}})
+    return;
+  }
+
   resolve({ status: "signed-in", 
     authSession: {
       accessToken: authzResponse.accessToken,
-      userId: decoded.userId,
-      email: decoded.email,
+      payload: {
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role,
+        userCreated: parseServerDate(decoded.userCreated),
+      },
     }
   });
 }
@@ -218,8 +232,8 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
   
   const checkLoginState = React.useCallback( async () => {
     setState({status: "reading-config"});
-    const serverConfig = await api.readConfig.post();
-
+    const serverInfo = await api.readConfig.post();
+    console.log("serverInfo", serverInfo);
     //export const emailPool = new CognitoUserPool({
     //  UserPoolId: serverConfig.email.userPoolId,
     //  ClientId: serverConfig.email.userPoolClientId,
@@ -228,7 +242,7 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
     /*
     https://cog-poc-google2.auth.us-east-1.amazoncognito.com/login?response_type=token&client_id=7bjopbg1nl44qgsgqa89almsrv&redirect_uri=http://localhost:9090
      */
-    setServerConfig(serverConfig);
+    setServerConfig(serverInfo.cognito);
     
     setState({status: "getting-session"});
     try {
@@ -247,7 +261,7 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
 
       console.log("resolving google authn");
       try {
-        await resolveGoogleAuthn(serverConfig, setState);
+        await resolveGoogleAuthn(serverInfo.cognito, setState);
       } catch( e ){
         setState({status: "error", error: {
             message: "while resolving google auth",

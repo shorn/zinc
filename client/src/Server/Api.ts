@@ -1,4 +1,5 @@
 import { ApiCall, ApiMap } from "shared/ApiTypes";
+import { dateTimeReviver } from "Util/DateUtil";
 
 export type AuthorizeResponse = {
   succeeded: true,
@@ -16,7 +17,9 @@ export interface User {
 
 export const api: ApiMap = {
   authorize: {
-    post: req => apiMapPost({...req, type: "authorize"}),
+    post: req => {
+      return apiMapPost({...req, type: "authorize"});
+    },
   },
   readConfig: {
     post: () => apiMapPost({type:"readConfig"}),
@@ -28,29 +31,6 @@ export const api: ApiMap = {
     post: (req) => apiMapPost({...req, type:"listUsers"}),
   },
 } 
-//export async function authorize(
-//  req: AuthorizationRequest,
-//): Promise<AuthorizeResponse>{
-//  return postFetch({type: "Authorize", payload: {idToken}})
-//}
-
-//export async function readConfig(): Promise<CognitoConfig>{
-//  return postFetch({type: "ReadConfig"})
-//}
-//
-//export async function listUsers(accessToken: string): Promise<User[]>{
-//  //accessToken += "x";
-//  return postFetch({type: "ListUsers", payload: {accessToken}})
-//}
-
-//export interface ApiRequest extends Record<string, any> {
-//export interface ApiRequest {
-//  type: string,
-//}
-
-//export async function post(req:ApiRequest){
-//  return postFetch(req);
-//}
 
 export async function apiMapPost(req: ApiCall){
   return postFetch(req);
@@ -81,7 +61,15 @@ async function postFetch(
     const message = await response.text();
     throw new Error("server error: " + message);
   }
-  return await response.json();
+
+  return await jsonParse(response);
+}
+
+export async function jsonParse(response: Response): Promise<any>{
+  const text = await response.text();
+  /* crazy dodgy dateTime shennanigans - this kind of silliness
+   is why I prefer an IDL */
+  return JSON.parse(text, dateTimeReviver);
 }
 
 export interface CognitoConfig {

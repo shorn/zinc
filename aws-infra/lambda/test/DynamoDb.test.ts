@@ -12,8 +12,9 @@ const {fromIni} = require("@aws-sdk/credential-provider-ini");
  */
 describe("DynamoDb dev harness", () => {
 
+  // you must manually match region for whereever you put your table in CDK
   const db = new DynamoDB({
-    region: "us-east-1",
+    region: "ap-southeast-2",
     credentials: fromIni({profile: 'cognito-poc'}),
   });
   const userTable = new UserTableV1Db(db, oneTableName);
@@ -25,7 +26,8 @@ describe("DynamoDb dev harness", () => {
     const email = uniqueId + "@example.com";
 
     const putResult = await userTable.addUser({userId, email: email});
-    console.log("putResult", putResult);
+    console.log("putResult", putResult, putResult.created.getTime());
+    expect(putResult.created.getTime()).toBeTruthy();
 
     const getResult = await userTable.getUser(userId);
     expect(getResult).toBeTruthy();
@@ -44,7 +46,7 @@ describe("DynamoDb dev harness", () => {
     const allUsers = await userTable.listAllUsers();
     const foundUser = allUsers.find(it => it.userId === userId);
     expect(foundUser).toBeTruthy();
-    expect(foundUser!.email).toEqual(email);
+    expect(foundUser!.userId).toEqual(userId);
     console.log("allUsers.length", allUsers.length);
   });
 
