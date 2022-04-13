@@ -40,22 +40,26 @@ const auCloudFront = new CloudFrontStackV4(main, `CloudFrontStackV4`, {
   s3Site: auClientBucket.s3Site,
 })
 
+const auClientDeployment = new ClientBucketDeploymentStackV1(
+  main, 'ClientBucketDeploymentStackV1', {
+    ...auStackProps(),
+    distribution: auCloudFront.distribution,
+    s3Site: auClientBucket.s3Site,
+  }
+);
 
-const auClientDeployment = new ClientBucketDeploymentStackV1(main, 'ClientBucketDeploymentStackV1', {
-  ...auStackProps(),
-  distribution: auCloudFront.distribution,
-  s3Site: auClientBucket.s3Site,
-});
-
-const auGoogleCognito = new CognitoGoogleStackV3(main, 'AuCognitoGoogleStackV3',{
-  ...auStackProps(),
-  callbackUrls: [
-    // port defined in /client/.env 
-    "http://localhost:9090",
-    `https://${(auCloudFront.distribution.distributionDomainName)}`,
-  ],
-  domainPrefix: "cog-poc-google-au", // unique?
-});
+const auGoogleCognito = new CognitoGoogleStackV3(
+  main, 'AuCognitoGoogleStackV3',
+  {
+    ...auStackProps(),
+    callbackUrls: [
+      // port defined in /client/.env 
+      "http://localhost:9090",
+      `https://${(auCloudFront.distribution.distributionDomainName)}`,
+    ],
+    domainPrefix: "cog-poc-google-au", // unique?
+  }
+);
 
 
 // to be deleted 
