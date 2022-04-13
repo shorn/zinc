@@ -9,7 +9,7 @@ instantiates the components shown in the diagram from the stack classes
 under [src/Stack](src/Stack)
 
 The implementation code for the LambdaApi is contained in the
-[lambda](lambda/readme.md) package - it has it's own `package.json`, but is 
+[lambda](lambda) package - it has it's own `package.json`, but is 
 not completely standalone (it has some relative references back out to the 
 Stack code - I hope to get rid of those at some point.)
 
