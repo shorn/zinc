@@ -68,6 +68,11 @@ export class UserTableV1Db {
     return serverUser;
   }
 
+  /**
+   * list ALL uses in the table, this is not a good design, especially 
+   * for DDB.
+   * Need to figure out how pagination across our API with DDB.  
+   */
   async listAllUsers(): Promise<PublicUserData[]>{
     const result: PublicUserData[] = [];
 
