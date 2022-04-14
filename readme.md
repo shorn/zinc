@@ -1,4 +1,8 @@
-This repo is for learning about Cognito and aws-cdk.
+This repo is for my learning about Cognito and aws-cdk.
+
+Began life as a Proof-of-Concept ("PoC") for https://kopi.cloud, but it 
+just. keeps. growing. :)
+
 
 ## Functionality
 
