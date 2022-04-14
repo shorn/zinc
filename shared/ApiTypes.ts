@@ -2,22 +2,39 @@ export type ApiCall = {
   type: string
 }
 
+/**
+ * This type has two implementations: server and client.
+ */
 export type ApiMap = {
+  /**
+   * Authorize the user's access to the app based on idToken and
+   * issue an accessToken that must be passed when making access-restricted
+   * API calls.
+   */
   authorize: {
     post: (req: AuthorizeUserRequest) => Promise<AuthorizeUserResponse>
   },
+  /**
+   * Used to bootstrap the client app, initially for config needed to
+   * authenticate against the ID-Provider (Cognito).
+   */
   readConfig: {
     post: () => Promise<ServerInfo>
   },
+  /**
+   * Deprecated, was used to force a lambda reload.
+   */
   initConfig: {
     post: () => Promise<CognitoConfig>
   },
+  /**
+   * list publicly available data for all users.
+   */
   listUsers: {
     post: (req: AuthorizedRequest) => Promise<PublicUserData[]>
   },
 }
 
-// used to authorize the idToken and get an accessToken
 export interface AuthorizeUserRequest {
   idToken: string,
 }
@@ -31,23 +48,17 @@ export type AuthorizeUserResponse = {
   message: string,
 }
 
-// used in the payload of any "authorized" call, each call must
-// verify the access token
+/**
+ * used in the payload of any "authorized" call, each call must
+ * verify the access token on the server-side.
+ */
 export interface AuthorizedRequest {
   accessToken: string,
 }
 
-export interface SignUpUserRequest {
-  idToken: string,
-}
-
-export interface SignUpResponse {
-  user: User,
-}
-
 /** This is for user by an individual client on that user's signed-in browser.
  * Don't return this type from APIs where you're looking one user is looking
- * at other users data (like listPuclic). 
+ * at other users data (like listPuclic).
  */
 export interface User {
   userId: string,
@@ -87,6 +98,7 @@ export interface CognitoConfig {
   },
 }
 
+/** Specifies he shape of our claims in the AccessToken. */
 export interface AuthzTokenPayload {
   userId: string,
   email: string,
@@ -96,3 +108,12 @@ export interface AuthzTokenPayload {
   role: string,
   userCreated: Date,
 }
+
+export interface SignUpUserRequest {
+  idToken: string,
+}
+
+export interface SignUpResponse {
+  user: User,
+}
+
