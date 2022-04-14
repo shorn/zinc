@@ -1,7 +1,8 @@
 This repo is for learning about Cognito and aws-cdk.
 It is a pure Typescript codebase, using NPM to build.
 
-# Structure
+
+## Project structure
 
 * [aws-infra/](aws-infra/readme.md)
   * `aws-cdk` project for building the infrastructure
@@ -15,7 +16,8 @@ It is a pure Typescript codebase, using NPM to build.
   * Types shared between `client` and `aws-infra`
   * in a real app, I'd likely use an IDL such as  jsonschema or similar 
 
-# AWS infrastructure
+
+## AWS infrastructure
 
 ![architecture](doc/aws-infra.svg)
 Diagram by [Cloudcraft](https://www.cloudcraft.co/).
@@ -24,7 +26,7 @@ See [running your own infrastructure](doc/running-own-infra.md) for
 instructions on bootstrapping and configuring the whole project in your own 
 AWS account.
 
-# Local development 
+## Local development 
 * edit the `proxy` setting in [client/package.json](./client/package.json) and
 set it to the cloudfront url you've created.
   * if you leave it alone, you will be pointing at my AWS account 
