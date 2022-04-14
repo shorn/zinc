@@ -1,4 +1,5 @@
-The aws-infra project manages all AWS resources via the `aws-cdk`.
+The [aws-infra](../aws-infra/package.json) project manages all AWS resources 
+via the `aws-cdk`.
 It specifies the `cognito-poc` profile in all its scripts,
 so setup your credentials/config using standard AWS profile mechanism.
 
