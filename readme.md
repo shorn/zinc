@@ -1,5 +1,4 @@
 This repo is for learning about Cognito and aws-cdk.
-It is a pure Typescript codebase, using NPM to build.
 
 ## Functionality
 
@@ -19,6 +18,10 @@ It doesn't do much of anything:
 
 ## Project structure
 
+Monorepo, Typescript codebase, using NPM to build and deploy.
+
+There's no CI/CD infrastructure, though I may standup a CDK pipeline one day.
+
 * [aws-infra/](aws-infra)
   * `aws-cdk` project for building the infrastructure
   * [lambda /](aws-infra/lambda)
@@ -28,8 +31,9 @@ It doesn't do much of anything:
 * [doc/](doc)
   * documentation topics to link to from readme files / source code  
 * [shared/](shared)
-  * Types shared between `client` and `aws-infra`
-  * in a real app, I'd likely use an IDL such as  jsonschema or similar 
+  * Code shared between `client` and `aws-infra`
+  * in a real app, I'd generate the API types from an IDL such as jsonschema or 
+  similar 
 
 
 ## AWS infrastructure
@@ -44,10 +48,15 @@ AWS account.
 ## Local development 
 * edit the `proxy` setting in [client/package.json](./client/package.json) and
 set it to the cloudfront url you've created.
-  * if you leave it alone, you will be pointing at my AWS account 
+  * if you leave it alone, you will be pointing at my AWS account
 * run `client` / `npm start-dev` to start the client locally, the `proxy` setting 
 will proxy calls out to the lambda running under cloudfront
+  * uses create-react-app hot deploy, so turnaround for code changes is quick 
 * run `aws-infra` / `npm run hotswap-cloudfront` to do a fast deployment of 
 changed lambda code
+  * turn around for changes is about 10-15 seconds - not great but good enough
+  for a demo codebase
+  * could also use the CDK - SAM integration for local development, but I 
+  haven't dug into it
 
 

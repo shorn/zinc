@@ -19,8 +19,8 @@ you'll needed [set up credentials](aws-credentials.md) for the
 ## Bootstrap the AWS-CDK and do initial deployment
 * `cd <repo>/aws-infra`
 * `npm run bootstrap`
-    * this will create an S3bucket and other resources that aws-cdk uses to manage
-      deployments
+    * this will create an S3bucket and other resources that aws-cdk uses to
+      manage deployments
 * `npm run deploy`
     * this will deploy all CDK stacks
     * note that the CloudFrontStack deploys files from dir `<repo>/client/build`
@@ -36,8 +36,8 @@ you'll needed [set up credentials](aws-credentials.md) for the
         * the `OAuth consent screen` "Authorized domains"
 * configure the Cognito Google pool with the credentials from Google dev console
     * look in "/ Cognito user pool / Sign-in experience /
-      Federated identity provider sign-in / Google", though Amazon are also prone to
-      changing their UI too
+      Federated identity provider sign-in / Google", though Amazon are also
+      prone to changing their UI too
 
 ## Configure the SSM parameters that configure the lambda
 * go to the AWS SSM parameter store console, there will be various SSM params
