@@ -18,7 +18,7 @@ It doesn't do much of anything:
 
 ## Project structure
 
-Monorepo, Typescript codebase, using NPM to build and deploy.
+It's all Typescript, structured as a monorepo, using NPM to build and deploy.
 
 There's no CI/CD infrastructure, though I may standup a CDK pipeline one day.
 
