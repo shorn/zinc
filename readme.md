@@ -1,6 +1,21 @@
 This repo is for learning about Cognito and aws-cdk.
 It is a pure Typescript codebase, using NPM to build.
 
+## Functionality
+
+[Try it out](https://d3kg4q5fk2s7qa.cloudfront.net) - hosted on my own AWS 
+account.  If that's not working, have a look in `/client/package.json/proxy`- 
+I may have forgotten to update this doco.
+
+Or I might just not be running the project live any more.  See instructions for 
+[running your own infrastructure](doc/running-own-infra.md).
+
+It doesn't do much of anything:
+* Users can login via email or Google.
+* A user can set their own "display name" .
+* Users can see a list of all users that have signed up.
+
+**Note**: the above functionality isn't complete yet.
 
 ## Project structure
 
