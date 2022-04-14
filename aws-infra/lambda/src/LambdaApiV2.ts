@@ -23,8 +23,6 @@ let config: Promise<LambaApiV2Config> = initConfig();
 
 export const api: ApiMap = {
   // unauthorized calls
-  /** client app boots off this, supplies details about Cognito details
-   * to use for authentication */
   readConfig: {
     post: async () => ({
       cognito: (await config).cognito,
@@ -32,7 +30,7 @@ export const api: ApiMap = {
     }),
   },
   
-  /** Causes the lambda to re-read its config.
+  /** Was useful when I was restricting to a single instance.
    * Pretty useless for normal lambdas.
    * Generally you'd use an AWS mechanism to achieve this (new version,
    * throttle, etc.)
@@ -44,7 +42,6 @@ export const api: ApiMap = {
     },
   },
 
-  /** Turns an IdToken into an AccessToken */
   authorize: {
     post: async req => authorizeUser(req, await config),
   },
@@ -113,14 +110,11 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
   }
 }
 
+// Likely will have to change when moved over to function urls.
 export const handler: APIGatewayProxyHandler = async (event, context)=> {
-  //console.log(name+" exec", event, context);
   console.log(name + " exec");
 
   try {
-    //const req = parseApiRequest(event);
-    //const res = await dispatchRequest(req);
-    
     const res = await dispatchApiCall(event);
 
     return {statusCode: 200, body: JSON.stringify(res, null, 4)};
@@ -139,12 +133,19 @@ export const handler: APIGatewayProxyHandler = async (event, context)=> {
 };
 
 /** Does JSON parsing, validates the body.type field is a valid API Call.
+ * Reckon this would be better if we actually use the request param for 
+ * type and let the entire body map directly to the request. 
+ * Clean and symmetrical.
+ * Could also use a proper framework/middleware but I've already spent way too
+ * much time shaving yaks on this project. 
  */
 function parseApiCallType(event: APIGatewayProxyEvent)
 : object & { type: keyof ApiMap} {
   if( !event.body ){
     throw new Error("no event body");
   }
+  // TODO:STO needs to deal with dates like frontend, just don't have any
+  // date request params, yet.
   const body: any = JSON.parse(event.body);
 
   if( !body.type ){
