@@ -4,9 +4,9 @@ It is a pure Typescript codebase, using NPM to build.
 
 ## Project structure
 
-* [aws-infra/](aws-infra/readme.md)
+* [aws-infra/](aws-infra)
   * `aws-cdk` project for building the infrastructure
-  * [lambda /](aws-infra/lambda/readme.md)
+  * [lambda /](aws-infra/lambda)
     * contains all code for the API served by Lambda  
 * [client/](client)
   * React based SPA, using Material UI for components 
