@@ -7,13 +7,13 @@
     * preferrably, you should use a "sub-account" to play with stuff like this
 * AWS Access key to run the CDK with
     * Never use the "root account" of an AWS account to do stuff, follow these
-      [instructions](./doc/create-iam-account.md) for creating an IAM account and
+      [instructions](create-iam-account.md) for creating an IAM account and
       access key
 
 ## Configure AWS credentials
 
 Most people would run this project from a developer machine - in which case
-you'll needed [set up credentials](./doc/aws-credentials.md) for the
+you'll needed [set up credentials](aws-credentials.md) for the
 `cognito-poc` profile.
 
 ## Bootstrap the AWS-CDK and do initial deployment
