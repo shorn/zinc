@@ -60,9 +60,7 @@ function Content(){
   const listUsers = React.useCallback(async () => {
     setState({current: "loading"});
     try {
-      const result = await api.listUsers.post({
-        accessToken: authn.session.accessToken
-      });
+      const result = await api.listUsers.post({}, authn.session.accessToken);
       console.log("listUsers", result);
       setUsers(result);
       setState({current: "loaded"});

@@ -15,11 +15,13 @@ import { listPublicUserData } from "Api/ListUsers";
 import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { tableName } from "../../src/Stack/OneTableStackV1";
+import { getBearerToken } from "Util/Header";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();
 
 let config: Promise<LambaApiV2Config> = initConfig();
+
 
 export const api: ApiMap = {
   // unauthorized calls
@@ -30,25 +32,13 @@ export const api: ApiMap = {
     }),
   },
   
-  /** Was useful when I was restricting to a single instance.
-   * Pretty useless for normal lambdas.
-   * Generally you'd use an AWS mechanism to achieve this (new version,
-   * throttle, etc.)
-   */
-  initConfig: {
-    post: async () => {
-      config = initConfig(true);
-      return (await config).cognito;
-    },
-  },
-
   authorize: {
-    post: async req => authorizeUser(req, await config),
+    post: async (req) => authorizeUser(req, await config),
   },
   
   // authorized calls
   listUsers: {
-    post: async req => listPublicUserData(req, await config),
+    post: async (req, token) => listPublicUserData(req, await config, token),
   },
 }
 
@@ -115,11 +105,12 @@ export const handler: APIGatewayProxyHandler = async (event, context)=> {
   console.log(name + " exec");
 
   try {
+    
     const res = await dispatchApiCall(event);
-
+    
     return {statusCode: 200, body: JSON.stringify(res, null, 4)};
-
-  } catch( err ){
+  } 
+  catch( err ){
     if( err instanceof AuthError ){
       console.error("auth error", err.message, err.privateMsg);
       return {
@@ -132,46 +123,50 @@ export const handler: APIGatewayProxyHandler = async (event, context)=> {
   }
 };
 
-/** Does JSON parsing, validates the body.type field is a valid API Call.
- * Reckon this would be better if we actually use the request param for 
- * type and let the entire body map directly to the request. 
- * Clean and symmetrical.
- * <p>
- * Also, the accessToken should go in the `authorization` header, not be 
- * part of the request (too easy to leak via logs and other bad tooling) - 
- * everyone knows they should be careful of the auth header.
- * The current state is because I haven't configred the api-gw properly to pass
- * params etc.
+/** Does JSON parsing, validates the type param is a valid API Call.
  * <p>
  * Could also use a proper framework/middleware but I've already spent way too
  * much time shaving yaks on this project. 
  */
-function parseApiPostCall(event: APIGatewayProxyEvent)
-: object & { type: keyof ApiMap} {
+function parseApiPostCall(event: APIGatewayProxyEvent): { 
+  type: keyof ApiMap,
+  body: Record<string, any>,
+  accessToken?: string;
+} {
   if( !event.body ){
     throw new Error("no event body");
   }
   
   console.log("event", event);
   
+  if( !event.queryStringParameters ){
+    throw new Error("no query string");
+  }
+  const type = event.queryStringParameters["type"];
+  if( !isApiKey(type) ){
+    console.error("query `type` parameter does not map", type, event);
+    throw new Error("query `type` parameter does not map: " + type);
+  }
+  
   // TODO:STO needs to deal with dates like frontend, just don't have any
   // date request params, yet.
-  const body: any = JSON.parse(event.body);
+  const body: Record<string, any> = JSON.parse(event.body);
 
-  if( !body.type ){
-    throw new Error("request body has no [type] field");
-  }
-
+  let accessToken = getBearerToken(event);
+  
   /* note that there is no runtime validation of the the request, so WHEN 
    I stuff up version syncing, it's going to be a pain to diagnose :( */
+  return {
+    type, body, accessToken
+  };
+}
 
-  let validApiCalls = Object.keys(api);
-  if( !(validApiCalls.includes(body.type)) ){
-    console.error("unknown ApiCall.type", body.type, event)
-    throw new Error("unknown ApiCall.type="+body.type);
+function isApiKey(key: string|undefined): key is keyof ApiMap {
+  if( !key ){
+    return false;
   }
-
-  return body;
+  let validApiCalls = Object.keys(api);
+  return validApiCalls.includes(key);
 }
 
 async function dispatchApiCall(event: APIGatewayProxyEvent){
@@ -182,9 +177,9 @@ async function dispatchApiCall(event: APIGatewayProxyEvent){
   const apiCall = parseApiPostCall(event);
   console.log("apiCall", apiCall);
   
-  const call = api[apiCall.type].post;
-  
-  return await call(apiCall as any);
+  const call = api[apiCall.type].post as Function;
+
+  return await call(apiCall.body, apiCall.accessToken);
 }
 
 

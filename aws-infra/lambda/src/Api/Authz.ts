@@ -1,5 +1,5 @@
 import { AuthorizedRequest, AuthzTokenPayload } from "shared/ApiTypes";
-import { verifyAuthzToken } from "Jwt/AuthzToken";
+import { verifyAuthzToken } from "Authz/AuthzToken";
 import { AuthError } from "Util/Error";
 import { LambaApiV2Config, ServerAuthzContainer } from "LambdaApiV2";
 
@@ -8,15 +8,17 @@ import { LambaApiV2Config, ServerAuthzContainer } from "LambdaApiV2";
  * Called by endpoints that restrict access.
  * @throws AuthError if there's an issue with token or access verification.
  */
-export async function guardAuthz(req: AuthorizedRequest, config: LambaApiV2Config)
+export async function guardAuthz(config: LambaApiV2Config, accessToken?: string)
   : Promise<ServerAuthzContainer>{
-  console.log("verifying", req.accessToken);
+  console.log("verifying", accessToken);
 
-  //const decoded = decode(req.accessToken) as JwtPayload;
-  //console.log("JWT expires", parseJwtDate(decoded.exp))
-
+  if( !accessToken ){
+    throw new AuthError({publicMsg: "while authorizing",
+      privateMsg: `no accessToken found`  });
+  }
+  
   const auth: AuthzTokenPayload = verifyAuthzToken({
-    accessToken: req.accessToken,
+    accessToken,
     secrets: config.authzSecrets });
 
   const userId: string = auth.userId;

@@ -12,7 +12,8 @@ export type ApiMap = {
    * API calls.
    */
   authorize: {
-    post: (req: AuthorizeUserRequest) => Promise<AuthorizeUserResponse>
+    post: (req: AuthorizeUserRequest) => 
+      Promise<AuthorizeUserResponse>
   },
   /**
    * Used to bootstrap the client app, initially for config needed to
@@ -22,16 +23,11 @@ export type ApiMap = {
     post: () => Promise<ServerInfo>
   },
   /**
-   * Deprecated, was used to force a lambda reload.
-   */
-  initConfig: {
-    post: () => Promise<CognitoConfig>
-  },
-  /**
    * list publicly available data for all users.
    */
   listUsers: {
-    post: (req: AuthorizedRequest) => Promise<PublicUserData[]>
+    post: (req: {}, accessToken?: string) => 
+      Promise<PublicUserData[]>
   },
 }
 

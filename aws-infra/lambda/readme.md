@@ -11,9 +11,10 @@
 * [/src/Db](src/Db)
   * The logic for reading/writing with DynamoDb using 
   [dynamodb-onetable](https://github.com/sensedeep/dynamodb-onetable).
-* [/src/Jwt](src/Jwt)
-  * Needs renaming, contins logic for verifying idTokens and turning them into
-  accessTokens.
+* [/src/Authz](src/Authz)
+  * Contains logic for "authorizing" an "authenticated" user.  That is,
+  verifying idTokens as a valid JWT issued by Cognito, verifying the identity 
+  contained against our DB and generating an accessToken for making API calls.
 
 
 ## Tests

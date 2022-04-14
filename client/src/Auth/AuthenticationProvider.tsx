@@ -20,7 +20,7 @@ import { TextSpan } from "Component/TextSpan";
 import { parseJwtDate, parseServerDate } from "Util/DateUtil";
 import { api, CognitoConfig } from "Server/Api";
 import jwtDecode from "jwt-decode";
-import { AuthzTokenPayload } from "shared";
+import { AuthzTokenPayload, ServerInfo } from "shared";
 
 //export const emailPool = new CognitoUserPool({
 //  UserPoolId: Config.cognito.email.userPoolId,
@@ -270,7 +270,20 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
   
   const checkLoginState = React.useCallback( async () => {
     setState({status: "reading-config"});
-    const serverInfo = await api.readConfig.post();
+    let serverInfo: ServerInfo;
+    try {
+      serverInfo = await api.readConfig.post();
+    }
+    catch( err ){
+      setState({
+        status: "error", error: {
+          message: "There was a problem while loading the page.",
+          problem: "Could not contact server."
+        }
+      });
+      return;
+    }
+    
     console.log("serverInfo", serverInfo);
     //export const emailPool = new CognitoUserPool({
     //  UserPoolId: serverConfig.email.userPoolId,

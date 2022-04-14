@@ -17,51 +17,53 @@ export interface User {
 
 export const api: ApiMap = {
   authorize: {
-    post: req => {
-      return apiMapPost({...req, type: "authorize"});
-    },
+    post: (req) => apiMapPost("authorize", req)
   },
   readConfig: {
-    post: () => apiMapPost({type:"readConfig"}),
-  },
-  initConfig: {
-    post: () => apiMapPost({type:"readConfig"}),
+    post: () => apiMapPost("readConfig", {})
   },
   listUsers: {
-    post: (req) => apiMapPost({...req, type:"listUsers"}),
+    post: (req, token) => apiMapPost("listUsers", req, token)
   },
 } 
 
-export async function apiMapPost(req: ApiCall){
-  return postFetch(req);
+export async function apiMapPost(type: string, req: Record<string, any>, accessToken?: string){
+  return postFetch(type, req, accessToken);
 }
 
 // not sure about the Record type, it just got me going
 async function postFetch(
-  body: Record<string, any> & {type: string},
+  type: string,
+  body: Record<string, any>,
+  accessToken?: string,
 ): Promise<any>{
   let headers = new Headers();
   headers.append("Accept", 'application/json');
   headers.append("Content-Type", 'application/json');
   headers.append("Accept-Encoding", 'gzip, deflate');
+  if( accessToken ){
+    headers.append("Authorization", 'Bearer ' + accessToken);
+  }
   let response: Response = await fetch(
     /* the parameter is just so I can see what request is what in the console
      network view - not used on the server side.
      Might make sense to add aa param to specify keys that should go in the 
      URL on a per-request basis. */
-    `/api-prd/lambda-v2?type=${body.type}`,
+    `/api-prd/lambda-v2?type=${type}`,
     {
       method: 'POST',
       headers: headers,
+      // TODO:STO deal with dates
       body: JSON.stringify(body),
     }
   );
 
   if( response.status !== 200 ){
+    console.log("non-200!");
     const message = await response.text();
     throw new Error("server error: " + message);
   }
-
+  
   return await jsonParse(response);
 }
 

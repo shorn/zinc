@@ -2,7 +2,7 @@ import { AuthorizeUserRequest, AuthorizeUserResponse } from "shared/ApiTypes";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import { AuthError, forceError } from "Util/Error";
 import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV3";
-import { signAuthzToken } from "Jwt/AuthzToken";
+import { signAuthzToken } from "Authz/AuthzToken";
 import { LambaApiV2Config } from "LambdaApiV2";
 
 const oneDaySeconds = 1 * 24 * 60 * 60;
@@ -12,7 +12,7 @@ const accessTokenLifeSeconds = tenMinutesSeconds;
 /** Turns an IdToken into an AccessToken */
 export async function authorizeUser(
   req: AuthorizeUserRequest,
-  config: LambaApiV2Config
+  config: LambaApiV2Config, 
 ): Promise<AuthorizeUserResponse>{
   console.log("verifying", req.idToken);
 

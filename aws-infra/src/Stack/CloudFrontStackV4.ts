@@ -7,7 +7,9 @@ import {
   CacheHeaderBehavior,
   CachePolicy,
   CacheQueryStringBehavior,
-  Distribution, OriginRequestPolicy,
+  Distribution, OriginRequestHeaderBehavior,
+  OriginRequestPolicy,
+  OriginRequestQueryStringBehavior,
   ViewerProtocolPolicy
 } from "aws-cdk-lib/aws-cloudfront";
 import { RestApi } from "aws-cdk-lib/aws-apigateway";
@@ -36,14 +38,26 @@ export class CloudFrontStackV4 extends Stack {
     const apiCachePolicy = new CachePolicy(this, id + "ApiCachePolicy", {
       queryStringBehavior: CacheQueryStringBehavior.all(),
       cookieBehavior: CacheCookieBehavior.all(),
-      headerBehavior: CacheHeaderBehavior.allowList(
-        "Authorization",
-        "CogPocAuth"
-      ),
+      headerBehavior: CacheHeaderBehavior.allowList("Authorization"),
       minTtl: Duration.seconds(0),
       defaultTtl: Duration.seconds(0),
       //set to 0, this gives "invalid request" 
       maxTtl: Duration.seconds(1)
+    });
+
+    /* Can't use ALL_VIEWER, because that would forward the "host" header, 
+     which will cause API-GW to not work because it uses the host header 
+     to dispatch requests to API handlers. */
+    const originRequestPolicy = new OriginRequestPolicy(
+      this, id +"OriginRequestPolicy", 
+      {
+        cookieBehavior: CacheCookieBehavior.all(),
+        /* You can't put "authorization" in here because that would enable the 
+        possibility of having auth here, but not in the cache policy.
+        That would be bad because it would enable cache poisoning and similar 
+        attacks. Headers in the cache policy come through anyway. */
+        headerBehavior: OriginRequestHeaderBehavior.none(),
+        queryStringBehavior: OriginRequestQueryStringBehavior.all()
     });
 
     this.distribution = new Distribution(this, id + "Distro", {
@@ -55,8 +69,7 @@ export class CloudFrontStackV4 extends Stack {
       additionalBehaviors: {
         [`${api.deploymentStage.stageName}/*`]: {
           compress: true,
-          // this is what causes the weird "Cannot contact system" error?
-          originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
+          originRequestPolicy: originRequestPolicy,
           origin: new HttpOrigin(apiPrdUrl, {}),
           allowedMethods: AllowedMethods.ALLOW_ALL,
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
