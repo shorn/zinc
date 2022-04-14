@@ -136,14 +136,24 @@ export const handler: APIGatewayProxyHandler = async (event, context)=> {
  * Reckon this would be better if we actually use the request param for 
  * type and let the entire body map directly to the request. 
  * Clean and symmetrical.
+ * <p>
+ * Also, the accessToken should go in the `authorization` header, not be 
+ * part of the request (too easy to leak via logs and other bad tooling) - 
+ * everyone knows they should be careful of the auth header.
+ * The current state is because I haven't configred the api-gw properly to pass
+ * params etc.
+ * <p>
  * Could also use a proper framework/middleware but I've already spent way too
  * much time shaving yaks on this project. 
  */
-function parseApiCallType(event: APIGatewayProxyEvent)
+function parseApiPostCall(event: APIGatewayProxyEvent)
 : object & { type: keyof ApiMap} {
   if( !event.body ){
     throw new Error("no event body");
   }
+  
+  console.log("event", event);
+  
   // TODO:STO needs to deal with dates like frontend, just don't have any
   // date request params, yet.
   const body: any = JSON.parse(event.body);
@@ -169,7 +179,7 @@ async function dispatchApiCall(event: APIGatewayProxyEvent){
     throw new Error("this api only supports POST at the moment");
   }
 
-  const apiCall = parseApiCallType(event);
+  const apiCall = parseApiPostCall(event);
   console.log("apiCall", apiCall);
   
   const call = api[apiCall.type].post;

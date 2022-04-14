@@ -7,7 +7,7 @@ import {
   CacheHeaderBehavior,
   CachePolicy,
   CacheQueryStringBehavior,
-  Distribution,
+  Distribution, OriginRequestPolicy,
   ViewerProtocolPolicy
 } from "aws-cdk-lib/aws-cloudfront";
 import { RestApi } from "aws-cdk-lib/aws-apigateway";
@@ -56,7 +56,7 @@ export class CloudFrontStackV4 extends Stack {
         [`${api.deploymentStage.stageName}/*`]: {
           compress: true,
           // this is what causes the weird "Cannot contact system" error?
-          //originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
+          originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
           origin: new HttpOrigin(apiPrdUrl, {}),
           allowedMethods: AllowedMethods.ALLOW_ALL,
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,

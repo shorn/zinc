@@ -11,7 +11,7 @@ Or I might just not be running the project live any more.  See instructions for
 
 It doesn't do much of anything:
 * Users can login via email or Google.
-* A user can set their own "display name" .
+* Users can set their own "display name" .
 * Users can see a list of all users that have signed up.
 
 **Note**: the above functionality isn't complete yet.
