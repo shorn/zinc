@@ -70,6 +70,11 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
     process.env.COGNITO_GOOGLE_USER_POOL_DOMAIN_SSM_PARAM);
   const googleClientId = readStringParam(
     process.env.COGNITO_GOOGLE_USER_POOL_CLIENT_ID_SSM_PARAM);
+  const emailUserPoolId = readStringParam(
+    process.env.COGNITO_EMAIL_USER_POOL_ID_SSM_PARAM);
+  const emailClientId = readStringParam(
+    process.env.COGNITO_EMAIL_USER_POOL_CLIENT_ID_SSM_PARAM);
+  
   const authzSecretsSsmParam = readStringListParam(process.env.AUTHZ_SECRETS_SSM_PARAM);
 
   const idpUrl: string = `https://cognito-idp.` +
@@ -86,6 +91,10 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
   return {
     cognito: {
       region: await cognitoRegion,
+      email: {
+        userPoolId: await emailUserPoolId,
+        userPoolClientId: await emailClientId,
+      },
       google: {
         userPoolId: await googleUserPoolId,
         userPoolClientId: await googleClientId,

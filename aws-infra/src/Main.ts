@@ -11,6 +11,7 @@ import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
 import {
   ClientBucketDeploymentStackV1
 } from "Stack/ClientBucketDeploymentStack";
+import { CognitoEmailStack } from "Stack/CognitoEmailStack";
 
 const main = new App();
 
@@ -58,6 +59,13 @@ const auGoogleCognito = new CognitoGoogleStackV3(
       `https://${(auCloudFront.distribution.distributionDomainName)}`,
     ],
     domainPrefix: "cog-poc-google-au", // unique?
+  }
+);
+
+const auEmailCognito = new CognitoEmailStack(
+  main, 'AuCognitoEmailStackV1', {
+    ...auStackProps(),
+    domainPrefix: "cog-poc-email-au", // unique?
   }
 );
 

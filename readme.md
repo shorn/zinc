@@ -1,7 +1,6 @@
 This repo is for my learning about Cognito and aws-cdk.
-
-Began life as a Proof-of-Concept ("PoC") for https://kopi.cloud, but it 
-just. keeps. growing. :)
+Begun as a Proof-of-Concept ("PoC") of Cognito functionality for 
+https://kopi.cloud.
 
 
 ## Functionality
@@ -14,9 +13,11 @@ Or I might just not be running the project live any more.  See instructions for
 [running your own infrastructure](doc/running-own-infra.md).
 
 It doesn't do much of anything:
-* Users can login via email or Google.
-* Users can set their own "display name" .
-* Users can see a list of all users that have signed up.
+* Login via email or Google.
+* Set your own "display name" .
+* List all users that have signed up 
+  * only lists created date and user-entered "display name", 
+  not email or any SSO profile data.
 
 **Note**: the above functionality isn't complete yet.
 

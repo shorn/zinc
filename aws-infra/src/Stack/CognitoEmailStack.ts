@@ -9,8 +9,15 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 
 export class CognitoEmailStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps){
-    super(scope, id, props);
+  constructor(
+    scope: Construct, 
+    id: string,
+    {domainPrefix, ...props}: StackProps & {
+      /* Needs to be unique */
+      domainPrefix: string,
+    },
+){
+  super(scope, id, props);
     
     const userPool = new UserPool(this, "CognitoEmailUserPool", {
       /* Use the email address as the username, sort of.
@@ -72,7 +79,7 @@ export class CognitoEmailStack extends Stack {
     new UserPoolDomain(this, "CognitoEmailUserPoolDomain", {
       userPool,
       cognitoDomain: {
-        domainPrefix: "cog-poc-email"
+        domainPrefix
       }
     });
     

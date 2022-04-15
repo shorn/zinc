@@ -83,10 +83,10 @@ export interface ServerInfo {
 /** must not contain secrets */
 export interface CognitoConfig {
   region: string,
-  //email: {
-  //  userPoolId: string,
-  //  userPoolClientId: string,
-  //},
+  email: {
+    userPoolId: string,
+    userPoolClientId: string,
+  },
   google: {
     userPoolId: string,
     userPoolClientId: string,

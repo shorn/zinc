@@ -7,7 +7,7 @@ import { LambaApiV2Config } from "LambdaApiV2";
 
 const oneDaySeconds = 1 * 24 * 60 * 60;
 const tenMinutesSeconds = 10 * 60;
-const accessTokenLifeSeconds = tenMinutesSeconds;
+const accessTokenLifeSeconds = oneDaySeconds;
 
 /** Turns an IdToken into an AccessToken */
 export async function authorizeUser(

@@ -59,22 +59,25 @@ export class LambdaApiStackV1 extends Stack {
       memorySize: 512,
       timeout: Duration.seconds(5),
     }
-    
+
 
     this.lambdaFunction = new NodejsFunction(this, 'LambdaApiV2', {
       entry: join(__dirname, lambdaSrcDir, 'LambdaApiV2.ts'),
       ...nodeJsFunctionProps,
       reservedConcurrentExecutions: 5,
       environment: {
-        // circular dependency to cloudfront stack, dunno how to resolve
         COGNITO_REGION_SSM_PARAM:
-        creds.GoogleCognitoUserPoolRegion.parameterName,
+          creds.CognitoUserPoolRegion.parameterName,
         COGNITO_GOOGLE_USER_POOL_ID_SSM_PARAM:
-        creds.GoogleCognitoUserPoolId.parameterName,
+          creds.GoogleCognitoUserPoolId.parameterName,
         COGNITO_GOOGLE_USER_POOL_DOMAIN_SSM_PARAM:
-        creds.GoogleCognitoUserPoolDomain.parameterName,
+          creds.GoogleCognitoUserPoolDomain.parameterName,
         COGNITO_GOOGLE_USER_POOL_CLIENT_ID_SSM_PARAM:
-        creds.GoogleCognitoUserPoolClientId.parameterName,
+          creds.GoogleCognitoUserPoolClientId.parameterName,
+        COGNITO_EMAIL_USER_POOL_ID_SSM_PARAM:
+          creds.EmailCognitoUserPoolId.parameterName,
+        COGNITO_EMAIL_USER_POOL_CLIENT_ID_SSM_PARAM:
+          creds.EmailCognitoUserPoolClientId.parameterName,
         AUTHZ_SECRETS_SSM_PARAM: creds.AuthzSecrets2.parameterName,
       }
     });
@@ -83,10 +86,13 @@ export class LambdaApiStackV1 extends Stack {
 
     /* blech: either make a list construct or something, or smoosh it all the
     config into one param stored as a blob of JSON. */
+    creds.CognitoUserPoolRegion.grantRead(this.lambdaFunction);
     creds.GoogleCognitoUserPoolRegion.grantRead(this.lambdaFunction);
     creds.GoogleCognitoUserPoolId.grantRead(this.lambdaFunction);
     creds.GoogleCognitoUserPoolDomain.grantRead(this.lambdaFunction);
     creds.GoogleCognitoUserPoolClientId.grantRead(this.lambdaFunction);
+    creds.EmailCognitoUserPoolId.grantRead(this.lambdaFunction);
+    creds.EmailCognitoUserPoolClientId.grantRead(this.lambdaFunction);
     creds.AuthzSecrets2.grantRead(this.lambdaFunction);
 
     table.grantReadWriteData(this.lambdaFunction);

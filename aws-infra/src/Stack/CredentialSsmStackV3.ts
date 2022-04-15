@@ -15,7 +15,6 @@ export const initialParamValue = 'set me via the console';
  * examples and doco where they just embed secrets in source code.
  */
 export class CredentialSsmStackV3 extends Stack {
-  // these aren't used yet, haven't been able to figure it out
   GoogleCredsClientId: StringParameter;
   GoogleCredsClientSecret: StringParameter;
   
@@ -23,6 +22,11 @@ export class CredentialSsmStackV3 extends Stack {
   GoogleCognitoUserPoolId: StringParameter;
   GoogleCognitoUserPoolClientId: StringParameter;
   GoogleCognitoUserPoolDomain: StringParameter;
+
+  EmailCognitoUserPoolId: StringParameter;
+  EmailCognitoUserPoolClientId: StringParameter;
+
+  CognitoUserPoolRegion: StringParameter;
   
   AuthzSecrets2: StringListParameter;
 
@@ -34,20 +38,34 @@ export class CredentialSsmStackV3 extends Stack {
     super(scope, id, props);
 
     // this are from the Google dev console, not the cognito user pool 
+    // these aren't used yet, haven't been able to figure it out
     this.GoogleCredsClientId = this.string('GoogleCredsClientId');
     this.GoogleCredsClientSecret = this.string('GoogleCredsClientSecret');
-    
-    // these are from the cognito user pool
+
+    // deprecated, replaced bu the shared one, delete when not used
     this.GoogleCognitoUserPoolRegion = 
       this.string('GoogleCognitoUserPoolRegion');
+
+    // these are from the cognito google user pool
     this.GoogleCognitoUserPoolId = this.string('GoogleCognitoUserPoolId');
     this.GoogleCognitoUserPoolClientId = 
       this.string('GoogleCognitoUserPoolClientId');
     this.GoogleCognitoUserPoolDomain = 
       this.string('GoogleCognitoUserPoolDomain');
+
+    // these are from the email user pool
+    this.EmailCognitoUserPoolId = this.string('EmailCognitoUserPoolId');
+    this.EmailCognitoUserPoolClientId =
+      this.string('EmailCognitoUserPoolClientId');
+
+    // All our user pools are in the same region, so this is shared 
+    this.CognitoUserPoolRegion =
+      this.string('CognitoUserPoolRegion');
+
     
     // this is for creating the accessToken
     this.AuthzSecrets2 = this.stringList('AuthzSecrets2');
+    
   }
   
   string(name:string): StringParameter{
