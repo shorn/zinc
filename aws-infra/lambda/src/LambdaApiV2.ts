@@ -33,7 +33,7 @@ export const api: ApiMap = {
   },
   
   authorize: {
-    post: async (req) => authorizeUser(req, await config),
+    post: async (req, token) => authorizeUser(token, await config),
   },
   
   // authorized calls
@@ -45,7 +45,9 @@ export const api: ApiMap = {
 export interface LambaApiV2Config {
   cognito: CognitoConfig,
   verifier: {
+    // "MultiIssuer" might be better, but this seems simpler right now
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
+    email: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
   },
   authzSecrets: string[],
   database: UserTableV1Db,
@@ -77,16 +79,26 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
   
   const authzSecretsSsmParam = readStringListParam(process.env.AUTHZ_SECRETS_SSM_PARAM);
 
-  const idpUrl: string = `https://cognito-idp.` +
+  const googleIdpUrl: string = `https://cognito-idp.` +
     `${await cognitoRegion}.amazonaws.com/` +
     `${await googleUserPoolId}`;
+  const emailIdpUrl: string = `https://cognito-idp.` +
+    `${await cognitoRegion}.amazonaws.com/` +
+    `${await emailUserPoolId}`;
 
   const googleVerifier = JwtRsaVerifier.create({
-    issuer: idpUrl,
+    issuer: googleIdpUrl,
     audience: await googleClientId,
-    jwksUri: `${idpUrl}/.well-known/jwks.json`,
+    jwksUri: `${googleIdpUrl}/.well-known/jwks.json`,
   });
-  console.log("google verifier created", idpUrl);
+  console.log("google verifier created", googleIdpUrl);
+
+  const emailVerifier = JwtRsaVerifier.create({
+    issuer: emailIdpUrl,
+    audience: await emailClientId,
+    jwksUri: `${emailIdpUrl}/.well-known/jwks.json`,
+  });
+  console.log("email verifier created", googleIdpUrl);
 
   return {
     cognito: {
@@ -103,6 +115,7 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
     },
     verifier: {
       google: googleVerifier,
+      email: emailVerifier,
     },
     authzSecrets: await authzSecretsSsmParam,
     database: new UserTableV1Db(new DynamoDB({}), tableName),
@@ -140,7 +153,8 @@ export const handler: APIGatewayProxyHandler = async (event, context)=> {
 function parseApiPostCall(event: APIGatewayProxyEvent): { 
   type: keyof ApiMap,
   body: Record<string, any>,
-  accessToken?: string;
+  /** `accessToken` for most calls, but will be `idToken` for `authorize()` */
+  authToken?: string;
 } {
   if( !event.body ){
     throw new Error("no event body");
@@ -161,12 +175,12 @@ function parseApiPostCall(event: APIGatewayProxyEvent): {
   // date request params, yet.
   const body: Record<string, any> = JSON.parse(event.body);
 
-  let accessToken = getBearerToken(event);
+  let authToken = getBearerToken(event);
   
   /* note that there is no runtime validation of the the request, so WHEN 
    I stuff up version syncing, it's going to be a pain to diagnose :( */
   return {
-    type, body, accessToken
+    type, body, authToken
   };
 }
 
@@ -188,9 +202,8 @@ async function dispatchApiCall(event: APIGatewayProxyEvent){
   
   const call = api[apiCall.type].post as Function;
 
-  return await call(apiCall.body, apiCall.accessToken);
+  return await call(apiCall.body, apiCall.authToken);
 }
-
 
 export interface ServerAuthzContainer {
   access: AuthzTokenPayload,

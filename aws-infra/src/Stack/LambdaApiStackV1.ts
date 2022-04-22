@@ -39,6 +39,7 @@ export class LambdaApiStackV1 extends Stack {
   ){
     super(scope, id, props);
 
+    // Lambda function URLs would be a better fit for this "demo" use-case
     this.api = new RestApi(this, id + 'PublicApi', {
       restApiName: id + ' public API',
       deployOptions: {
