@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export function isMounted(){
+export function useIsMounted(){
   const isMountedRef = React.useRef(false);
 
   React.useEffect(()=>{
