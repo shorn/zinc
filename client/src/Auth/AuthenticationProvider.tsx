@@ -6,35 +6,22 @@ import {
   muiUrl,
   NewWindowLink
 } from "Component/ExternalLinks";
-import {
-  CognitoUserPool,
-  CognitoUserSession
-} from "amazon-cognito-identity-js";
 import { SmallPageSpinner } from "Component/SmallPageSpinner";
 import { ErrorInfoComponent } from "Error/ErrorInforComponent";
-import { ErrorInfo } from "Error/ErrorUtil";
+import { ErrorInfo, isErrorInfo } from "Error/ErrorUtil";
 import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
 import { ContainerCard } from "Design/ContainerCard";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { TextSpan } from "Component/TextSpan";
-import { parseJwtDate, parseServerDate } from "Util/DateUtil";
-import { api, CognitoConfig } from "Server/Api";
-import jwtDecode from "jwt-decode";
-import { AuthzTokenPayload, ServerInfo } from "shared";
-
-//export const emailPool = new CognitoUserPool({
-//  UserPoolId: Config.cognito.email.userPoolId,
-//  ClientId: Config.cognito.email.userPoolClientId,
-//});
-
-/*
-UserPool without IdentityPool cannot do auto-refresh
-https://github.com/aws-amplify/amplify-js/issues/3619#issuecomment-510654531
- */
-//export const googlePool = new CognitoUserPool({
-//  UserPoolId: Config.cognito.google.userPoolId,
-//  ClientId: Config.cognito.google.userPoolClientId,
-//});
+import { api } from "Server/Api";
+import { AuthzTokenPayload, CognitoConfig, ServerInfo } from "shared";
+import {
+  authorizeWithServer,
+  getAuthSessionFromStorage,
+  signOutUser
+} from "Auth/Authz";
+import { EmailContainer } from "Auth/EmailSignInContainer";
+import { getEmailCognitoIdToken, getSocialRedirectIdToken } from "Auth/Authn";
 
 export interface AuthenticationState {
   signOut: ()=>void,
@@ -58,221 +45,37 @@ export interface AuthorizedSession{
 } 
 
 export type AuthnState =
-  // in-progress
+  // in-progress states
   { status: "init" } |
   { status: "reading-config" } |
-  { status: "getting-session" } |
+  { status: "authenticating" } |
   { status: "authorizing" } |
   { status: "signing-out" } |
   
   // terminal states
   { status: "not-signed-in" } |
-  { status: "error", error: ErrorInfo } |
   { status: "unverified-email", email: string } |
-  { status: "signed-in", authSession: AuthorizedSession } 
+  { status: "signed-in", authSession: AuthorizedSession } |
+  { status: "error", error: ErrorInfo } 
 ; 
-
-function debugSession(session: CognitoUserSession){
-  const idToken = session.getIdToken();
-  const payload = idToken.payload;
-  console.log(idToken.getJwtToken());
-  console.debug("idToken", {
-    exp: parseJwtDate(payload.exp),
-    iat: parseJwtDate(payload.iat),
-    auth_time: parseJwtDate(payload.auth_time),
-  })
-}
-
-
-async function resolveGoogleAuthn(
-  serverConfig: CognitoConfig,
-  resolve: (value: AuthnState) => void,  
-): Promise<void>{
-  const pool = new CognitoUserPool({
-    UserPoolId: serverConfig.google.userPoolId,
-    ClientId: serverConfig.google.userPoolClientId,
-  });
-
-  const user = pool.getCurrentUser();
-  console.debug("resolveGoogleAuthn()", user);
-
-  const parsedHash = new URLSearchParams(
-    window.location.hash.substring(1) // skip the first char (#)
-  );
-
-  const IdToken = parsedHash.get("id_token");
-  // console.log("id_token", IdToken);
-  if( !IdToken ){
-    console.log("no IdToken", window.location.hash);
-    resolve({status: "not-signed-in"});
-    return;
-
-  }
-  //const AccessToken = parsedHash.get("access_token");
-  //if( !AccessToken ){
-  //  console.log("no AccessToken", window.location.hash);
-  //  resolve({status: "not-logged-in"});
-  //  return;
-  //}
-  //
-  //const session = new CognitoUserSession({
-  //  IdToken: new CognitoIdToken({IdToken}),
-  //  AccessToken: new CognitoAccessToken({AccessToken})
-  //})
-  //
-  // don't leave tokens in the url
-  window.location.hash = "";
-
-  resolve({status: "authorizing"});
-  
-  //const authzResponse = await authorize(IdToken);
-  //const authzResponse = await post({
-  //  type: "Authorize2", 
-  //  payload: {idToken: IdToken} });
-  const authzResponse = await api.authorize.post({
-      idToken: IdToken, 
-  });
-  console.log("authzResponse", authzResponse);
-  
-  if( !authzResponse.succeeded ){
-    resolve({
-      status: "error",
-      error: {
-        message: authzResponse.message, 
-        problem: authzResponse
-      }
-    });
-    return;
-  }
-
-  const parseResult = parseAccessToken(authzResponse.accessToken);
-  if( !parseResult.succeeded ){
-    resolve({status: "error", error: {
-      message: parseResult.message, 
-        problem: parseResult.decoded }});
-    return;
-  }
-
-  localStorage.setItem(accessTokenStorageKey, authzResponse.accessToken);
-  
-  resolve({ status: "signed-in", 
-    authSession: {
-      accessToken: authzResponse.accessToken,
-      accessTokenExpiry: parseResult.accessTokenExpiry,
-      payload: parseResult.payload,
-    }
-  });
-}
-
-export function parseAccessToken(accessToken: string):{
-  succeeded: true,
-  accessTokenExpiry: Date,
-  payload: AuthzTokenPayload,
-} | {
-  succeeded: false,
-  message: string,
-  decoded: string|undefined,
-}{
-  const decoded: any = jwtDecode(accessToken);
-  console.log("decoded", decoded);
-
-  if( !decoded ){
-    return {succeeded: false, message: "accessToken decode issue", decoded};
-  }
-
-  if( typeof decoded !== "object" ){
-    return {succeeded: false, message: "decoded token is not object", decoded};
-  }
-
-  if( !decoded.userId || typeof(decoded.userId) !== "string" ){
-    return {succeeded: false, message: "no accessToken payload userId", decoded};
-  }
-
-  if( !decoded.email  || typeof(decoded.email) !== "string" ){
-    return {succeeded: false, message: "no accessToken payload email", decoded};
-  }
-
-  if( !decoded.role  || typeof(decoded.role) !== "string" ){
-    return {succeeded: false, message: "no accessToken payload role", decoded};
-  }
-
-  if( !decoded.userCreated  || typeof(decoded.userCreated) !== "string" ){
-    return {succeeded: false, message: "no accessToken payload userCreated", decoded};
-  }
-  
-  if( !decoded.exp || typeof(decoded.exp) !== "number" ){
-    return {succeeded: false, message: "malformed accessToken payload exp", decoded};
-  }
-
-  const accessTokenExpiry: Date|undefined = parseJwtDate(decoded.exp);
-  if( !accessTokenExpiry ){
-    return {succeeded: false, message: "malformed accessToken payload exp", decoded};
-  }
-  
-  if( accessTokenExpiry <= new Date() ){
-    console.warn("accessTokenExpiry", accessTokenExpiry);
-    return {succeeded: false, message: "accessToken is expired", decoded};
-  }
-  
-  return {
-    succeeded: true,
-    accessTokenExpiry,
-    payload: {
-      ...decoded,
-      /* date needs to be converted since it was decoded from a JWT, not passed
-      through our API parsing routine. */
-      userCreated: parseServerDate(decoded.userCreated)
-    },
-  }
-}
-
-export async function resolveSignOutFromAll({serverConfig}: {
-  serverConfig: CognitoConfig,
-}): Promise<void>{
-  const emailPool: CognitoUserPool|undefined = undefined;
-  const googlePool = new CognitoUserPool({
-    UserPoolId: serverConfig.google.userPoolId,
-    ClientId: serverConfig.google.userPoolClientId,
-  });
-
-  return new Promise((resolve, reject) =>{
-    console.log("signing out from all");
-    //if( emailPool?.getCurrentUser() ){
-    //  console.log("signing out email");
-    //  emailPool.getCurrentUser()?.signOut(()=>{
-    //    console.log("signed out from email")
-    //    return resolve();
-    //  });
-    //}
-    //else
-      
-    if( googlePool.getCurrentUser() ){
-      console.log("signing out google");
-      googlePool.getCurrentUser()?.signOut(()=>{
-        console.log("signed out from google")
-        return resolve();
-      });
-    }
-    else {
-      console.log("nothing logged in, nothing to signOut from");
-      return resolve();
-    }
-  });
-}
-
-//let globalGooglePool: CognitoUserPool|undefined;
-
-const accessTokenStorageKey = "cognitoPocAccessToken";
 
 export function AuthenticationProvider({children}: {children: React.ReactNode}){
   const [state, setState] = React.useState<AuthnState>({status:"init"});
   const [serverConfig, setServerConfig] = React.useState<CognitoConfig|undefined>(undefined);
-  
+
+  /** 
+   * - looks for a non-expired `accessToken` in local storage,
+   *   otherwise looks for an `idToken` from signing in with email/social 
+   * - exchanges the idToken for an accessToken from the server
+   * - save the accessToken to storage for next time
+   */
   const checkLoginState = React.useCallback( async () => {
     setState({status: "reading-config"});
     let serverInfo: ServerInfo;
     try {
-      serverInfo = await api.readConfig.post();
+      serverInfo = await api.readConfig.post({});
+      console.log("serverInfo", serverInfo);
+      setServerConfig(serverInfo.cognito);
     }
     catch( err ){
       setState({
@@ -283,115 +86,71 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
       });
       return;
     }
-    
-    console.log("serverInfo", serverInfo);
-    //export const emailPool = new CognitoUserPool({
-    //  UserPoolId: serverConfig.email.userPoolId,
-    //  ClientId: serverConfig.email.userPoolClientId,
-    //});
 
-    /*
-    https://cog-poc-google2.auth.us-east-1.amazoncognito.com/login?response_type=token&client_id=7bjopbg1nl44qgsgqa89almsrv&redirect_uri=http://localhost:9090
-     */
-    setServerConfig(serverInfo.cognito);
+    setState({status: "authenticating"});
 
-    const storedAccessToken = localStorage.getItem(accessTokenStorageKey);
-    if( storedAccessToken ){
-      const parseResult = parseAccessToken(storedAccessToken);
-      if( parseResult.succeeded ){
-        setState({
-          status: "signed-in", authSession: {
-            accessToken: storedAccessToken,
-            accessTokenExpiry: parseResult.accessTokenExpiry,
-            payload: parseResult.payload
-          }
-        });
-        return;
-      }
-      else {
-        console.warn("problem parsing accessToken from storage, ignoring",
-          parseResult.message, parseResult.decoded);
-      }
-    }
-    
-    setState({status: "getting-session"});
-    try {
-      //const emailUser = emailPool.getCurrentUser();
-      //const googleUser = googlePool.getCurrentUser();
-      //console.log("checkLoginState() email,google", emailUser, googleUser);
-      //if( emailUser ){
-      //  console.log("resolving email authn");
-      //  const emailState = await resolveEmailSession(emailPool);
-      //  setState(emailState);
-      //  if( emailState.status !== "not-logged-in" ){
-      //    // don't fire the google check
-      //    return;
-      //  }
-      //}
-
-      console.log("resolving google authn");
-      try {
-        await resolveGoogleAuthn(serverInfo.cognito, setState);
-      } catch( e ){
-        setState({status: "error", error: {
-            message: "while resolving google auth",
-            problem: e
-          }});
-      }
-      
-    }
-    catch( e ){
-      setState({status: "error", error: {
-        message: "while getting email session", 
-        problem: e
-      }});
-    }
-  }, []);  
-  
-  const signOut = React.useCallback(async ()=>{
-    setState({status: "signing-out"});
-    if( !serverConfig ){
-      setState({
-        status: "error", error: {
-          message: "serverConfig should be set by now",
-          problem: serverConfig
-        }
-      })
+    const authSession = getAuthSessionFromStorage();
+    if( authSession ){
+      setState({status: "signed-in", authSession});
       return;
     }
     
-    localStorage.removeItem(accessTokenStorageKey);
+    let idToken:string|undefined = getSocialRedirectIdToken();
+    if( idToken ){
+      console.log("found social idToken")
+    }
+    else {
+      idToken = (await getEmailCognitoIdToken(serverInfo.cognito.email))?.
+        getJwtToken();
+      if( idToken ){
+        console.log("found email idToken");
+      }
+      else {
+        console.log("found no idtoken");
+        setState({status: "not-signed-in"});
+        return;
+      }
+    }
+
+    setState({status: "authorizing"});
+
+    const authzResult = await authorizeWithServer(idToken);
+    if( isErrorInfo(authzResult) ){
+      setState({
+        status: "error", error: authzResult
+      });
+      return;
+    }
+
+    setState({ status: "signed-in", authSession: authzResult });
     
-    await resolveSignOutFromAll({serverConfig});
+  }, []);
+
+  const onSignOutClicked = React.useCallback(async () => {
+    if( !serverConfig ){
+      return;
+    }
+    setState({status: "signing-out"});
+    await signOutUser({serverConfig});
     // this should result in "not-logged-in" state
     await checkLoginState();
-    console.log("signOut() checkLogingState done");
   }, [checkLoginState, serverConfig]);
-  
-  React.useEffect(()=>{
-    try {
-    // noinspection JSIgnoredPromiseFromCall
-      checkLoginState();
-    } catch( e ){
-      setState({
-        status: "error", error: {
-          message: "while calling checkLoginState()",
-          problem: e
-        }
-      });
-    }
+
+  React.useEffect(() => {
+    //   noinspection JSIgnoredPromiseFromCall
+    checkLoginState();
   }, [checkLoginState]);
   
-  React.useEffect(()=>{
-    console.log("state", state);
-  }, [state]);
-  
-  if( state.status === "init" || state.status === "getting-session" ){
+  if( state.status === "init" || state.status === "reading-config" ){
+    return <SmallPageSpinner message={"Reading config"}/>
+  }
+
+  if( state.status === "authenticating" ){
     return <SmallPageSpinner message={"Signing in"}/>
   }
 
-  if( state.status === "reading-config" ){
-    return <SmallPageSpinner message={"Reading config"}/>
+  if( state.status === "authorizing" ){
+    return <SmallPageSpinner message={"Authorizing"}/>
   }
 
   if( state.status === "signing-out" ){
@@ -413,10 +172,7 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
         that was sent.
       </Typography>
       <Typography paragraph>
-        <SecondaryButton onClick={()=>{
-          // noinspection JSIgnoredPromiseFromCall
-          signOut();
-        }}>
+        <SecondaryButton onClick={onSignOutClicked}>
           Sign out 
         </SecondaryButton> 
       </Typography>
@@ -424,7 +180,6 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
   }
   
   if( state.status === "not-signed-in" ){
-    
     if( !serverConfig ){
       return <ErrorInfoComponent error={{
         message:"Server config must be set by now", 
@@ -434,12 +189,14 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
     return <LargeContentMain>
       <IntroContainer/>
       <SmallContentMain>
-        {/*<EmailContainer pool={emailPool}*/}
-        {/*  onSignInSucceeded={() => {*/}
-        {/*    // noinspection JSIgnoredPromiseFromCall*/}
-        {/*    checkLoginState();*/}
-        {/*  }}*/}
-        {/*/>*/}
+        <EmailContainer emailConfig={serverConfig.email}
+          onSignInSucceeded={() => {
+            /* once the user has actually succeeded signing in, this logic 
+             will be able to pick that up from the userpool */
+            // noinspection JSIgnoredPromiseFromCall
+            checkLoginState();
+          }}
+        />
         <br/>
         <GoogleSignInContainer serverConfig={serverConfig}/>
         
@@ -447,28 +204,8 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
     </LargeContentMain>
   }
   
-  if( state.status === "authorizing" ){
-    return <SmallPageSpinner message={"Authorizing"}/>
-  }
-  
-  //if( !state.session.getIdToken() ){
-  //  return <ErrorInfoComponent error={{
-  //    message: "session has no IdToken", 
-  //    problem: state.session
-  //  }}/>
-  //}
-  //
-  //if( !state.session.getIdToken().payload ){
-  //  return <ErrorInfoComponent error={{
-  //    message: "IdToken has no payload", 
-  //    problem: state.session
-  //  }}/>
-  //}
-  //
-  //debugSession(state.session);
-  
   return <AuthenticationContext.Provider value={{
-    signOut: signOut,
+    signOut: onSignOutClicked,
     session: state.authSession,
   }}>
     {children}
@@ -493,7 +230,9 @@ function getCognitoGoogleLoginDomain(config: CognitoConfig){
     `.auth.${config.region}.amazoncognito.com`
 }
 
-export function GoogleSignInContainer({serverConfig}:{serverConfig: CognitoConfig}){
+export function GoogleSignInContainer({serverConfig}:{
+  serverConfig: CognitoConfig
+}){
   const [isWorking, setIsWorking] = React.useState(false);
 
   async function googleSignIn(){

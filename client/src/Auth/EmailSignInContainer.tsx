@@ -2,177 +2,44 @@ import React from "react";
 import {
   AuthenticationDetails,
   CognitoUser,
-  CognitoUserPool, CognitoUserSession
+  CognitoUserPool
 } from "amazon-cognito-identity-js";
 import { ContainerCard } from "Design/ContainerCard";
-import { Grid, Link, Stack, TextField } from "@mui/material";
+import { Stack, TextField } from "@mui/material";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
-import { AuthnState } from "Auth/AuthenticationProvider";
 import { ErrorInfo } from "Error/ErrorUtil";
+import { CognitoEmailConfig } from "shared";
+import { TextSpan } from "Component/TextSpan";
 
-//export async function resolveEmailSession(
-//  pool: CognitoUserPool
-//): Promise<AuthnState>{
-//  return new Promise<AuthnState>((resolve, reject) => {
-//    const user = pool.getCurrentUser();
-//    if( !user ){
-//      return resolve({status: "not-signed-in"});
-//    }
-//    user.getSession((
-//      error: null | Error,
-//      session: null | CognitoUserSession,
-//    ) => {
-//      if( error ){
-//        console.log("problem calling getSession()", error.message);
-//        return resolve({
-//          status: "error", error: {
-//            message: "while getting email session",
-//            problem: error
-//          }
-//        });
-//      }
-//      // console.log("getCurrentUser()", pool.getCurrentUser());
-//      // console.log("getSignInUserSession()", user.getSignInUserSession());
-//
-//      if( session == null ){
-//        console.log("no session was got");
-//        return resolve({status: "not-signed-in"});
-//      }
-//
-//      if( !session.getIdToken() ){
-//        return resolve({
-//          status: "error", error: {
-//            message: "no session idtoken", problem: session
-//          }
-//        });
-//      }
-//
-//      if( !session.getIdToken().payload ){
-//        return resolve({
-//          status: "error", error: {
-//            message: "session idtoken has no payload", problem: session
-//          }
-//        });
-//      }
-//
-//      const email: string | undefined = session.getIdToken().payload.email;
-//      const emailVerified = Boolean(
-//        session.getIdToken().payload.email_verified);
-//      console.log("idToken.payload",
-//        emailVerified, session.getIdToken().payload);
-//
-//      if( !email ){
-//        // defensive logic: never seen this state 
-//        console.log("session returned with no email",
-//          session, session.getIdToken(), session.getIdToken()?.payload);
-//        return resolve({status: "not-signed-in"});
-//      }
-//
-//      if( !emailVerified ){
-//        return resolve({status: "unverified-email", email});
-//      }
-//
-//      
-//      return resolve({status: "signed-in", session});
-//    });
-//  });
-//}
-
-export type SignInState =
+export type EmailSignInState =
   {status: "succeeded", email: string} |
+  {status: "not-confirmed", email: string} |
   {status: "error", error: ErrorInfo}
 
-export async function resolveEmailSignIn({
-    pool, email, password
-  }: {
-    pool: CognitoUserPool,
-    email: string,
-    password: string,
-  }
-): Promise<SignInState>{
-  return new Promise<SignInState>((resolve, reject) => {
-      // https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js
-      const user = new CognitoUser({Username: email, Pool: pool});
-      user.authenticateUser(
-        new AuthenticationDetails({Username: email, Password: password}), {
-          onSuccess: function(result){
-            console.debug("authnUser.onSuccess", result);
-            return resolve({status: "succeeded", email});
-          },
-
-          onFailure: function(err){
-            console.debug("authnUser.onFailure()", err.message, err.code);
-            if( err.code === "UserNotConfirmedException" ){
-              /* if user had not clicked confirm link in the email invitation
-               treat it as successfull signin na dlet the  "getSession" logic 
-               deal with it */
-              return resolve({status: "succeeded", email});
-            }
-            else {
-              return resolve({
-                status: "error", error: {
-                  message: err.message,
-                  problem: err,
-                }
-              });
-            }
-          },
-
-          newPasswordRequired: (userAttributes, requiredAttributes) => {
-            // if admin creates the user, status goes to "force change password"
-            // and user ends up here when they try to sign in
-            console.debug("newPasswordRequired",
-              userAttributes, requiredAttributes);
-
-            // returned but not valid to submit
-            delete userAttributes.email_verified;
-            delete userAttributes.email;
-            console.debug("confirm with attributes", userAttributes);
-
-            // complete the sign-up process by confirming the password
-            user.completeNewPasswordChallenge(password, userAttributes, {
-              onSuccess: function(result){
-                console.debug("passwordChallenge.onSuccess", result);
-                return resolve({status: "succeeded", email});
-                /* user status will now be "confirmed", but email is not verified
-                 if admin did not click the checkbox */
-              },
-
-              onFailure: function(err){
-                /* can get error:  Input attributes include non-writable 
-                 attributes for the client if pool/client is not configured
-                 properly. */
-                console.error("passwordChallenge.onFailure()",
-                  err.message, err.code);
-                return resolve({
-                  status: "error", error: {
-                    message: "failed",
-                    problem: err,
-                  }
-                });
-              },
-            });
-          },
-        }
-      );
-    }
-  );
-}
-
 export function EmailContainer({
-  pool,
+  emailConfig,
   onSignInSucceeded,
 }: {
-  pool: CognitoUserPool
+  emailConfig: CognitoEmailConfig
   onSignInSucceeded: () => void,
   initEmail?: string, initPassword?: string,
 }){
-  const [state, setState] = React.useState("signin" as "signin" | "signup" | "forgot");
+  const [state, setState] = React.useState("signin" as 
+    "signin" | "signup" | "forgot" );
+  
+  // don't create every render (probably not expensive, but w/e)
+  const pool = React.useMemo(()=>{
+    return new CognitoUserPool({
+      UserPoolId: emailConfig.userPoolId,
+      ClientId: emailConfig.userPoolClientId,
+    });
+  }, [emailConfig.userPoolId, emailConfig.userPoolClientId]);
 
   const signInButton = <span> 
-      <SecondaryButton
-        onClick={() => setState("signin")}>Sign in</SecondaryButton>         
+    <SecondaryButton onClick={() => setState("signin")}>
+      Sign in
+    </SecondaryButton>         
   </span>;
 
   const signUpButton = <span> 
@@ -228,7 +95,7 @@ export function EmailSignInContainer({
 }){
   const [state, setState] = React.useState(
     {status: "init"} as {status: "init"} | {status: "authenticating"} |
-      SignInState
+      EmailSignInState
   );
   const [email, setEmail] = React.useState(initEmail);
   const [password, setPassword] = React.useState(initPassword);
@@ -237,17 +104,16 @@ export function EmailSignInContainer({
     setState({status: "authenticating"});
 
     const result = await resolveEmailSignIn({pool, email, password});
+    setState(result);
     if( result.status === "succeeded" ){
       onSignInSucceeded();
     }
-    setState(result);
   }
 
   const isWorking = state.status === "authenticating";
   return <ContainerCard title={"Email Sign in"}>
     <form onSubmit={(e) => {
       e.preventDefault();
-      console.debug("sign in clicked");
       // noinspection JSIgnoredPromiseFromCall
       emailSignIn(email, password);
     }}>
@@ -271,8 +137,13 @@ export function EmailSignInContainer({
             disabled={isWorking || !email || !password}>
             Signin
           </PrimaryButton>
-          {state.status === "error" &&
+          { state.status === "error" &&
             <CompactErrorPanel error={state.error}/>
+          }
+          { state.status === "not-confirmed" &&
+            <TextSpan>Email not confirmed - please click on the verify link
+              in the email that was sent to you, then sign in.
+            </TextSpan>
           }
         </div>
       </Stack>
@@ -456,4 +327,81 @@ export function ForgotPasswordContainer({
       </div>
     </Stack>
   </ContainerCard>
+}
+
+/** Authenticating email users, but also handles "unconfirmed" users
+ * (i.e. haven't verified their email address) and forced password changes.
+ */
+export async function resolveEmailSignIn({pool, email, password}: {
+    pool: CognitoUserPool,
+    email: string,
+    password: string,
+  }
+): Promise<EmailSignInState>{
+  return new Promise<EmailSignInState>((resolve, reject) => {
+      // https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js
+      const user = new CognitoUser({Username: email, Pool: pool});
+      user.authenticateUser(
+        new AuthenticationDetails({Username: email, Password: password}), {
+          onSuccess: function(result){
+            console.debug("authnUser.onSuccess", result);
+            return resolve({status: "succeeded", email});
+          },
+
+          onFailure: function(err){
+            console.debug("authnUser.onFailure()", err.message, err.code);
+            if( err.code === "UserNotConfirmedException" ){
+              return resolve({status: "not-confirmed", email});
+            }
+            else {
+              return resolve({
+                status: "error", error: {
+                  message: err.message,
+                  problem: err,
+                }
+              });
+            }
+          },
+
+          newPasswordRequired: (userAttributes, requiredAttributes) => {
+            // if admin creates the user, status goes to "force change password"
+            // and user ends up here when they try to sign in
+            console.debug("newPasswordRequired",
+              userAttributes, requiredAttributes);
+
+            // returned but not valid to submit
+            delete userAttributes.email_verified;
+            delete userAttributes.email;
+            console.debug("confirm with attributes", userAttributes);
+
+            /* complete the sign-up process by confirming the password.
+            Suitable for our demo use-case, but you'd wanna implement a proper 
+            password change here for a real app. */
+            user.completeNewPasswordChallenge(password, userAttributes, {
+              onSuccess: function(result){
+                console.debug("passwordChallenge.onSuccess", result);
+                return resolve({status: "succeeded", email});
+                /* user status in cognito console will now be "confirmed", but 
+                email is not verified if admin did not click the checkbox */
+              },
+
+              onFailure: function(err){
+                /* can get error:  Input attributes include non-writable 
+                 attributes for the client if pool/client is not configured
+                 properly. */
+                console.error("passwordChallenge.onFailure()",
+                  err.message, err.code);
+                return resolve({
+                  status: "error", error: {
+                    message: "failed",
+                    problem: err,
+                  }
+                });
+              },
+            });
+          },
+        }
+      );
+    }
+  );
 }

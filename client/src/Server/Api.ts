@@ -1,4 +1,4 @@
-import { ApiCall, ApiMap } from "shared/ApiTypes";
+import { ApiMap } from "shared/ApiTypes";
 import { dateTimeReviver } from "Util/DateUtil";
 
 export type AuthorizeResponse = {
@@ -17,7 +17,7 @@ export interface User {
 
 export const api: ApiMap = {
   authorize: {
-    post: (req) => apiMapPost("authorize", req)
+    post: (req, idToken) => apiMapPost("authorize", req, idToken)
   },
   readConfig: {
     post: () => apiMapPost("readConfig", {})
@@ -35,14 +35,17 @@ export async function apiMapPost(type: string, req: Record<string, any>, accessT
 async function postFetch(
   type: string,
   body: Record<string, any>,
-  accessToken?: string,
+  /** Most of the time this is the `accessToken`, except for when calling 
+   * `authorize()`, when it's the `idToken`.  Probably should just have a 
+   * specialised `authorize()` function. */
+  authToken?: string,
 ): Promise<any>{
   let headers = new Headers();
   headers.append("Accept", 'application/json');
   headers.append("Content-Type", 'application/json');
   headers.append("Accept-Encoding", 'gzip, deflate');
-  if( accessToken ){
-    headers.append("Authorization", 'Bearer ' + accessToken);
+  if( authToken ){
+    headers.append("Authorization", 'Bearer ' + authToken);
   }
   let response: Response = await fetch(
     /* the parameter is just so I can see what request is what in the console
@@ -72,17 +75,4 @@ export async function jsonParse(response: Response): Promise<any>{
   /* crazy dodgy dateTime shennanigans - this kind of silliness
    is why I prefer an IDL */
   return JSON.parse(text, dateTimeReviver);
-}
-
-export interface CognitoConfig {
-  region: string,
-  //email: {
-  //  userPoolId: string,
-  //  userPoolClientId: string,
-  //},
-  google: {
-    userPoolId: string,
-    userPoolClientId: string,
-    userPoolDomain: string,
-  },
 }

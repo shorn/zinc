@@ -12,7 +12,7 @@ export type ApiMap = {
    * API calls.
    */
   authorize: {
-    post: (req: AuthorizeUserRequest) => 
+    post: (req: {}, idToken: string) => 
       Promise<AuthorizeUserResponse>
   },
   /**
@@ -20,7 +20,7 @@ export type ApiMap = {
    * authenticate against the ID-Provider (Cognito).
    */
   readConfig: {
-    post: () => Promise<ServerInfo>
+    post: (req: {}) => Promise<ServerInfo>
   },
   /**
    * list publicly available data for all users.
@@ -79,19 +79,22 @@ export interface ServerInfo {
   lambdaCreateDate: Date,
 }
 
+export interface CognitoEmailConfig {
+  userPoolId: string,
+  userPoolClientId: string,
+}
+
+export interface CognitoGoogleConfig {
+  userPoolId: string,
+  userPoolClientId: string,
+  userPoolDomain: string,
+}
 
 /** must not contain secrets */
 export interface CognitoConfig {
   region: string,
-  email: {
-    userPoolId: string,
-    userPoolClientId: string,
-  },
-  google: {
-    userPoolId: string,
-    userPoolClientId: string,
-    userPoolDomain: string,
-  },
+  email: CognitoEmailConfig,
+  google: CognitoGoogleConfig,
 }
 
 /** Specifies he shape of our claims in the AccessToken. */
