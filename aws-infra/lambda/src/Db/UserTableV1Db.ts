@@ -2,13 +2,16 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 
 import Dynamo from 'dynamodb-onetable/Dynamo'
 import { Model, Paged, Table } from 'dynamodb-onetable'
-import { PublicUserData, User } from "shared";
+import { PublicUserData, PrivateUserData } from "shared";
 
 export interface ServerUser {
   userId: string,
   email: string,
+  enabled: boolean,
   displayName?: string,
-  message?: string,
+  privateMessage?: string,
+  publicMessage?: string,
+  denyAuthBefore?: Date,
   created: Date,
 }
 
@@ -26,10 +29,15 @@ const UserSchema = {
       sk: {type: String, value: 'user#${email}'},
       userId: {type: String, required: true},
       email: {type: String, required: true},
+      enabled: {type: Boolean, required: true},
+      displayName: {type: String, required: false},
+      privateMessage: {type: String, required: false},
+      publicMessage: {type: String, required: false},
+      // not required because set by DDB (or OneTable?)
       created: {type: Date, required: false},
-      onlyAfter: {type: Date, required: false},
+      denyAuthBefore: {type: Date, required: false},
       gs1pk:      { type: String, value: 'user#' },
-      gs1sk:      { type: String, value: 'user#${email}#${userId}' },    
+      gs1sk:      { type: String, value: 'user#${email}#${userId}' },
     }
   },
   params: {
@@ -55,7 +63,7 @@ export class UserTableV1Db {
     this.user = this.table.getModel('User');
   }
 
-  async getUser(id: string): Promise<ServerUser | undefined>{
+  async getServerUser(id: string): Promise<ServerUser | undefined>{
     return await this.user.get({userId: id});
   }
 
@@ -68,10 +76,22 @@ export class UserTableV1Db {
     return serverUser;
   }
 
+  async updateUser(user: ServerUser): Promise<ServerUser>{
+    const updatedUser = await this.user.update(user);
+    if( !updatedUser ){
+      console.error("user update returned undefined", user);
+      throw Error("Unable to update user");
+    }
+    console.log("updated user", updatedUser)
+    return updatedUser;
+  }
+
   /**
-   * list ALL uses in the table, this is not a good design, especially 
+   * list ALL uses in the table, this is not a good design, especially
    * for DDB.
-   * Need to figure out how pagination across our API with DDB.  
+   * Need to figure out how pagination across our API with DDB.
+   * 
+   * ATM, this lists all users - maybe should filter disabled?
    */
   async listAllUsers(): Promise<PublicUserData[]>{
     const result: PublicUserData[] = [];
@@ -80,13 +100,7 @@ export class UserTableV1Db {
     let next: any = null
     do {
 
-      userPage.forEach(it=> {
-        result.push({
-          userId: it.userId, 
-          displayName: it.displayName,
-          userCreated: it.created,
-        }); 
-      });
+      userPage.forEach(it => result.push(mapToPublicUser(it)));
 
       userPage = await this.user.scan({}, {next})
       next = userPage.next
@@ -113,6 +127,31 @@ export class UserTableV1Db {
     result.push(...userPage);
     return result;
   }
-  
+
 }
 
+/** map the server data onto a new PrivateUserData object, suitable for
+ * returning to the client. */
+export function mapToPrivateUser(user: ServerUser): PrivateUserData{
+  /* Doing this manually to avoid usage of the spread operator (which is a 
+  runtime thing that would copy all server data to the client object). */
+  return {
+    userId: user.userId,
+    email: user.email,
+    privateMessage: user.privateMessage,
+    publicMessage: user.publicMessage,
+    displayName: user.displayName,
+  }
+}
+
+/** map the server data onto a new PublicUserData object, suitable for
+ * returning to the any user of the system. */
+export function mapToPublicUser(user: ServerUser): PublicUserData {
+  return {
+    userId: user.userId,
+    displayName: user.displayName,
+    publicMessage: user.privateMessage,
+    userCreated: user.created,
+  }
+}
+  

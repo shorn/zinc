@@ -1,6 +1,3 @@
-export type ApiCall = {
-  type: string
-}
 
 /**
  * This type has two implementations: server and client.
@@ -35,7 +32,10 @@ export interface AuthorizeUserRequest {
   idToken: string,
 }
 
-
+/**
+ * The token will conform to standard JWT claims (`exp`, etc.) and will 
+ * also contain claims defined in AuthzTokenPayload.
+ */
 export type AuthorizeUserResponse = {
   succeeded: true,
   accessToken: string,
@@ -44,28 +44,49 @@ export type AuthorizeUserResponse = {
   message: string,
 }
 
-/**
- * used in the payload of any "authorized" call, each call must
- * verify the access token on the server-side.
- */
-export interface AuthorizedRequest {
-  accessToken: string,
+/** Specifies he shape of our claims in the AccessToken. */
+export interface AuthzTokenPayload {
+  userId: string,
+  email: string,
+  /* role in access token is for client's convenience, actual authz checks 
+  should be done against the DB, not the claim.
+  Not even using it at the moment. */
+  role: string,
+  userCreated: Date,
 }
 
-/** This is for user by an individual client on that user's signed-in browser.
- * Don't return this type from APIs where you're looking one user is looking
- * at other users data (like listPuclic).
+/* There are many "shapes" of user data:
+- ServerUser - the database model, for use on the server only, should never be 
+  sent to the client
+- PublicUserData - can be seen by any user of the system about anyone
+- PrivateUserData - should be seen only by the user themself (or an admin).
+  This is tricky to enforce, because PrivateUser and ServerUser have such 
+  similar shape, given Typescript's structural typing it's easy to accidentally 
+  send Server data to the client.  In a real app, I'd likely separate this 
+  stuff out to a composed structured designed to avoid this.
+- AuthzTokenPayload - used in the claims of the "Access Token", don't be tempted
+  to put non-auth stuff in here (like "display name"). You don't want to start
+  thinking about tracking/refreshing stale claims. Instead, compose a proper 
+  client-side model that you can track and keep up to date (with Contexts or 
+  Redux or w/e).      
  */
-export interface User {
+
+/** This is for use on an individual client where user has signed-in.
+ * Don't return this type from APIs where one user is looking
+ * at other users data (like `listPublic()`).
+ */
+export interface PrivateUserData {
   userId: string,
   email: string,
   displayName?: string,
   publicMessage?: string,
-  //enabled: boolean,
-  //onlyAfter?: Date,
+  privateMessage?: string,
 }
 
-/** This is data where we don't mind if non-users see this data.
+export type UdpateUserData = Pick<PrivateUserData, 
+  "userId"|"displayName"|"publicMessage"|"privateMessage" >;
+
+/** This is data that users are allowed to see about other users.
  */
 export interface PublicUserData {
   userId: string,
@@ -74,6 +95,7 @@ export interface PublicUserData {
   userCreated: Date,
 }
 
+/** requested by the client app so it knows how to authenticate, etc. */
 export interface ServerInfo {
   cognito: CognitoConfig,
   lambdaCreateDate: Date,
@@ -97,22 +119,4 @@ export interface CognitoConfig {
   google: CognitoGoogleConfig,
 }
 
-/** Specifies he shape of our claims in the AccessToken. */
-export interface AuthzTokenPayload {
-  userId: string,
-  email: string,
-  /* role in access token is for client's convenience, actual authz checks 
-  should be done against the DB, not the claim.
-  Not even using it at the moment. */
-  role: string,
-  userCreated: Date,
-}
-
-export interface SignUpUserRequest {
-  idToken: string,
-}
-
-export interface SignUpResponse {
-  user: User,
-}
 

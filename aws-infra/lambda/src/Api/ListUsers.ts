@@ -1,4 +1,4 @@
-import { AuthorizedRequest, PublicUserData, User } from "shared/ApiTypes";
+import { PublicUserData } from "shared/ApiTypes";
 import { guardAuthz } from "Api/Authz";
 import { LambaApiV2Config } from "LambdaApiV2";
 

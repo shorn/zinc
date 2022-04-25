@@ -1,11 +1,11 @@
-import { AuthorizeUserRequest, AuthorizeUserResponse } from "shared/ApiTypes";
+import { AuthorizeUserResponse } from "shared/ApiTypes";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import { AuthError, forceError } from "Util/Error";
 import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV3";
 import { signAuthzToken } from "Authz/AuthzToken";
-import { CognitoVerifierProps, LambaApiV2Config } from "LambdaApiV2";
+import { LambaApiV2Config } from "LambdaApiV2";
 import { decode } from "jsonwebtoken";
-import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
+import { guardGenericAuthz } from "Api/Authz";
 
 const oneDaySeconds = 1 * 24 * 60 * 60;
 const tenMinutesSeconds = 10 * 60;
@@ -29,35 +29,18 @@ export async function authorizeUser(
   intended to be globally unique. If Cognito assigns the same `subject` to two
   different principles across our user pools - that that would result in 
   undesirable behaviour (user-A sees user-B's data). */
-  let user = await config.database.getUser(userId);
+  let user = await config.database.getServerUser(userId);
 
   if( !user ){
     /* there's no signup flow or authorization process, if a user wants to use 
     the PoC and we've been able to identify them - automatically add them. */
-    user = await config.database.addUser({userId, email: userEmail});
+    user = await config.database.addUser({
+      userId, email: userEmail, enabled: true });
   }
 
-  /* TODO:STO `onlyAfter` we want to be able to disable users out, and want to
-   be able to expire their tokens - instead of maintaining a blacklist, we use
-   a timestamp.  This is useful for a few different things:
-   - defense against security wonkism - the longer you set the accessToken 
-   validity, the more important this becomes
-   - "log out of all devices" functionality
-   - temporary lock out of all/most users 
-   The "enabled" flag 
-  */
-
-  //if( !user.enabled ){
-  //  throw new AuthError({publicMsg: "while authorizing",
-  //    privateMsg: "user disabled" });
-  //}
-  //if( user.onlyAfter ){
-  //  if( user.onlyAfter.getTime() > new Date().getTime() ){
-  //    throw new AuthError({publicMsg: "while authorizing",
-  //      privateMsg: "authz only allowed after: " +
-  //        user.onlyAfter.toISOString() });
-  //  }
-  //}
+  /* all access-restricted endpoints will check at least this, no point issuing
+   an accessToken that won't validate :) */
+  guardGenericAuthz(user);
 
   console.log("idToken and User is valid, generating accessToken");
 

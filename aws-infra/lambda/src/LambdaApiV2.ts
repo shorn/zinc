@@ -5,7 +5,6 @@ import {
   ApiMap,
   AuthzTokenPayload,
   CognitoConfig,
-  User
 } from "shared/ApiTypes";
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
 import { AuthError, forceError } from "Util/Error";
@@ -205,10 +204,6 @@ async function dispatchApiCall(event: APIGatewayProxyEvent){
   return await call(apiCall.body, apiCall.authToken);
 }
 
-export interface ServerAuthzContainer {
-  access: AuthzTokenPayload,
-  user: User,
-}
 
 
 
