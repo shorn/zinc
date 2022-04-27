@@ -1,10 +1,10 @@
-import { APIGatewayProxyHandler } from "aws-lambda";
-import { APIGatewayProxyEvent } from "aws-lambda/trigger/api-gateway-proxy";
+import { Handler } from "aws-lambda";
 import { JwtRsaVerifier } from "aws-jwt-verify";
 import {
-  ApiMap,
-  AuthzTokenPayload,
+  AuthApi, AuthorizedPost,
   CognitoConfig,
+  PostApi,
+  PrivateUserData,
 } from "shared/ApiTypes";
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
 import { AuthError, forceError } from "Util/Error";
@@ -15,31 +15,37 @@ import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { tableName } from "../../src/Stack/OneTableStackV1";
 import { getBearerToken } from "Util/Header";
+import { GENERIC_DENIAL, getAuthzSigningSecret } from "Api/Authz";
+import {
+  formatErrorResult,
+  formatSuccessResult,
+  LambdaEventHeaders,
+  LambdaFunctionUrlEvent
+} from "Util/LambdaEvent";
+import { prdApiPath } from "../../src/Stack/CloudFrontStackV4";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();
 
+// time spent in here is part of the "cold start" 
 let config: Promise<LambaApiV2Config> = initConfig();
 
 
-export const api: ApiMap = {
-  // unauthorized calls
-  readConfig: {
-    post: async () => ({
-      cognito: (await config).cognito,
-      lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,  
-    }),
-  },
-  
-  authorize: {
-    post: async (req, token) => authorizeUser(token, await config),
-  },
-  
-  // authorized calls
-  listUsers: {
-    post: async (req, token) => listPublicUserData(req, await config, token),
-  },
+export const authApi: AuthApi = {
+  readConfig: async () => ({
+    cognito: (await config).cognito,
+    lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,
+  }),
+
+  authorize: async (token) => authorizeUser(token, await config),
 }
+
+const postApi: PostApi = {
+  listUser: async (req, token) => listPublicUserData(req, await config, token),
+  readUser: async (req, token) => ({msg: "not implmented yet"}) as unknown as PrivateUserData,
+  updateUser: async (req, token) => ({msg: "not implmented yet"}) as unknown as PrivateUserData,
+}
+
 
 export interface LambaApiV2Config {
   cognito: CognitoConfig,
@@ -49,7 +55,9 @@ export interface LambaApiV2Config {
     email: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
   },
   authzSecrets: string[],
+  authzSigningSecret: string,
   database: UserTableV1Db,
+  apiPathPrefix: string,
 }
 
 export interface CognitoVerifierProps {
@@ -117,92 +125,175 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
       email: emailVerifier,
     },
     authzSecrets: await authzSecretsSsmParam,
+    // didn't want to run the checks on each invocation, so do it here
+    authzSigningSecret: getAuthzSigningSecret(await authzSecretsSsmParam),
     database: new UserTableV1Db(new DynamoDB({}), tableName),
+    // IMPROVE: probably should come from params instead of binding statically 
+    apiPathPrefix: `/${prdApiPath}/`,
   }
 }
 
+
 // Likely will have to change when moved over to function urls.
-export const handler: APIGatewayProxyHandler = async (event, context)=> {
+export const handler: Handler = async (event, context)=> {
   console.log(name + " exec");
 
   try {
     
-    const res = await dispatchApiCall(event);
+    const authApiResult = await dispatchAuthApiCall(await config, event);
+    if( authApiResult ){
+      return formatSuccessResult(authApiResult);
+    }
     
-    return {statusCode: 200, body: JSON.stringify(res, null, 4)};
+    const postApiResult = await dispatchPostCall(await config, event);
+    if( postApiResult ){
+      return formatSuccessResult(postApiResult);
+    }
+
+    console.error("failed to dispatch", event);
+    return formatErrorResult(404, "invalid API call");
+    
   } 
   catch( err ){
     if( err instanceof AuthError ){
       console.error("auth error", err.message, err.privateMsg);
-      return {
-        statusCode: 400,
-        body: err.message,
-      };
+      return formatErrorResult(400, err.message);
     }
     console.error("error", err);
-    return {statusCode: 500, body: forceError(err).message};
+    return formatErrorResult(500, forceError(err).message);
   }
 };
 
-/** Does JSON parsing, validates the type param is a valid API Call.
- * <p>
- * Could also use a proper framework/middleware but I've already spent way too
- * much time shaving yaks on this project. 
- */
-function parseApiPostCall(event: APIGatewayProxyEvent): { 
-  type: keyof ApiMap,
-  body: Record<string, any>,
-  /** `accessToken` for most calls, but will be `idToken` for `authorize()` */
-  authToken?: string;
-} {
+async function dispatchAuthApiCall(
+  config: LambaApiV2Config,
+  event: LambdaFunctionUrlEvent
+):Promise<undefined | object>{
+  const {method} = event.requestContext.http; 
+  if( method !== "GET"){
+    return undefined;
+  }
+
+  console.log("get event", event);
+  
+  const apiName = parseApiName(config, event);
+
+  if( apiName  === "readConfig" ){
+    return await authApi.readConfig();
+  }                 
+  else if( apiName === "authorize" ){
+    let idToken = getBearerToken(event.headers);
+    if( !idToken ){
+      throw new AuthError({publicMsg:GENERIC_DENIAL, 
+        privateMsg: "no idToken in headers" });
+    }
+    return await authApi.authorize(idToken);
+  }
+  else {
+    return undefined;
+  }
+}
+
+async function dispatchPostCall(
+  config: LambaApiV2Config,
+  event: LambdaFunctionUrlEvent
+): Promise<undefined|object>{
+  const {method} = event.requestContext.http;
+  if( method !== "POST"){
+    return undefined
+  }
+
   if( !event.body ){
-    throw new Error("no event body");
-  }
-  
-  console.log("event", event);
-  
-  if( !event.queryStringParameters ){
-    throw new Error("no query string");
-  }
-  const type = event.queryStringParameters["type"];
-  if( !isApiKey(type) ){
-    console.error("query `type` parameter does not map", type, event);
-    throw new Error("query `type` parameter does not map: " + type);
-  }
-  
-  // TODO:STO needs to deal with dates like frontend, just don't have any
-  // date request params, yet.
-  const body: Record<string, any> = JSON.parse(event.body);
-
-  let authToken = getBearerToken(event);
-  
-  /* note that there is no runtime validation of the the request, so WHEN 
-   I stuff up version syncing, it's going to be a pain to diagnose :( */
-  return {
-    type, body, authToken
-  };
-}
-
-function isApiKey(key: string|undefined): key is keyof ApiMap {
-  if( !key ){
-    return false;
-  }
-  let validApiCalls = Object.keys(api);
-  return validApiCalls.includes(key);
-}
-
-async function dispatchApiCall(event: APIGatewayProxyEvent){
-  if( event.httpMethod !== "POST"){
-    throw new Error("this api only supports POST at the moment");
+    console.warn("POST method with no body");
+    return undefined;
   }
 
-  const apiCall = parseApiPostCall(event);
+  console.log("post event", event);
+
+  const apiName = parseApiName(config, event);
+  if( !apiName ){
+    // couldn't parse out a name from the path
+    return undefined;
+  }
+
+  const apiCall = parseApiPostCall(apiName, event.headers, event.body);
   console.log("apiCall", apiCall);
   
-  const call = api[apiCall.type].post as Function;
+  if( !apiCall ){
+    // couldn't match the path name to a valid API name
+    return undefined;
+  }
+
+  const call = postApi[apiCall.name] as AuthorizedPost<any, any>;
 
   return await call(apiCall.body, apiCall.authToken);
 }
+
+/** Does JSON parsing, validates the name param is a valid API Call.
+ * <p>
+ * Could also use a proper framework/middleware but I've already spent way too
+ * much time shaving yaks on this project.
+ */
+function parseApiPostCall(
+  apiName: string,
+  headers: LambdaEventHeaders,
+  requestBody: string,
+): undefined | {
+  name: keyof PostApi,
+  body: Record<string, any>,
+  /** `accessToken` for most calls, but will be `idToken` for `authorize()` */
+  authToken?: string;
+}{
+  if( !isPostApiKey(apiName) ){
+    return undefined;
+  }
+
+  // TODO:STO needs to deal with dates like frontend, just don't have any
+  // date request params, yet.
+  const body: Record<string, any> = JSON.parse(requestBody);
+
+  let authToken = getBearerToken(headers);
+
+  /* note that there is no runtime validation of the the request, so WHEN 
+   I stuff up version syncing, it's going to be a pain to diagnose :( */
+  return {
+    name: apiName, body, authToken
+  };
+}
+
+function isPostApiKey(key: string|undefined): key is keyof PostApi {
+  if( !key ){
+    return false;
+  }
+  let validApiCalls = Object.keys(postApi);
+  return validApiCalls.includes(key);
+}
+
+function parseApiName(
+  config: LambaApiV2Config,
+  event: LambdaFunctionUrlEvent
+): string|undefined{
+  let {path} = event.requestContext.http;
+
+  // slice off the api prefix
+  if( !path.startsWith(config.apiPathPrefix) ){
+    return undefined;
+  }
+  path = path.slice(config.apiPathPrefix.length);
+
+  // slice off any trailing slash
+  if( path.endsWith("/") ){
+    path = path.slice(0, -1);
+  }
+
+  // handle empty edge case explicitly
+  path = path.trim();
+  if( path === "" ){
+    return undefined;
+  }
+
+  return path;
+}
+
 
 
 

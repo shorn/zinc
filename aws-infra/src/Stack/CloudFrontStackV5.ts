@@ -1,4 +1,4 @@
-import { CfnOutput, Duration, Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Duration, Fn, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import {
@@ -7,34 +7,35 @@ import {
   CacheHeaderBehavior,
   CachePolicy,
   CacheQueryStringBehavior,
-  Distribution, OriginRequestHeaderBehavior,
+  Distribution,
+  OriginProtocolPolicy,
+  OriginRequestHeaderBehavior,
   OriginRequestPolicy,
   OriginRequestQueryStringBehavior,
+  OriginSslPolicy,
   ViewerProtocolPolicy
 } from "aws-cdk-lib/aws-cloudfront";
-import { RestApi } from "aws-cdk-lib/aws-apigateway";
 import { HttpOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { FunctionUrl } from "aws-cdk-lib/aws-lambda";
 
-export interface ThisProps extends StackProps {
+export const prdApiPath = "api-prd-v2";
 
-}
-
-export class CloudFrontStackV4 extends Stack {
+export class CloudFrontStackV5 extends Stack {
   distribution: Distribution;
 
   constructor(
     scope: Construct,
     id: string,
-    {api, s3Site, ...props}: StackProps & {
-      api: RestApi,
+    {functionUrl, s3Site, ...props}: StackProps & {
+      functionUrl: FunctionUrl,
       s3Site: Bucket,
     },
   ){
     super(scope, id, props);
 
-    const apiPrdUrl = `${api.restApiId}.execute-api`+
-      `.${this.region}.${this.urlSuffix}`;
-
+    const funtionUrlDomain = functionUrl.url.replace("https://", "");
+    console.log("funtionUrlDomain", funtionUrlDomain);
+    
     const apiCachePolicy = new CachePolicy(this, id + "ApiCachePolicy", {
       queryStringBehavior: CacheQueryStringBehavior.all(),
       cookieBehavior: CacheCookieBehavior.all(),
@@ -67,13 +68,17 @@ export class CloudFrontStackV4 extends Stack {
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
       additionalBehaviors: {
-        [`${api.deploymentStage.stageName}/*`]: {
+        [`${prdApiPath}/*`]: {
           compress: true,
           originRequestPolicy: originRequestPolicy,
-          origin: new HttpOrigin(apiPrdUrl, {}),
+          // https://stackoverflow.com/a/72010828/924597
+          origin: new HttpOrigin(Fn.select(2, Fn.split('/', functionUrl.url)), {
+            protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
+            originSslProtocols: [OriginSslPolicy.TLS_V1_2],
+          }),
           allowedMethods: AllowedMethods.ALLOW_ALL,
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
-          // error when create stack new from scratch wotj CACHING_DISABLED:
+          // error when create stack new from scratch with CACHING_DISABLED:
           // Invalid request provided: MinTTL, MaxTTL and DefaultTTL should follow order MinTTL less than or equal to DefaultTTL less than or equal to MaxTTL 
           //cachePolicy: CachePolicy.CACHING_DISABLED,
           cachePolicy: apiCachePolicy,

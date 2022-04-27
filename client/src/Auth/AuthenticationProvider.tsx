@@ -13,7 +13,6 @@ import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
 import { ContainerCard } from "Design/ContainerCard";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { TextSpan } from "Component/TextSpan";
-import { api } from "Server/Api";
 import { AuthzTokenPayload, CognitoConfig, ServerInfo } from "shared";
 import {
   authorizeWithServer,
@@ -22,6 +21,7 @@ import {
 } from "Auth/Authz";
 import { EmailContainer } from "Auth/EmailSignInContainer";
 import { getEmailCognitoIdToken, getSocialRedirectIdToken } from "Auth/Authn";
+import { serverConfigRequest } from "index";
 
 export interface AuthenticationState {
   signOut: ()=>void,
@@ -73,7 +73,7 @@ export function AuthenticationProvider({children}: {children: React.ReactNode}){
     setState({status: "reading-config"});
     let serverInfo: ServerInfo;
     try {
-      serverInfo = await api.readConfig.post({});
+      serverInfo = await serverConfigRequest;
       console.log("serverInfo", serverInfo);
       setServerConfig(serverInfo.cognito);
     }

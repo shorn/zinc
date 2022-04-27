@@ -5,13 +5,13 @@ import { CognitoGoogleStackV3 } from "Stack/CognitoGoogleStackV3";
 import { auStackProps } from "Util/Shared";
 import { OneTableStackV1 } from "Stack/OneTableStackV1";
 import { ClientBucketStackV1 } from "Stack/ClientBucketStack";
-import { CloudFrontStackV4 } from "Stack/CloudFrontStackV4";
-import { LambdaApiStackV1 } from "Stack/LambdaApiStackV1";
 import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
 import {
   ClientBucketDeploymentStackV1
 } from "Stack/ClientBucketDeploymentStack";
 import { CognitoEmailStack } from "Stack/CognitoEmailStack";
+import { LambdaApiStackV2 } from "Stack/LambdaApiStackV2";
+import { CloudFrontStackV5 } from "Stack/CloudFrontStackV5";
 
 const main = new App();
 
@@ -29,22 +29,23 @@ const auCreds = new CredentialSsmStackV3(main, `AuCredentialSsmStack`, {
   ...auStackProps(),
 });
 
-const auLambdaApi = new LambdaApiStackV1(main, `LambdaApiStackV1`, {
+const auLambdaApi2 = new LambdaApiStackV2(main, `LambdaApiStackV2`, {
   ...auStackProps(),
   creds: auCreds,
   table: auOneTableV1.table,
 });
 
-const auCloudFront = new CloudFrontStackV4(main, `CloudFrontStackV4`, {
+const auCloudFront5 = new CloudFrontStackV5(main, `CloudFrontStackV5`, {
   ...auStackProps(),
-  api: auLambdaApi.api,
+  functionUrl: auLambdaApi2.functionUrl,
   s3Site: auClientBucket.s3Site,
 })
+
 
 const auClientDeployment = new ClientBucketDeploymentStackV1(
   main, 'ClientBucketDeploymentStackV1', {
     ...auStackProps(),
-    distribution: auCloudFront.distribution,
+    distribution: auCloudFront5.distribution,
     s3Site: auClientBucket.s3Site,
   }
 );
@@ -56,7 +57,7 @@ const auGoogleCognito = new CognitoGoogleStackV3(
     callbackUrls: [
       // port defined in /client/.env 
       "http://localhost:9090",
-      `https://${(auCloudFront.distribution.distributionDomainName)}`,
+      `https://${(auCloudFront5.distribution.distributionDomainName)}`,
     ],
     domainPrefix: "cog-poc-google-au", // unique?
   }

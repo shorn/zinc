@@ -5,13 +5,13 @@ import {
 } from "shared";
 import jwtDecode from "jwt-decode";
 import { parseJwtDate, parseServerDate } from "Util/DateUtil";
-import { ErrorInfo, forceError, isErrorInfo } from "Error/ErrorUtil";
-import { api } from "Server/Api";
-import { AuthnState, AuthorizedSession } from "Auth/AuthenticationProvider";
+import { ErrorInfo, forceError } from "Error/ErrorUtil";
+import { AuthorizedSession } from "Auth/AuthenticationProvider";
 import {
   CognitoUserPool,
   CognitoUserSession
 } from "amazon-cognito-identity-js";
+import { authApi } from "Server/Api";
 
 const accessTokenStorageKey = "cognitoPocAccessToken";
 
@@ -20,7 +20,7 @@ export async function authorizeWithServer(idToken: string)
 : Promise<ErrorInfo|AuthorizedSession>{
   let authzResponse: AuthorizeUserResponse;
   try {
-    authzResponse = await api.authorize.post({}, idToken);
+    authzResponse = await authApi.authorize(idToken);
   }
   catch( err ){
     return {

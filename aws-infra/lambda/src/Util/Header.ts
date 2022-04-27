@@ -1,18 +1,28 @@
-import { APIGatewayProxyEvent } from "aws-lambda/trigger/api-gateway-proxy";
+import { LambdaEventHeaders } from "Util/LambdaEvent";
 
-// IMPROVE:STO these are case sensitive at the moment, should fix that
-const authHeader = "Authorization";
-const bearerPrefix = "Bearer ";
+const authLowerHeader = "authorization";
+const authInitHeader = "Authorization";
+const bearerPrefix = "bearer ";
 
-export function getBearerToken(event: APIGatewayProxyEvent){
-  let accessToken = event.headers[authHeader];
-  if( !accessToken ){
+export function getBearerToken(headers: LambdaEventHeaders){
+  // IMPROVE: use a fast case insensitive compare
+  let headerValue = headers[authLowerHeader] || 
+    headers[authInitHeader];
+  if( !headerValue ){
     return undefined;
   }
+
+  const tokenPrefix = headerValue.slice(0, bearerPrefix.length);
   
-  if( !accessToken?.startsWith(bearerPrefix) ){
+  if( tokenPrefix.toLowerCase() !== bearerPrefix ){
+    throw new Error("authorization header does not contain bearer token");
+  }
+
+  let token = headerValue.slice(bearerPrefix.length).trim();
+  if( !token ){
+    // convert truthiness into explicit error
     throw new Error("authorization header does not contain bearer token");
   }
   
-  return accessToken.substring(bearerPrefix.length);
+  return token;
 }

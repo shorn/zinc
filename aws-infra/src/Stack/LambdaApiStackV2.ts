@@ -4,13 +4,12 @@ import {
   NodejsFunction,
   NodejsFunctionProps
 } from "aws-cdk-lib/aws-lambda-nodejs";
-import {
-  LambdaIntegration,
-  MethodLoggingLevel,
-  RestApi
-} from "aws-cdk-lib/aws-apigateway";
 import { join } from "path";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
+import {
+  FunctionUrl,
+  FunctionUrlAuthType,
+  Runtime
+} from "aws-cdk-lib/aws-lambda";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
 
@@ -25,9 +24,9 @@ const lambdaSrcDir = `${lambdaBaseDir}/src`;
  * So you end up with example code like this; or even better, all the CDK 
  * examples and doco where they just embed secrets in source code.
  */
-export class LambdaApiStackV1 extends Stack {
-  api: RestApi;
+export class LambdaApiStackV2 extends Stack {
   lambdaFunction: NodejsFunction;
+  functionUrl: FunctionUrl;
 
   constructor(
     scope: Construct,
@@ -38,16 +37,6 @@ export class LambdaApiStackV1 extends Stack {
     },
   ){
     super(scope, id, props);
-
-    // Lambda function URLs would be a better fit for this "demo" use-case
-    this.api = new RestApi(this, id + 'PublicApi', {
-      restApiName: id + ' public API',
-      deployOptions: {
-        stageName: "api-prd",
-        cachingEnabled: false,
-        loggingLevel: MethodLoggingLevel.INFO,
-      },
-    });
 
     const nodeJsFunctionProps: NodejsFunctionProps = {
       bundling: {
@@ -60,7 +49,6 @@ export class LambdaApiStackV1 extends Stack {
       memorySize: 512,
       timeout: Duration.seconds(5),
     }
-
 
     this.lambdaFunction = new NodejsFunction(this, 'LambdaApiV2', {
       entry: join(__dirname, lambdaSrcDir, 'LambdaApiV2.ts'),
@@ -82,8 +70,12 @@ export class LambdaApiStackV1 extends Stack {
         AUTHZ_SECRETS_SSM_PARAM: creds.AuthzSecrets2.parameterName,
       }
     });
-    this.api.root.addResource('lambda-v2').addMethod('POST',
-      new LambdaIntegration(this.lambdaFunction), {});
+
+    this.functionUrl = new FunctionUrl(this, 'LambdaApiUrl', {
+      function: this.lambdaFunction,
+      authType: FunctionUrlAuthType.NONE,
+    });
+
 
     /* blech: either make a list construct or something, or smoosh it all the
     config into one param stored as a blob of JSON. */

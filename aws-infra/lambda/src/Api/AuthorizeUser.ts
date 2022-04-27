@@ -1,7 +1,6 @@
 import { AuthorizeUserResponse } from "shared/ApiTypes";
 import { JwtPayload } from "aws-jwt-verify/jwt-model";
 import { AuthError, forceError } from "Util/Error";
-import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV3";
 import { signAuthzToken } from "Authz/AuthzToken";
 import { LambaApiV2Config } from "LambdaApiV2";
 import { decode } from "jsonwebtoken";
@@ -14,7 +13,7 @@ const accessTokenLifeSeconds = oneDaySeconds;
 type CognitoPocIdToken = JwtPayload & {sub: string, email: string};
 
 /** Turns an IdToken into an AccessToken */
-export async function authorizeUser(
+export async function authorizeser(
   idToken: string,
   config: LambaApiV2Config, 
 ): Promise<AuthorizeUserResponse>{
@@ -44,17 +43,6 @@ export async function authorizeUser(
 
   console.log("idToken and User is valid, generating accessToken");
 
-  // why is this here? should be in the initial config init?
-  const {authzSecrets} = config;
-  if( !authzSecrets || authzSecrets.length === 0 ){
-    throw new AuthError({publicMsg: "while authorizing",
-      privateMsg: "no authzSecrets defined" });
-  }
-
-  if( authzSecrets[0].length <= initialParamValue.length ){
-    throw new AuthError({publicMsg: "while authorizing",
-      privateMsg: "authzSecret[0] is too short, pick a better value" });
-  }
 
   const accessToken = signAuthzToken({
     payload: {
@@ -63,7 +51,7 @@ export async function authorizeUser(
       userCreated: user.created,
       role: "user" // not used yet
     },
-    secret: authzSecrets[0],
+    secret: config.authzSigningSecret,
     expiresInSeconds: accessTokenLifeSeconds });
 
   return {

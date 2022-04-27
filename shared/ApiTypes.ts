@@ -1,36 +1,61 @@
+/*
+ note the `accessToken` is "out of band", it is transferred in the auth header
+ and handled on both client and server by infrastructure rather than the
+ application/business logic.
+ It's modelled here as optional so that:
+ - client code can call it without passing the token and the infrastructure
+   will take care of putting the token into the auth header 
+ - server code can read the token from the auth header and bind it in when
+   it calls the implementation function 
+*/
+export type AuthorizedPost<TReqest, TResult> =
+  (req: TReqest, accessToken?: string) => Promise<TResult>;
+
+//export type PostEndpoints<TReqest, TResult> = {
+//  [name: string]:AuthorizedPost<TReqest, TResult>;
+//}
 
 /**
- * This type has two implementations: server and client.
+ * Endpoints for doing API calls where access is restricted by  
+ * authorization rules.
+ * They all have the same shape, but with specific input and output types.
  */
-export type ApiMap = {
+export type PostApi = {
+  /** List publicly available data for all users.
+   * Any user with an enabled account can call this.
+   * Will eventually need params for pagination, sorting, etc.
+   */
+  listUser: AuthorizedPost<{}, PublicUserData[]>,
+  /** read users own details, only the user themself can call this */
+  readUser: AuthorizedPost<{userId: string}, PrivateUserData>,
+  /** update users own details, only the user themself can call this */
+  updateUser: AuthorizedPost<UdpateUserData, PrivateUserData>,
+
+}
+
+/**
+ * Endpoints related to authenticating and authorizing.
+ * The have non-standard shapes and are dealt with by custom code.
+ * Only infrastructure code needs to use these.
+ */
+export type AuthApi = {
   /**
    * Authorize the user's access to the app based on idToken and
    * issue an accessToken that must be passed when making access-restricted
    * API calls.
    */
-  authorize: {
-    post: (req: {}, idToken: string) => 
-      Promise<AuthorizeUserResponse>
-  },
+  authorize: (idToken: string) => Promise<AuthorizeUserResponse>,
   /**
    * Used to bootstrap the client app, initially for config needed to
    * authenticate against the ID-Provider (Cognito).
    */
-  readConfig: {
-    post: (req: {}) => Promise<ServerInfo>
-  },
-  /**
-   * list publicly available data for all users.
-   */
-  listUsers: {
-    post: (req: {}, accessToken?: string) => 
-      Promise<PublicUserData[]>
-  },
+  readConfig: () => Promise<ServerInfo>,
 }
 
-export interface AuthorizeUserRequest {
-  idToken: string,
-}
+
+//export interface AuthorizeUserRequest {
+//  idToken: string,
+//}
 
 /**
  * The token will conform to standard JWT claims (`exp`, etc.) and will 

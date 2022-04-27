@@ -1,13 +1,8 @@
 import { NavTransition } from "Design/NavigationProvider";
 import React from "react";
 import { ContainerCard } from "Design/ContainerCard";
-import { LargeContentMain } from "Design/LayoutMain";
 import { TextSpan } from "Component/TextSpan";
-import { useAuthn } from "Auth/AuthenticationProvider";
-import { api } from "Server/Api";
-import { PublicUserData } from "shared/ApiTypes";
-import { ErrorInfo } from "Error/ErrorUtil";
-import { RefreshIconButton } from "Component/RefreshIconButton";
+import { LargeContentMain } from "Design/LayoutMain";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import {
   LinearProgress,
@@ -18,24 +13,28 @@ import {
   TableHead,
   TableRow
 } from "@mui/material";
-import { AlternatingTableRow } from "Component/Util";
 import { formatShortIsoDateTime } from "Util/DateUtil";
+import { PublicUserData } from "shared";
+import { RefreshIconButton } from "Component/RefreshIconButton";
+import { AlternatingTableRow } from "Component/Util";
+import { ErrorInfo } from "Error/ErrorUtil";
+import { usePostApi } from "Auth/ApiProvider";
 
 const log = console;
 
-const helloUrl = "/hello";
+const pageUrl = "/list-user";
 
-export function getHomePageLink(): string{
-  return helloUrl;
+export function getListUserPageLink(): string{
+  return pageUrl;
 }
 
-export function isHomePagePath(path: String): boolean{
+export function isListUserPagePath(path: String): boolean{
   const normalizedPath = path.toLowerCase();
-  return normalizedPath.startsWith(helloUrl) || path === "/";
+  return normalizedPath.startsWith(pageUrl);
 }
 
-export function HomePage(){
-  return <NavTransition isPath={isHomePagePath} title={"POC - hello world"}>
+export function ListUserPage(){
+  return <NavTransition isPath={isListUserPagePath} title={"POC - list users"}>
     <Content/>
   </NavTransition>
 }
@@ -52,7 +51,7 @@ type State = {
 }
 
 function Content(){
-  const authn = useAuthn();
+  const api = usePostApi();
   const [users, setUsers] = React.useState<PublicUserData[] | undefined>(
     undefined);
   const [state, setState] = React.useState<State>({current: "init"});
@@ -60,7 +59,7 @@ function Content(){
   const listUsers = React.useCallback(async () => {
     setState({current: "loading"});
     try {
-      const result = await api.listUsers.post({}, authn.session.accessToken);
+      const result = await api.listUser({});
       console.log("listUsers", result);
       setUsers(result);
       setState({current: "loaded"});
@@ -73,7 +72,7 @@ function Content(){
       });
     }
 
-  }, [authn]);
+  }, [api]);
 
   React.useEffect(() => {
     //noinspection JSIgnoredPromiseFromCall

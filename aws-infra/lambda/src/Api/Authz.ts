@@ -3,6 +3,7 @@ import { verifyAuthzToken } from "Authz/AuthzToken";
 import { AuthError } from "Util/Error";
 import { LambaApiV2Config } from "LambdaApiV2";
 import { ServerUser } from "Db/UserTableV1Db";
+import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV3";
 
 export const GENERIC_DENIAL = "while authorizing";
 
@@ -104,3 +105,22 @@ export function guardCrossAccountUpdate(
       privateMsg: "cross-account update requested"})
   }
 }
+
+/**
+ * Always uses the first entry to sign.
+ * @throws AuthError if the secrets array is not suitable
+ */
+export function getAuthzSigningSecret(authzSecrets: string[]): string{
+  if( !authzSecrets || authzSecrets.length === 0 ){
+    throw new AuthError({publicMsg: "while authorizing",
+      privateMsg: "no authzSecrets defined" });
+  }
+
+  if( authzSecrets[0].length <= initialParamValue.length ){
+    throw new AuthError({publicMsg: "while authorizing",
+      privateMsg: "authzSecret[0] is too short, pick a better value" });
+  }
+  
+  return authzSecrets[0];
+}
+

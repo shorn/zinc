@@ -15,9 +15,9 @@
     "bootstrap": "npm run cog-poc bootstrap",
     "deploy": "cdk --all --profile cognito-poc deploy",
     "deploy-dev": "npm run cog-poc deploy CredentialSsmStack",
-    "destroy-dev": "cdk --profile cognito-poc donot_destroy ",
+    "destroy-dev": "cdk --profile cognito-poc donot_destroy LambdaApiStackV1 CloudFrontStackV4",
     "deploy-lambda": "npm run cog-poc deploy LambdaApiStackV1",
-    "hotswap-lambda": "cdk --hotswap --profile cognito-poc deploy LambdaApiStackV1",
+    "hotswap-lambda": "cdk --hotswap --profile cognito-poc deploy LambdaApiStackV2",
     "deploy-client": "npm run cog-poc deploy ClientBucketDeploymentStackV1",
     "deploy-cloudfront": "npm run cog-poc deploy CloudFrontStackV4",
     "deploy-cog-google": "npm run cog-poc deploy AuCognitoGoogleStackV3",
@@ -33,14 +33,14 @@
     "@types/node": "10.17.27",
     "jest": "27.5.1",
     "ts-jest": "27.1.4",
-    "aws-cdk": "2.20.0",
+    "aws-cdk": "2.21.1",
     "ts-node": "10.7.0",
     "tsconfig-paths": "3.14.1",    
     "typescript": "4.6.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.19.0",
-    "constructs": "10.0.102",
+    "aws-cdk-lib": "2.21.1",
+    "constructs": "10.0.126",
     "source-map-support": "0.5.21"
   }
 }

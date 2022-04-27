@@ -5,11 +5,9 @@ import {ListItem, ListItemIcon, ListItemText} from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import {useNavigation} from "Design/NavigationProvider";
 import {useLocationPathname} from "Util/Hook/LocationPathname";
-import {
-  getHomePageLink,
-  isHomePagePath
-} from "Page/HomePage";
-import {getScratchPageLink, isScratchPagePath} from "Page/ScratchPage";
+import { getListUserPageLink, isListUserPagePath } from "Page/ListUserPage";
+import { People } from "@mui/icons-material";
+import { getHomePageLink, isHomePagePath } from "Page/MyDetailsPage";
 
 
 export function AppDrawer(props: {
@@ -25,12 +23,13 @@ export function AppDrawer(props: {
       <List>
         <ListNavButton href={getHomePageLink()}
           isCurrent={isHomePagePath(pathname)}
-           description={"Home"}
+           description={"My details"}
           icon={<HomeIcon/>}
         />
-        <ListNavButton href={getScratchPageLink()}
-          isCurrent={isScratchPagePath(pathname)}
-          description="Scratch" />
+        <ListNavButton href={getListUserPageLink()}
+          isCurrent={isListUserPagePath(pathname)}
+          description="List users" 
+          icon={<People/>}/>
       </List>
     </div>
   );

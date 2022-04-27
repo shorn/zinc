@@ -12,9 +12,9 @@ import {Cabbage} from "Component/Icon";
 import {AccountCircle, Menu as MenuIcon} from "@mui/icons-material";
 import Typography from "@mui/material/Typography";
 import {AppDrawer} from "Design/AppDrawer";
-import {getHomePageLink} from "Page/HomePage";
-import {getScratchPageLink} from "Page/ScratchPage";
 import {useAuthn} from "Auth/AuthenticationProvider";
+import { getListUserPageLink } from "Page/ListUserPage";
+import { getHomePageLink } from "Page/MyDetailsPage";
 
 const log = console;
 
@@ -34,8 +34,8 @@ export function AppNavBar(){
           <Cabbage/>
         </IconButton>
         <MenuShortcutBar>
-          <MenuShortcutNavItem href={getScratchPageLink()}>
-            Scratch
+          <MenuShortcutNavItem href={getListUserPageLink()}>
+            Users
           </MenuShortcutNavItem>
         </MenuShortcutBar>
 

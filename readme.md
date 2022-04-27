@@ -5,7 +5,7 @@ https://kopi.cloud.
 
 ## Functionality
 
-[Try it out](https://d3kg4q5fk2s7qa.cloudfront.net) - hosted on my own AWS 
+[Try it out](https://d3q1l9etnq2dqk.cloudfront.net) - hosted on my own AWS 
 account.  If that's not working, have a look in `/client/package.json/proxy`- 
 I may have forgotten to update this doco.
 
