@@ -9,7 +9,6 @@ import {
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
 import { AuthError, forceError } from "Util/Error";
 import { readStringListParam, readStringParam } from "Util/Ssm";
-import { authorizeUser } from "Api/AuthorizeUser";
 import { listPublicUserData } from "Api/ListUsers";
 import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -22,7 +21,8 @@ import {
   LambdaEventHeaders,
   LambdaFunctionUrlEvent
 } from "Util/LambdaEvent";
-import { prdApiPath } from "../../src/Stack/CloudFrontStackV4";
+import { prdApiPath } from "../../src/Stack/CloudFrontStackV5";
+import { authorizeUser } from "Api/AuthorizeUser";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();
@@ -293,10 +293,6 @@ function parseApiName(
 
   return path;
 }
-
-
-
-
 
 
 
