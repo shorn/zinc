@@ -7,7 +7,7 @@ import {useNavigation} from "Design/NavigationProvider";
 import {useLocationPathname} from "Util/Hook/LocationPathname";
 import { getListUserPageLink, isListUserPagePath } from "Page/ListUserPage";
 import { People } from "@mui/icons-material";
-import { getHomePageLink, isHomePagePath } from "Page/MyDetailsPage";
+import { getMyDetailsPageLink, isMyDetailsPagePath } from "Page/MyDetailsPage";
 
 
 export function AppDrawer(props: {
@@ -21,8 +21,8 @@ export function AppDrawer(props: {
     // hardcoded width reminds folks that mobile is a thing
     <div style={{width: 250}}>
       <List>
-        <ListNavButton href={getHomePageLink()}
-          isCurrent={isHomePagePath(pathname)}
+        <ListNavButton href={getMyDetailsPageLink()}
+          isCurrent={isMyDetailsPagePath(pathname)}
            description={"My details"}
           icon={<HomeIcon/>}
         />

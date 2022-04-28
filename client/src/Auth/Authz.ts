@@ -90,7 +90,6 @@ export function parseAccessToken(accessToken: string):{
   decoded: string|undefined,
 }{
   const decoded: any = jwtDecode(accessToken);
-  console.log("decoded", decoded);
 
   if( !decoded ){
     return {succeeded: false, message: "accessToken decode issue", decoded};

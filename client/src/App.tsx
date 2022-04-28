@@ -15,8 +15,11 @@ import { ServerInfoProvider } from "Auth/ServerInfoProvider";
 
 export function App(){
   return <PocTheme>
+    {/* force browser defaults for consistent display behaviour */}
     <CssBaseline/>
+    {/* deal with "unhandled" errors from bad rendering logic */}
     <ReactErrorBoundary>
+      {/* deal with "handled" errors as a global, generic modal dialog  */}
       <ErrorDialogProvider>
         {/* manages window.location for routing */}
         <LocationPathnameProvider>
@@ -26,12 +29,12 @@ export function App(){
             <AuthProvider>
               {/* convenient access to PostApi for making server calls */}
               <PostApiProvider>
-                {/* navigation transitions and delgates to location infra */}
+                {/* transition animation and delegates to location infra */}
                 <NavigationProvider>
                   {/* NavBar across the top of screen and sliding drawer */}
                   <AppNavBar/>
                   
-                  {/* all pages in the app */}
+                  {/* List of all navigable pages for the app (self-routed) */}
                   <MyDetailsPage/>
                   <ListUserPage/>
                   

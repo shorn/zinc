@@ -37,7 +37,6 @@ export function ServerInfoProvider({children}: {children: React.ReactNode}){
     let serverInfo: ServerInfo;
     try {
       serverInfo = await serverConfigRequest;
-      console.log("serverInfo", serverInfo);
       setState({current: "completed", serverInfo});
     }
     catch( err ){

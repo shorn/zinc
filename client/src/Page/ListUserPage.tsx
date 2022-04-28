@@ -55,7 +55,6 @@ function Content(){
     setState({current: "loading"});
     try {
       const result = await api.listUser({});
-      console.log("listUsers", result);
       setUsers(result);
       setState({current: "loaded"});
     }
@@ -103,7 +102,7 @@ function Content(){
           { users?.map((row) => (
             <AlternatingTableRow key={row.userId}>
               <TableCell>
-                <TextSpan>{row.userId}</TextSpan>
+                <UserDisplayName displayName={row.displayName}/>
               </TableCell>
               <TableCell>
                 <UserCreatedText user={row}/>
@@ -117,13 +116,14 @@ function Content(){
   </LargeContentMain>
 }
 
+function UserDisplayName({displayName}: {displayName: string|undefined}){
+  return <TextSpan>
+    { displayName || "anonymous"}
+  </TextSpan>
+}
+
 function UserCreatedText({user}: {user: PublicUserData}){
   return <TextSpan>
-    { !!user.userCreated &&
-      formatShortIsoDateTime(user.userCreated)
-    }
-    { !user.userCreated &&
-      ""
-    }
+    { formatShortIsoDateTime(user.userCreated) || "" }
   </TextSpan>
 }

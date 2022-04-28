@@ -14,7 +14,7 @@ import Typography from "@mui/material/Typography";
 import {AppDrawer} from "Design/AppDrawer";
 import {useAuth} from "Auth/AuthProvider";
 import { getListUserPageLink } from "Page/ListUserPage";
-import { getHomePageLink } from "Page/MyDetailsPage";
+import { getMyDetailsPageLink } from "Page/MyDetailsPage";
 
 const log = console;
 
@@ -28,8 +28,8 @@ export function AppNavBar(){
       <Toolbar variant={"dense"}>
         <IconButton
           color="inherit"
-          href={getHomePageLink()}
-          onClick={event=>nav.navigateTo(getHomePageLink(), event)}
+          href={getMyDetailsPageLink()}
+          onClick={event=>nav.navigateTo(getMyDetailsPageLink(), event)}
           size="large">
           <Cabbage/>
         </IconButton>
