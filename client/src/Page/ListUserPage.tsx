@@ -18,7 +18,7 @@ import { PublicUserData } from "shared";
 import { RefreshIconButton } from "Component/RefreshIconButton";
 import { AlternatingTableRow } from "Component/Util";
 import { ErrorInfo } from "Error/ErrorUtil";
-import { usePostApi } from "Auth/ApiProvider";
+import { usePostApi } from "Auth/PostApiProvider";
 
 const log = console;
 
@@ -39,22 +39,17 @@ export function ListUserPage(){
   </NavTransition>
 }
 
-type State = {
-  current: "init"
-} | {
-  current: "loading"
-} | {
-  current: "loaded"
-} | {
-  current: "error",
-  error: ErrorInfo,
-}
+type ProviderState = 
+  {current: "init"} | 
+  {current: "loading"} | 
+  {current: "loaded"} | 
+  {current: "error", error: ErrorInfo};
 
 function Content(){
   const api = usePostApi();
-  const [users, setUsers] = React.useState<PublicUserData[] | undefined>(
-    undefined);
-  const [state, setState] = React.useState<State>({current: "init"});
+  const [users, setUsers] = React.useState(
+    undefined as PublicUserData[] | undefined );
+  const [state, setState] = React.useState<ProviderState>({current: "init"});
 
   const listUsers = React.useCallback(async () => {
     setState({current: "loading"});

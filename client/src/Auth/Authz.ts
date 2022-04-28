@@ -6,7 +6,7 @@ import {
 import jwtDecode from "jwt-decode";
 import { parseJwtDate, parseServerDate } from "Util/DateUtil";
 import { ErrorInfo, forceError } from "Error/ErrorUtil";
-import { AuthorizedSession } from "Auth/AuthenticationProvider";
+import { AuthorizedSession } from "Auth/AuthProvider";
 import {
   CognitoUserPool,
   CognitoUserSession
@@ -157,16 +157,16 @@ export function debugSession(session: CognitoUserSession){
   })
 }
 
-export async function signOutUser({serverConfig}: {
-  serverConfig: CognitoConfig,
+export async function signOutUser({cognito}: {
+  cognito: CognitoConfig,
 }): Promise<void>{
   const emailPool = new CognitoUserPool({
-    UserPoolId: serverConfig.email.userPoolId,
-    ClientId: serverConfig.email.userPoolClientId,
+    UserPoolId: cognito.email.userPoolId,
+    ClientId: cognito.email.userPoolClientId,
   });
   const googlePool = new CognitoUserPool({
-    UserPoolId: serverConfig.google.userPoolId,
-    ClientId: serverConfig.google.userPoolClientId,
+    UserPoolId: cognito.google.userPoolId,
+    ClientId: cognito.google.userPoolClientId,
   });
 
   clearAccessTokenFromStorage();

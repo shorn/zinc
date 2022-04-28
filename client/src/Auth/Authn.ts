@@ -1,12 +1,11 @@
 import {
   CognitoIdToken,
-  CognitoUser, CognitoUserPool,
+  CognitoUser,
+  CognitoUserPool,
   CognitoUserSession
 } from "amazon-cognito-identity-js";
 import { CognitoConfig, CognitoEmailConfig } from "shared";
-import { authorizeWithServer } from "Auth/Authz";
-import { forceError, isErrorInfo } from "Error/ErrorUtil";
-import { AuthnState } from "Auth/AuthenticationProvider";
+import { forceError } from "Error/ErrorUtil";
 
 /** no logic, just a helper for turning callback into promise */
 export function getCognitoUserSession(
@@ -88,3 +87,26 @@ export function getSocialRedirectIdToken(): string|undefined{
   return idToken;
 }
 
+export async function findSignInIdToken(
+  cognito: CognitoConfig
+):Promise<string | undefined>{
+  let idToken:string|undefined = getSocialRedirectIdToken();
+  if( idToken ){
+    console.log("found social idToken");
+    return idToken;
+  }
+
+  idToken = (await getEmailCognitoIdToken(cognito.email))?.getJwtToken();
+  if( idToken ){
+    console.log("found email idToken");
+    return idToken;
+  }
+
+  console.log("found no idtoken");
+  return undefined;
+}
+
+export function getCognitoGoogleSignInDomain(config: CognitoConfig){
+  return `https://${config.google.userPoolDomain}`+
+    `.auth.${config.region}.amazoncognito.com`
+}

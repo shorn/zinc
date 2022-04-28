@@ -141,8 +141,9 @@ export function EmailSignInContainer({
             <CompactErrorPanel error={state.error}/>
           }
           { state.status === "not-confirmed" &&
-            <TextSpan>Email not confirmed - please click on the verify link
-              in the email that was sent to you, then sign in.
+            <TextSpan>Email {state.email} has not been confirmed - please click 
+              on the verify link in the email that was sent to you, 
+              then sign in.
             </TextSpan>
           }
         </div>

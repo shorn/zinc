@@ -1,4 +1,6 @@
-/**
+/** Routing infrastructure; fundamentally, it manages the `window.location`
+ * for our app, all pages should use it when doing navigation actions.
+ * <p>
  * The basic idea comes from the wouter library, it's just
  * converted to Typescript and factored a little differently (e.g. uses React
  * Context instead of an event listener chain).

@@ -12,7 +12,7 @@ import {Cabbage} from "Component/Icon";
 import {AccountCircle, Menu as MenuIcon} from "@mui/icons-material";
 import Typography from "@mui/material/Typography";
 import {AppDrawer} from "Design/AppDrawer";
-import {useAuthn} from "Auth/AuthenticationProvider";
+import {useAuth} from "Auth/AuthProvider";
 import { getListUserPageLink } from "Page/ListUserPage";
 import { getHomePageLink } from "Page/MyDetailsPage";
 
@@ -87,7 +87,7 @@ function MenuShortcutNavItem(props: {
 
 
 function AccountMenu(){
-  const authn = useAuthn();
+  const authn = useAuth();
   const[ isMenuOpen, setIsMenuOpen] = React.useState(false);
   const menuAnchorRef = React.useRef<HTMLButtonElement>(null!);
   const nav = useNavigation();

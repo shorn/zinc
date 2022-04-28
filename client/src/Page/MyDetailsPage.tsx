@@ -1,25 +1,20 @@
 import { NavTransition } from "Design/NavigationProvider";
 import React from "react";
 import { ContainerCard } from "Design/ContainerCard";
-import {
-  FlexContentMain,
-  LargeContentMain,
-  SmallContentMain
-} from "Design/LayoutMain";
-import { TextSpan } from "Component/TextSpan";
+import { SmallContentMain } from "Design/LayoutMain";
 import { Stack, TextField } from "@mui/material";
 
 const log = console;
 
-const helloUrl = "/my-details";
+const pageUrl = "/my-details";
 
 export function getHomePageLink(): string{
-  return helloUrl;
+  return pageUrl;
 }
 
 export function isHomePagePath(path: String): boolean{
   const normalizedPath = path.toLowerCase();
-  return normalizedPath.startsWith(helloUrl) || path === "/";
+  return normalizedPath.startsWith(pageUrl) || path === "/";
 }
 
 export function MyDetailsPage(){
@@ -36,8 +31,6 @@ function Content(){
     <ContainerCard title={"My details"}>
       <form onSubmit={(e) => {
         e.preventDefault();
-        // noinspection JSIgnoredPromiseFromCall
-        //emailSignIn(email, password);
       }}>
         <Stack spacing={1}>
           <TextField id="displayName" label="Display name" type="text" fullWidth
