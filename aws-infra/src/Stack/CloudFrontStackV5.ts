@@ -33,9 +33,6 @@ export class CloudFrontStackV5 extends Stack {
   ){
     super(scope, id, props);
 
-    const funtionUrlDomain = functionUrl.url.replace("https://", "");
-    console.log("funtionUrlDomain", funtionUrlDomain);
-    
     const apiCachePolicy = new CachePolicy(this, id + "ApiCachePolicy", {
       queryStringBehavior: CacheQueryStringBehavior.all(),
       cookieBehavior: CacheCookieBehavior.all(),
@@ -46,17 +43,20 @@ export class CloudFrontStackV5 extends Stack {
       maxTtl: Duration.seconds(1)
     });
 
-    /* Can't use ALL_VIEWER, because that would forward the "host" header, 
-     which will cause API-GW to not work because it uses the host header 
-     to dispatch requests to API handlers. */
+    /* Custom policy because can't use ALL_VIEWER. ALL_VIEWER would forward 
+    the "host" header of cloudfront, which will cause API-GW to not work because 
+    it uses the host header (where it expects to see the API-GW host name) to 
+    dispatch requests to API handlers. Presumably, function urls
+    work off of the host header too. */
     const originRequestPolicy = new OriginRequestPolicy(
       this, id +"OriginRequestPolicy", 
       {
         cookieBehavior: CacheCookieBehavior.all(),
-        /* You can't put "authorization" in here because that would enable the 
-        possibility of having auth here, but not in the cache policy.
+        /* You can't put "authorization" in here, because that would enable the 
+        possibility of having auth here but not in the cache policy.
         That would be bad because it would enable cache poisoning and similar 
-        attacks. Headers in the cache policy come through anyway. */
+        attacks. But it's not needed anyway because headers defined in the cache 
+        policy automatically get passed through to the origin. */
         headerBehavior: OriginRequestHeaderBehavior.none(),
         queryStringBehavior: OriginRequestQueryStringBehavior.all()
     });
