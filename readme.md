@@ -19,8 +19,6 @@ It doesn't do much of anything:
   * only lists created date and user-entered "display name", 
   not email or any SSO profile data.
 
-**Note**: the above functionality isn't complete yet.
-
 ## Project structure
 
 It's all Typescript, structured as a monorepo, using NPM to build and deploy.
