@@ -1,4 +1,4 @@
 
-The overall infrastructure of the front-end client can be seen in 
-[App.tsx](src/App.tsx), laid out according to my idea of a  
+The front-end client infrastructure is laid out in [App.tsx](src/App.tsx), 
+following the idea of a 
 [funnel architecture](http://kopi.cloud/blog/2021/funnel-architecture/).
