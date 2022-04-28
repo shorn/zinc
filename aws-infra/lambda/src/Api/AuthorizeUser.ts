@@ -13,7 +13,7 @@ const accessTokenLifeSeconds = oneDaySeconds;
 type CognitoPocIdToken = JwtPayload & {sub: string, email: string};
 
 /** Turns an IdToken into an AccessToken */
-export async function authorizeser(
+export async function authorizeUser(
   idToken: string,
   config: LambaApiV2Config, 
 ): Promise<AuthorizeUserResponse>{
