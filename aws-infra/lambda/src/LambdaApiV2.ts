@@ -1,15 +1,15 @@
 import { Handler } from "aws-lambda";
 import { JwtRsaVerifier } from "aws-jwt-verify";
 import {
-  AuthApi, AuthorizedPost,
+  AuthApi,
+  AuthorizedPost,
   CognitoConfig,
   PostApi,
-  PrivateUserData,
 } from "shared/ApiTypes";
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
 import { AuthError, forceError } from "Util/Error";
 import { readStringListParam, readStringParam } from "Util/Ssm";
-import { listPublicUserData } from "Api/ListUsers";
+import { listPublicUserData, readUser, updateUser } from "Api/User";
 import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { tableName } from "../../src/Stack/OneTableStackV1";
@@ -41,9 +41,10 @@ export const authApi: AuthApi = {
 }
 
 const postApi: PostApi = {
-  listUser: async (req, token) => listPublicUserData(req, await config, token),
-  readUser: async (req, token) => ({msg: "not implmented yet"}) as unknown as PrivateUserData,
-  updateUser: async (req, token) => ({msg: "not implmented yet"}) as unknown as PrivateUserData,
+  // again, now that these are so consistent, could be done dynamically
+  listUser: async (req, token) => listPublicUserData(req, await config, token!),
+  readUser: async (req, token) => readUser(req, await config, token!),
+  updateUser: async (req, token) => updateUser(req, await config, token!),
 }
 
 
