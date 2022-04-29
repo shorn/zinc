@@ -9,7 +9,7 @@ import React from "react";
 
 export function IntroContainer(){
   return <SmallContentMain center>
-    <Typography paragraph>Zinc is demo app for learning about AWS Cognito.
+    <Typography paragraph>Zinc is a demo app for learning about AWS Cognito.
       The UI is built using React and the <NewWindowLink href={muiUrl}>
         MUI</NewWindowLink> framework.
     </Typography>
