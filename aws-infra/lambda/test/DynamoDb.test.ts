@@ -17,7 +17,7 @@ describe("DynamoDb dev harness", () => {
   // you must manually match region for whereever you put your table in CDK
   const db = new DynamoDB({
     region: "ap-southeast-2",
-    credentials: fromIni({profile: 'cognito-poc'}),
+    credentials: fromIni({profile: 'zinc'}),
   });
   const userTable = new UserTableV1Db(db, oneTableName);
   const uniqueId = v4();

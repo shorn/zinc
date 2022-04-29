@@ -13,7 +13,7 @@ import {
 } from "amazon-cognito-identity-js";
 import { authApi } from "Api/AuthApi";
 
-const accessTokenStorageKey = "cognitoPocAccessToken";
+const accessTokenStorageKey = "zincAccessToken";
 
 
 export async function authorizeWithServer(idToken: string)

@@ -44,16 +44,16 @@ export class CognitoEmailStack extends Stack {
 
       userVerification: {
         emailStyle: VerificationEmailStyle.LINK,
-        emailBody: "Welcome to the Cognito-POC!" +
+        emailBody: "Welcome to Zinc!" +
           "<br/><br/>" +
           " {##Verify Email##} to confirm your Sign Up",
-        emailSubject: "Verify your Cognito-poc signup",
+        emailSubject: "Verify your Zinc signup",
       },
       
       
       userInvitation: {
-        emailSubject: "admin cognito-poc invitation",
-        emailBody: 'you are invited to cognito-poc' +
+        emailSubject: "admin Zinc invitation",
+        emailBody: 'you are invited to Zinc' +
           ' as "{username}", password:"{####}"'
       },
       // limited per day I think, prod will need to use SES

@@ -1,4 +1,4 @@
-This repo is for my learning about Cognito and aws-cdk.
+The Zinc repo is for my learning about Cognito and aws-cdk.
 Begun as a Proof-of-Concept ("PoC") of Cognito functionality for 
 https://kopi.cloud.
 

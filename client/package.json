@@ -1,11 +1,11 @@
 {
-  "name": "cognito-poc-client",
+  "name": "zinc-client",
   "version": "0.0.1",
   "private": true,
   "proxy": "https://d3q1l9etnq2dqk.cloudfront.net",
   "scripts": {
-    "start-dev": "set REACT_APP_COG_POC_ENV=dev && react-scripts start",
-    "build-prd": "set REACT_APP_COG_POC_ENV=prd && react-scripts build",
+    "start-dev": "set REACT_APP_ZINC_ENV=dev && react-scripts start",
+    "build-prd": "set REACT_APP_ZINC_ENV=prd && react-scripts build",
     "test": "react-scripts test",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "audit": "npm audit"

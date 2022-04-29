@@ -8,8 +8,8 @@ const authzOptions: SignOptions = {
   so we don't need to worry about this too much. 
   Put URLs to the lamda function that issues, cloudfront url etc. if you 
   really want. */
-  issuer: "conito-poc authz",
-  audience: "cognito-poc client",
+  issuer: "zinc-poc authz",
+  audience: "zinc client",
 } 
   
 export function verifyAuthzToken({accessToken, secrets}: {

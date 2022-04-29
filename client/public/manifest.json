@@ -1,6 +1,6 @@
 {
-  "short_name": "cognito-poc",
-  "name": "Cognito POC",
+  "short_name": "zinc",
+  "name": "Zinc",
   "icons": [
     {
       "src": "favicon.ico",

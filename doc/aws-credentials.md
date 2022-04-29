@@ -1,11 +1,11 @@
 The [aws-infra](../aws-infra/package.json) project manages all AWS resources 
 via the `aws-cdk`.
-It specifies the `cognito-poc` profile in all its scripts,
+It specifies the `zinc` profile in all its scripts,
 so setup your credentials/config using standard AWS profile mechanism.
 
 `~/.aws/credentials`:
 ```
-[cognito-poc]
+[zinc]
 # account: 9999, user: aws-cdk-user
 aws_access_key_id=AKIAxxx
 aws_secret_access_key=xxx
@@ -13,7 +13,7 @@ aws_secret_access_key=xxx
 
 `~/.aws/config`:
 ```
-[profile cognito-poc]
+[profile zinc]
 region=us-east-1
 ```
 

@@ -1,6 +1,6 @@
 import { StackProps } from "aws-cdk-lib";
 
-const sourceCodeUrl = "github.com/shorn/cognito-poc/aws-infra";
+const sourceCodeUrl = "github.com/shorn/zinc/aws-infra";
 
 export function agnosticStackProps(){
   return {

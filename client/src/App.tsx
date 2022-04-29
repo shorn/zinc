@@ -4,7 +4,7 @@ import { CssBaseline } from "@mui/material";
 import { ReactErrorBoundary } from "Error/ReactErrorBoundary";
 import { ErrorDialogProvider } from "Error/ErrorDialog";
 import { NavigationProvider } from "Design/NavigationProvider";
-import { PocTheme } from "Design/PocTheme";
+import { ZincTheme } from "Design/ZincTheme";
 import { LocationPathnameProvider } from "Util/Hook/LocationPathname";
 import { AppNavBar } from "Design/AppNavBar";
 import { AuthProvider } from "Auth/AuthProvider";
@@ -14,7 +14,7 @@ import { ServerInfoProvider } from "Api/ServerInfoProvider";
 import { PostApiProvider } from "Api/PostApiProvider";
 
 export function App(){
-  return <PocTheme>
+  return <ZincTheme>
     {/* force browser defaults for consistent display behaviour */}
     <CssBaseline/>
     {/* deal with "unhandled" errors from bad rendering logic */}
@@ -45,7 +45,7 @@ export function App(){
         </LocationPathnameProvider>
       </ErrorDialogProvider>
     </ReactErrorBoundary>
-  </PocTheme>
+  </ZincTheme>
 }
 
 

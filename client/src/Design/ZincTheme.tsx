@@ -52,7 +52,7 @@ const theme = createTheme(mode, {
   }
 });
 
-export function PocTheme({children}: { children: ReactNode }){
+export function ZincTheme({children}: { children: ReactNode }){
   return <ThemeProvider theme={theme}>
     {children}
   </ThemeProvider>
