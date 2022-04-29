@@ -1,13 +1,16 @@
 import React, { useContext } from "react";
 import { PostApi } from "shared";
-import { apiMapPost } from "Server/Api";
 import { useAuth } from "Auth/AuthProvider";
+import { apiMapPost } from "Api/PocServerApi";
 
+/** The PostAPi is defined as a React Context so that our provider
+ * can do the infrastructure work of worrying about authorization and the
+ * user can just do `usePostApi()` and call what they need.
+ */
 const PostApiContext = React.createContext(
   undefined as unknown as PostApi );
 
-/** If `use()` is called when not underneath the context provider,
- * they will get an error. */
+/** Calling `use()` from component that is not a child a provider will error. */
 export const usePostApi = ()=> {
   let ctx = useContext(PostApiContext);
   if( !ctx ){
@@ -30,3 +33,5 @@ export function PostApiProvider({children}: {children: React.ReactNode}){
     {children}
   </PostApiContext.Provider>;
 }
+
+

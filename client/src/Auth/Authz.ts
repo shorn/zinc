@@ -11,7 +11,7 @@ import {
   CognitoUserPool,
   CognitoUserSession
 } from "amazon-cognito-identity-js";
-import { authApi } from "Server/Api";
+import { authApi } from "Api/AuthApi";
 
 const accessTokenStorageKey = "cognitoPocAccessToken";
 

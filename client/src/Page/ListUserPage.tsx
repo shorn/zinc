@@ -18,7 +18,7 @@ import { PublicUserData } from "shared";
 import { RefreshIconButton } from "Component/RefreshIconButton";
 import { AlternatingTableRow } from "Component/Util";
 import { ErrorInfo } from "Error/ErrorUtil";
-import { usePostApi } from "Auth/PostApiProvider";
+import { usePostApi } from "Api/PostApiProvider";
 
 const log = console;
 

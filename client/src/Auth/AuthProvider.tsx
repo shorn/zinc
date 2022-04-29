@@ -13,7 +13,7 @@ import { EmailContainer } from "Auth/EmailSignInContainer";
 import { findSignInIdToken } from "Auth/Authn";
 import { IntroContainer } from "Auth/IntroContainer";
 import { GoogleSignInContainer } from "Auth/GoogleSignInContainer";
-import { useServerInfo } from "Auth/ServerInfoProvider";
+import { useServerInfo } from "Api/ServerInfoProvider";
 
 export interface AuthState {
   signOut: ()=>void,
@@ -49,8 +49,7 @@ type ProviderState =
   // terminal states
   { current: "not-signed-in" } |
   { current: "signed-in", authSession: AuthorizedSession } |
-  { current: "error", error: ErrorInfo } 
-;
+  { current: "error", error: ErrorInfo };
 
 /**
  * Handles both Authentication and Authorization.

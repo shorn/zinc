@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import {App} from "App";
-import { authApi } from "Server/Api";
-import { ServerInfo } from "../../shared";
+import { authApi } from "Api/AuthApi";
+import { ServerInfo } from "shared";
 
 /* load this as early as possible to trigger lambda cold start.
 There's gotta be a better way, I'd prefer this was issued directly from 

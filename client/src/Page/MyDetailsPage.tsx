@@ -5,7 +5,7 @@ import { SmallContentMain } from "Design/LayoutMain";
 import { Stack, TextField } from "@mui/material";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { PrivateUserData } from "shared";
-import { usePostApi } from "Auth/PostApiProvider";
+import { usePostApi } from "Api/PostApiProvider";
 import { useAuth } from "Auth/AuthProvider";
 import { ButtonContainer } from "Component/ButtonContainer";
 import { PrimaryButton } from "Component/AppButton";

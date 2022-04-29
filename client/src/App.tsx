@@ -8,10 +8,10 @@ import { PocTheme } from "Design/PocTheme";
 import { LocationPathnameProvider } from "Util/Hook/LocationPathname";
 import { AppNavBar } from "Design/AppNavBar";
 import { AuthProvider } from "Auth/AuthProvider";
-import { PostApiProvider } from "Auth/PostApiProvider";
 import { MyDetailsPage } from 'Page/MyDetailsPage';
 import { ListUserPage } from "Page/ListUserPage";
-import { ServerInfoProvider } from "Auth/ServerInfoProvider";
+import { ServerInfoProvider } from "Api/ServerInfoProvider";
+import { PostApiProvider } from "Api/PostApiProvider";
 
 export function App(){
   return <PocTheme>
