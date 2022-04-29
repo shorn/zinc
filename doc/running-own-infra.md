@@ -16,6 +16,13 @@ Most people would run this project from a developer machine - in which case
 you'll needed [set up credentials](aws-credentials.md) for the
 `cognito-poc` profile.
 
+## Build the client app
+* `cd <repo>/client`
+* `npm run build-prd`
+  * this will build the client web app suitable for deploying to CloudFront
+  * we have to do this first, because the `aws-infra` project needs it to exist
+  for the ClientBucketDeploymentStack to work
+
 ## Bootstrap the AWS-CDK and do initial deployment
 * `cd <repo>/aws-infra`
 * `npm run bootstrap`
@@ -56,7 +63,7 @@ CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolId = region_xxx
 CognitoGoogleStackV2.CognitoGoogleStackV2CognitoGoogleUserPoolRegion = region
 ```
 
-## Build and deploy the client app
+## Deploy the client app
 * `cd <repo>/client`
 * `npm run build-prd`
     * this will build the client web app suitable for deploying to CloudFront
