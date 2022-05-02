@@ -15,7 +15,9 @@ Or I might just not be running the project live any more.  See instructions for
 It doesn't do much of anything:
 * Login via email, Google or Github.
   * the Github-Cognito integration requires an entire 
-    [cognito-github OIDC shim](aws-infra/lambda/doc/cognito-github.md) 
+    [cognito-github OIDC shim](aws-infra/lambda/doc/cognito-github.md)
+  * the Zinc implemenation is based off of:
+    https://github.com/TimothyJones/github-cognito-openid-wrapper
 * Set your own "display name" .
 * List all users that have signed up 
   * only lists created date and user-entered "display name", 
