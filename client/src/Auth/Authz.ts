@@ -167,6 +167,10 @@ export async function signOutUser({cognito}: {
     UserPoolId: cognito.google.userPoolId,
     ClientId: cognito.google.userPoolClientId,
   });
+  const githubPool = new CognitoUserPool({
+    UserPoolId: cognito.github.userPoolId,
+    ClientId: cognito.github.userPoolClientId,
+  });
 
   clearAccessTokenFromStorage();
 
@@ -192,9 +196,16 @@ export async function signOutUser({cognito}: {
         return resolve();
       });
     }
-    else {
-      console.log("nothing logged in, nothing to signOut from");
-      return resolve();
+    
+    if( githubPool.getCurrentUser() ){
+      console.log("signing out github");
+      googlePool.getCurrentUser()?.signOut(()=>{
+        console.log("signed out from github")
+        return resolve();
+      });
     }
+    
+    console.log("nothing logged in, nothing to signOut from");
+    return resolve();
   });
 }

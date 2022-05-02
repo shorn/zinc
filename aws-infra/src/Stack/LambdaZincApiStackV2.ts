@@ -74,8 +74,6 @@ export class LambdaZincApiStackV2 extends Stack {
           creds.GithubCognitoUserPoolId.parameterName,
         COGNITO_GITHUB_USER_POOL_CLIENT_ID_SSM_PARAM:
           creds.GithubCognitoUserPoolClientId.parameterName,
-        COGNITO_GITHUB_CLIENT_SECRET_SSM_PARAM:
-          creds.GithubCognitoUserPoolClientSecret.parameterName,
         AUTHZ_SECRETS_SSM_PARAM: creds.AuthzSecrets2.parameterName,
       }
     });
@@ -99,6 +97,10 @@ export class LambdaZincApiStackV2 extends Stack {
     creds.GithubCognitoUserPoolDomain.grantRead(this.lambdaFunction);
     creds.GithubCognitoUserPoolId.grantRead(this.lambdaFunction);
     creds.GithubCognitoUserPoolClientId.grantRead(this.lambdaFunction);
+    /* IMPROVE: want to remove this, but have to re-create stack to do it? 
+    If I try to remove this last reference, then CDK `deploy` will fail:
+    "ExportsOutputRefGithubCognitoXXX cannot be deleted as it is in use 
+    by LambdaApiStackV2" */
     creds.GithubCognitoUserPoolClientSecret.grantRead(this.lambdaFunction);
     creds.AuthzSecrets2.grantRead(this.lambdaFunction);
 

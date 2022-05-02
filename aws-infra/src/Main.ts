@@ -77,15 +77,16 @@ const auEmailCognito = new CognitoEmailStack(
 
 const auGithubOidcLambda = new LambdaGithubOidcApiStackV1(
   main, 'LambdaGithubOidcApiStackV1', {
+    ...auStackProps(),
   }
 );
 
 const auGithubCognito = new CognitoGithubStackV1(
   main, 'AuCognitoGithubStackV1', {
+    ...auStackProps(),
     callbackUrls: [
       "http://localhost:9090",
-      //"https://d3q1l9etnq2dqk.cloudfront.net",
-      //`https://${(auCloudFront5.distribution.distributionDomainName)}`,
+      `https://${(auCloudFront5.distribution.distributionDomainName)}`,
     ],
     oidcApiUrl: auGithubOidcLambda.githubOidcUrl.url,
     domainPrefix: "zinc-github-au",

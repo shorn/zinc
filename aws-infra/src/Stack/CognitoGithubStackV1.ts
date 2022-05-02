@@ -71,6 +71,8 @@ export class CognitoGithubStackV1 extends Stack {
           authorize_url: `${oidcApiUrl}authorize`,
           token_url: `${oidcApiUrl}token`,
           attributes_url: `${oidcApiUrl}userinfo`,
+          /* lambda doesn't implement this, but CDK gave error without it:
+          "Unable to contact well-known endpoint" */
           jwks_uri: `${oidcApiUrl}.well-known/jwks.json`,
         },
         providerType: 'OIDC',

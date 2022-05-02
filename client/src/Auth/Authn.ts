@@ -4,8 +4,13 @@ import {
   CognitoUserPool,
   CognitoUserSession
 } from "amazon-cognito-identity-js";
-import { CognitoConfig, CognitoEmailConfig } from "shared";
+import {
+  CognitoConfig,
+  CognitoEmailConfig,
+  CognitoUserPoolConfig
+} from "shared";
 import { forceError } from "Error/ErrorUtil";
+import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
 
 /** no logic, just a helper for turning callback into promise */
 export function getCognitoUserSession(
@@ -110,3 +115,14 @@ export function getCognitoUserPoolUrl(userPoolDomain: string, region: string){
   return `https://${userPoolDomain}.auth.${region}.amazoncognito.com`
 }
 
+export function formatCognitoIdProviderRedirect(
+  config: CognitoUserPoolConfig, 
+  region: string
+): string{
+  const redirectUri = serverLocationUrl();
+  const poolUrl = getCognitoUserPoolUrl(
+    config.userPoolDomain, region );
+  return `${poolUrl}/login?response_type=token` +
+    `&client_id=${config.userPoolClientId}` +
+    `&redirect_uri=${redirectUri}`
+}

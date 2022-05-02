@@ -131,7 +131,7 @@ export interface CognitoEmailConfig {
   userPoolClientId: string,
 }
 
-export interface CognitoGoogleConfig {
+export interface CognitoUserPoolConfig {
   userPoolId: string,
   userPoolClientId: string,
   userPoolDomain: string,
@@ -141,8 +141,8 @@ export interface CognitoGoogleConfig {
 export interface CognitoConfig {
   region: string,
   email: CognitoEmailConfig,
-  google: CognitoGoogleConfig,
-  github: CognitoGoogleConfig,
+  google: CognitoUserPoolConfig,
+  github: CognitoUserPoolConfig,
 }
 
 

@@ -54,8 +54,6 @@ export interface LambaApiV2Config {
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
     email: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
     github: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
-    /* Cognito doesn't support rotating these, oh well */
-    //githubClientSecret: string,
   },
   authzSecrets: string[],
   authzSigningSecret: string,
@@ -69,6 +67,7 @@ export interface CognitoVerifierProps {
   jwksUri: string,
 }
 
+// bump lambda to force re-reading config
 async function initConfig(): Promise<LambaApiV2Config>{
   if( config ){
     return config;
@@ -93,13 +92,6 @@ async function initConfig(): Promise<LambaApiV2Config>{
     process.env.COGNITO_GITHUB_USER_POOL_ID_SSM_PARAM);
   const githubClientId = readStringParam(
     process.env.COGNITO_GITHUB_USER_POOL_CLIENT_ID_SSM_PARAM);
-  /* this is the secret used to sign the id_token because we're using HMAC 
-  instead of a certificate, this must match the secret declared in the 
-  UserPool IdProvider. 
-  I don't know if it's possible to read the secret directly from the UserPool, 
-  and I don't feel like figuring it out right now (don't forget permissions!) */
-  const githubClientSecretParam = readStringParam(
-    process.env.COGNITO_GITHUB_CLIENT_SECRET_SSM_PARAM);
   
   const authzSecretsSsmParam = readStringListParam(
     process.env.AUTHZ_SECRETS_SSM_PARAM );
@@ -113,8 +105,6 @@ async function initConfig(): Promise<LambaApiV2Config>{
   const githubIdpUrl: string = formatCognitoIdpUrl({
     region: await cognitoRegion, 
     userPoolId: await githubUserPoolId });
-  //const githubClientSecret: string = await githubClientSecretParam;
-  //console.log("gh client secret", githubClientSecret.length);
 
   const googleVerifier = JwtRsaVerifier.create({
     issuer: googleIdpUrl,
