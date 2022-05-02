@@ -10,7 +10,7 @@ to get it going".
 * supports only the OIDC attributes that Zinc needs, not the full standard set
 
 The Lamba implementation is in 
-[LambdaGithubOidcApiV1.ts](src/LambdaGithubOidcApiV1.ts).
+[LambdaGithubOidcApiV1.ts](/aws-infra/lambda/src/LambdaGithubOidcApiV1.ts).
 
 The AWS CDK setup for Github is in 
-[CognitoGithubStackV1.ts](../src/Stack/CognitoGithubStackV1.ts)
+[CognitoGithubStackV1.ts](/aws-infra/src/Stack/CognitoGithubStackV1.ts)
