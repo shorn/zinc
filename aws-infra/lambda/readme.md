@@ -1,20 +1,27 @@
 
 ## Structure
 
-* [src/LambdaApiV2.ts](src/LambdaApiV2.ts)
-  * The lambda handler definition. It "dispatches" to various implementation 
+* [src/LambdaZincApiV2.ts](src/LambdaZincApiV2.ts)
+  * The lambda handler for the Zinc API. It "dispatches" to various 
+    implementation 
   functions. 
   * The `api` constant defines how the `ApiMap` defined in the shared 
   [ApiTypes.ts](../../shared/ApiTypes.ts) maps to implementations.
-* [/src/Api](src/Api) 
-  * Individual functions that implement "API calls".
-* [/src/Db](src/Db)
+* [/src/ZincApi/](src/ZincApi)
+  * Individual functions that implement "Zinc API calls".
+* [src/LambdaGithubOidcApiV1.ts](src/LambdaGithubOidcApiV1.ts)
+  * The lambda handler for the Cognito-Github OIDC API shim
+* [src/GithubOidcApi/](src/GithubOidcApi)
+  * implementaion for the OIDC shim 
+* [/src/Db/](src/Db)
   * The logic for reading/writing with DynamoDb using 
   [dynamodb-onetable](https://github.com/sensedeep/dynamodb-onetable).
-* [/src/Authz](src/Authz)
+* [/src/ZincApi/Authz/](src/ZincApi/Authz)
   * Contains logic for "authorizing" an "authenticated" user.  That is,
   verifying idTokens as a valid JWT issued by Cognito, verifying the identity 
   contained against our DB and generating an accessToken for making API calls.
+* [/doc/lambda/](doc/lambda)
+  * notes about observed examples of various API calls
 
 
 ## Tests

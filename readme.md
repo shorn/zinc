@@ -13,7 +13,9 @@ Or I might just not be running the project live any more.  See instructions for
 [running your own infrastructure](doc/running-own-infra.md).
 
 It doesn't do much of anything:
-* Login via email or Google.
+* Login via email, Google or Github.
+  * the Github-Cognito integration requires an entire 
+    [cognito-github OIDC shim](aws-infra/lambda/doc/cognito-github.md) 
 * Set your own "display name" .
 * List all users that have signed up 
   * only lists created date and user-entered "display name", 

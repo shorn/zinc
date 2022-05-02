@@ -12,7 +12,7 @@ import {
 import { EmailContainer } from "Auth/EmailSignInContainer";
 import { findSignInIdToken } from "Auth/Authn";
 import { IntroContainer } from "Auth/IntroContainer";
-import { GoogleSignInContainer } from "Auth/GoogleSignInContainer";
+import { SocialSignInContainer } from "Auth/SocialSignInContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
 
 export interface AuthState {
@@ -153,7 +153,7 @@ function NotSignedInContent({cognito, onSignInSucceeded}: {
         onSignInSucceeded={onSignInSucceeded}
       />
       <br/>
-      <GoogleSignInContainer cognito={cognito}/>
+      <SocialSignInContainer cognito={cognito}/>
     </SmallContentMain>
   </LargeContentMain>
 }

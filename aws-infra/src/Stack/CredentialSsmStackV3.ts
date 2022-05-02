@@ -26,7 +26,13 @@ export class CredentialSsmStackV3 extends Stack {
   EmailCognitoUserPoolId: StringParameter;
   EmailCognitoUserPoolClientId: StringParameter;
 
+  GithubCognitoUserPoolDomain: StringParameter;
+  GithubCognitoUserPoolId: StringParameter;
+  GithubCognitoUserPoolClientId: StringParameter;
+  GithubCognitoUserPoolClientSecret: StringParameter;
+  
   CognitoUserPoolRegion: StringParameter;
+
   
   AuthzSecrets2: StringListParameter;
 
@@ -58,11 +64,19 @@ export class CredentialSsmStackV3 extends Stack {
     this.EmailCognitoUserPoolClientId =
       this.string('EmailCognitoUserPoolClientId');
 
+    // these are from the github user pool
+    this.GithubCognitoUserPoolDomain =
+      this.string('GithubCognitoUserPoolDomain');
+    this.GithubCognitoUserPoolId = this.string('GithubCognitoUserPoolId');
+    this.GithubCognitoUserPoolClientId =
+      this.string('GithubCognitoUserPoolClientId');
+    this.GithubCognitoUserPoolClientSecret =
+      this.string('GithubCognitoUserPoolClientSecret');
+
     // All our user pools are in the same region, so this is shared 
     this.CognitoUserPoolRegion =
       this.string('CognitoUserPoolRegion');
 
-    
     // this is for creating the accessToken
     this.AuthzSecrets2 = this.stringList('AuthzSecrets2');
     

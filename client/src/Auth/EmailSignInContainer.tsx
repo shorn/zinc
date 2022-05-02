@@ -111,7 +111,7 @@ export function EmailSignInContainer({
   }
 
   const isWorking = state.status === "authenticating";
-  return <ContainerCard title={"Email Sign in"}>
+  return <ContainerCard title={"Email Sign-in"}>
     <form onSubmit={(e) => {
       e.preventDefault();
       // noinspection JSIgnoredPromiseFromCall
@@ -189,7 +189,7 @@ function EmailSignUpContainer({initEmail = "", initPassword = "", pool}: {
   }
 
   const isWorking = state.status === "working";
-  return <ContainerCard title={"Email Sign up"}>
+  return <ContainerCard title={"Email Sign-up"}>
     <form onSubmit={(e) => {
       e.preventDefault();
       console.debug("sign up clicked");

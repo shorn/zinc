@@ -1,6 +1,6 @@
-import { LambaApiV2Config } from "LambdaApiV2";
+import { LambaApiV2Config } from "LambdaZincApiV2";
 import { PrivateUserData, UdpateUserData } from "shared";
-import { guardAuthz, guardCrossAccountUpdate } from "Api/Authz";
+import { guardAuthz, guardCrossAccountUpdate } from "ZincApi/Authz/GuardAuthz";
 import { mapToPrivateUser } from "Db/UserTableV1Db";
 import { PublicUserData } from "shared/ApiTypes";
 

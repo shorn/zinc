@@ -1,15 +1,21 @@
-import { JwtPayload, sign, SignOptions, verify } from "jsonwebtoken";
+import { Algorithm, JwtPayload, sign, verify } from "jsonwebtoken";
 import { forceError } from "Util/Error";
-import { AuthzTokenPayload } from "../../../../shared/ApiTypes";
+import { AuthzTokenPayload } from "../../../../../shared/ApiTypes";
 
-const authzOptions: SignOptions = {
-  algorithm: "HS256",
+const authzSignOptions = {
+  algorithm: "HS256" as Algorithm,
   /* pretty non-standard values, but it's really just an opaque bearer token,
   so we don't need to worry about this too much. 
   Put URLs to the lamda function that issues, cloudfront url etc. if you 
   really want. */
-  issuer: "zinc-poc authz",
+  issuer: "zinc api authz",
   audience: "zinc client",
+} 
+  
+const authzVerifyOptions = {
+  algorithms: [authzSignOptions.algorithm] as Algorithm[],
+  issuer: authzSignOptions.issuer,
+  audience: authzSignOptions.audience,
 } 
   
 export function verifyAuthzToken({accessToken, secrets}: {
@@ -49,9 +55,7 @@ function attemptAuthzTokenVerify({accessToken, secret}:{
 }): AuthzTokenVerificationAttempt {
   let result: string | JwtPayload;
   try {
-    result = verify(accessToken, secret, {
-      ...authzOptions,
-    });
+    result = verify(accessToken, secret, authzVerifyOptions);
   }
   catch( err ){
     return {succeeded: false, problem: forceError(err).message};
@@ -87,6 +91,6 @@ export function signAuthzToken({payload, secret, expiresInSeconds}: {
   return sign(
     payload,
     secret,
-    {...authzOptions, expiresIn: expiresInSeconds},
+    {...authzSignOptions, expiresIn: expiresInSeconds},
   );
 }

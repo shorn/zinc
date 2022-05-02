@@ -17,6 +17,7 @@
     "@types/aws-lambda": "8.10.93"
   },
   "dependencies": {
+    "node-fetch": "3.2.4",
     "dynamodb-onetable": "2.3.6",
     "shared": "file:../../shared",
     "jsonwebtoken": "8.5.1",

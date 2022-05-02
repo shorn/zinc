@@ -1,9 +1,9 @@
 import { AuthzTokenPayload } from "shared/ApiTypes";
-import { verifyAuthzToken } from "Authz/AuthzToken";
+import { verifyAuthzToken } from "ZincApi/Authz/AuthzToken";
 import { AuthError } from "Util/Error";
-import { LambaApiV2Config } from "LambdaApiV2";
+import { LambaApiV2Config } from "LambdaZincApiV2";
 import { ServerUser } from "Db/UserTableV1Db";
-import { initialParamValue } from "../../../src/Stack/CredentialSsmStackV3";
+import { initialParamValue } from "../../../../src/Stack/CredentialSsmStackV3";
 
 export const GENERIC_DENIAL = "while authorizing";
 

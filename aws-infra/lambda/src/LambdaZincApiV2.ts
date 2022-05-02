@@ -9,26 +9,24 @@ import {
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
 import { AuthError, forceError } from "Util/Error";
 import { readStringListParam, readStringParam } from "Util/Ssm";
-import { listPublicUserData, readUser, updateUser } from "Api/User";
+import { listPublicUserData, readUser, updateUser } from "ZincApi/User";
 import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { tableName } from "../../src/Stack/OneTableStackV1";
 import { getBearerToken } from "Util/Header";
-import { GENERIC_DENIAL, getAuthzSigningSecret } from "Api/Authz";
+import { GENERIC_DENIAL, getAuthzSigningSecret } from "ZincApi/Authz/GuardAuthz";
 import {
-  formatErrorResult,
-  formatSuccessResult,
+  formatErrorResponse,
+  formatSuccessResponse,
   LambdaEventHeaders,
-  LambdaFunctionUrlEvent
+  LambdaFunctionUrlEvent, LambdaResponse
 } from "Util/LambdaEvent";
 import { prdApiPath } from "../../src/Stack/CloudFrontStackV5";
-import { authorizeUser } from "Api/AuthorizeUser";
+import { authorizeUser } from "ZincApi/AuthorizeUser";
+import { formatCognitoIdpUrl } from "Util/Cognito";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();
-
-// time spent in here is part of the "cold start" 
-let config: Promise<LambaApiV2Config> = initConfig();
 
 
 export const authApi: AuthApi = {
@@ -47,13 +45,17 @@ const postApi: PostApi = {
   updateUser: async (req, token) => updateUser(req, await config, token!),
 }
 
-
+// time spent in here is part of the "cold start" 
+let config: Promise<LambaApiV2Config> = initConfig();
 export interface LambaApiV2Config {
   cognito: CognitoConfig,
   verifier: {
     // "MultiIssuer" might be better, but this seems simpler right now
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
     email: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
+    github: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
+    /* Cognito doesn't support rotating these, oh well */
+    //githubClientSecret: string,
   },
   authzSecrets: string[],
   authzSigningSecret: string,
@@ -67,8 +69,8 @@ export interface CognitoVerifierProps {
   jwksUri: string,
 }
 
-async function initConfig(reload = false): Promise<LambaApiV2Config>{
-  if( !reload && config ){
+async function initConfig(): Promise<LambaApiV2Config>{
+  if( config ){
     return config;
   }
 
@@ -84,29 +86,55 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
     process.env.COGNITO_EMAIL_USER_POOL_ID_SSM_PARAM);
   const emailClientId = readStringParam(
     process.env.COGNITO_EMAIL_USER_POOL_CLIENT_ID_SSM_PARAM);
-  
-  const authzSecretsSsmParam = readStringListParam(process.env.AUTHZ_SECRETS_SSM_PARAM);
 
-  const googleIdpUrl: string = `https://cognito-idp.` +
-    `${await cognitoRegion}.amazonaws.com/` +
-    `${await googleUserPoolId}`;
-  const emailIdpUrl: string = `https://cognito-idp.` +
-    `${await cognitoRegion}.amazonaws.com/` +
-    `${await emailUserPoolId}`;
+  const githubUserPoolDomain = readStringParam(
+    process.env.COGNITO_GITHUB_USER_POOL_DOMAIN_SSM_PARAM);
+  const githubUserPoolId = readStringParam(
+    process.env.COGNITO_GITHUB_USER_POOL_ID_SSM_PARAM);
+  const githubClientId = readStringParam(
+    process.env.COGNITO_GITHUB_USER_POOL_CLIENT_ID_SSM_PARAM);
+  /* this is the secret used to sign the id_token because we're using HMAC 
+  instead of a certificate, this must match the secret declared in the 
+  UserPool IdProvider. 
+  I don't know if it's possible to read the secret directly from the UserPool, 
+  and I don't feel like figuring it out right now (don't forget permissions!) */
+  const githubClientSecretParam = readStringParam(
+    process.env.COGNITO_GITHUB_CLIENT_SECRET_SSM_PARAM);
+  
+  const authzSecretsSsmParam = readStringListParam(
+    process.env.AUTHZ_SECRETS_SSM_PARAM );
+
+  const googleIdpUrl: string = formatCognitoIdpUrl({
+    region: await cognitoRegion, 
+    userPoolId: await googleUserPoolId });
+  const emailIdpUrl: string = formatCognitoIdpUrl({
+    region: await cognitoRegion, 
+    userPoolId: await emailUserPoolId });
+  const githubIdpUrl: string = formatCognitoIdpUrl({
+    region: await cognitoRegion, 
+    userPoolId: await githubUserPoolId });
+  //const githubClientSecret: string = await githubClientSecretParam;
+  //console.log("gh client secret", githubClientSecret.length);
 
   const googleVerifier = JwtRsaVerifier.create({
     issuer: googleIdpUrl,
     audience: await googleClientId,
     jwksUri: `${googleIdpUrl}/.well-known/jwks.json`,
   });
-  console.log("google verifier created", googleIdpUrl);
 
   const emailVerifier = JwtRsaVerifier.create({
     issuer: emailIdpUrl,
     audience: await emailClientId,
     jwksUri: `${emailIdpUrl}/.well-known/jwks.json`,
   });
-  console.log("email verifier created", googleIdpUrl);
+
+  const githubVerifier = JwtRsaVerifier.create({
+    issuer: githubIdpUrl,
+    audience: await githubClientId,
+    jwksUri: `${githubIdpUrl}/.well-known/jwks.json`,
+  });
+
+  console.log("idToken verifiers created");
 
   return {
     cognito: {
@@ -119,11 +147,18 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
         userPoolId: await googleUserPoolId,
         userPoolClientId: await googleClientId,
         userPoolDomain: await googleUserPoolDomain,
-      }
+      },
+      github: {
+        userPoolId: await githubUserPoolId,
+        userPoolClientId: await githubClientId,
+        userPoolDomain: await githubUserPoolDomain,
+      },
     },
     verifier: {
       google: googleVerifier,
       email: emailVerifier,
+      github: githubVerifier
+      //githubClientSecret, 
     },
     authzSecrets: await authzSecretsSsmParam,
     // didn't want to run the checks on each invocation, so do it here
@@ -135,33 +170,34 @@ async function initConfig(reload = false): Promise<LambaApiV2Config>{
 }
 
 
-// Likely will have to change when moved over to function urls.
-export const handler: Handler = async (event, context)=> {
+export const handler: Handler<LambdaFunctionUrlEvent, LambdaResponse> = 
+  async (event, context)=> 
+{
   console.log(name + " exec");
 
   try {
     
     const authApiResult = await dispatchAuthApiCall(await config, event);
     if( authApiResult ){
-      return formatSuccessResult(authApiResult);
+      return formatSuccessResponse(authApiResult);
     }
     
     const postApiResult = await dispatchPostCall(await config, event);
     if( postApiResult ){
-      return formatSuccessResult(postApiResult);
+      return formatSuccessResponse(postApiResult);
     }
 
     console.error("failed to dispatch", event);
-    return formatErrorResult(404, "invalid API call");
+    return formatErrorResponse(404, "invalid API call");
     
   } 
   catch( err ){
     if( err instanceof AuthError ){
       console.error("auth error", err.message, err.privateMsg);
-      return formatErrorResult(400, err.message);
+      return formatErrorResponse(400, err.message);
     }
     console.error("error", err);
-    return formatErrorResult(500, forceError(err).message);
+    return formatErrorResponse(500, forceError(err).message);
   }
 };
 
@@ -241,14 +277,13 @@ function parseApiPostCall(
 ): undefined | {
   name: keyof PostApi,
   body: Record<string, any>,
-  /** `accessToken` for most calls, but will be `idToken` for `authorize()` */
   authToken?: string;
 }{
   if( !isPostApiKey(apiName) ){
     return undefined;
   }
 
-  // TODO:STO needs to deal with dates like frontend, just don't have any
+  // IMPROVE: needs to deal with dates like frontend, just don't have any
   // date request params, yet.
   const body: Record<string, any> = JSON.parse(requestBody);
 

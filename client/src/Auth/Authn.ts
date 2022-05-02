@@ -92,7 +92,7 @@ export async function findSignInIdToken(
 ):Promise<string | undefined>{
   let idToken:string|undefined = getSocialRedirectIdToken();
   if( idToken ){
-    console.log("found social idToken");
+    console.log("found social idToken", idToken);
     return idToken;
   }
 
@@ -102,11 +102,11 @@ export async function findSignInIdToken(
     return idToken;
   }
 
-  console.log("found no idtoken");
+  console.log("found no idToken");
   return undefined;
 }
 
-export function getCognitoGoogleSignInDomain(config: CognitoConfig){
-  return `https://${config.google.userPoolDomain}`+
-    `.auth.${config.region}.amazoncognito.com`
+export function getCognitoUserPoolUrl(userPoolDomain: string, region: string){
+  return `https://${userPoolDomain}.auth.${region}.amazoncognito.com`
 }
+

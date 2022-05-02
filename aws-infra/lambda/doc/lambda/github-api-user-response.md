@@ -1,0 +1,50 @@
+The data coming back from `api.github.com/user`:
+
+```json
+{
+  "login": "shorn",
+  "id": "<number>",
+  "node_id": "XXX==",
+  "avatar_url": "https://avatars.githubusercontent.com/u/<id>?v=4",
+  "gravatar_id": "",
+  "url": "https://api.github.com/users/shorn",
+  "html_url": "https://github.com/shorn",
+  "followers_url": "https://api.github.com/users/shorn/followers",
+  "following_url": "https://api.github.com/users/shorn/following{/other_user}",
+  "gists_url": "https://api.github.com/users/shorn/gists{/gist_id}",
+  "starred_url": "https://api.github.com/users/shorn/starred{/owner}{/repo}",
+  "subscriptions_url": "https://api.github.com/users/shorn/subscriptions",
+  "organizations_url": "https://api.github.com/users/shorn/orgs",
+  "repos_url": "https://api.github.com/users/shorn/repos",
+  "events_url": "https://api.github.com/users/shorn/events{/privacy}",
+  "received_events_url": "https://api.github.com/users/shorn/received_events",
+  "type": "User",
+  "site_admin": false,
+  "name": "Shorn",
+  "company": null,
+  "blog": "kopi.cloud",
+  "location": "Brisbane, Australia",
+  "email": null,
+  "hireable": null,
+  "bio": "I maintain https://kopi.cloud, an email forwarding service.  It lets you hand out burner emails, redirect email to RSS and supports custom domains.",
+  "twitter_username": null,
+  "public_repos": 9,
+  "public_gists": 0,
+  "followers": 2,
+  "following": 0,
+  "created_at": "<ISO timestamp>",
+  "updated_at": "<ISO timestamp>",
+  "private_gists": 0,
+  "total_private_repos": 0,
+  "owned_private_repos": 0,
+  "disk_usage": 3001,
+  "collaborators": 0,
+  "two_factor_authentication": true,
+  "plan": {
+    "name": "free",
+    "space": 1234546789,
+    "collaborators": 0,
+    "private_repos": 10000
+  }
+}
+```

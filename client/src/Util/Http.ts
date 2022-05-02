@@ -48,7 +48,7 @@ export function jsonFormat(body: undefined|object): string{
     return "{}";
   }
 
-  // TODO:STO deal with dates, so that json parse/format are symmetrical
+  // IMPROVE: deal with dates, so that json parse/format are symmetrical
   return JSON.stringify(body, null, 4);
 }
 

@@ -142,6 +142,7 @@ export interface CognitoConfig {
   region: string,
   email: CognitoEmailConfig,
   google: CognitoGoogleConfig,
+  github: CognitoGoogleConfig,
 }
 
 

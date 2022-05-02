@@ -11,6 +11,7 @@ import {
   UserPoolEmail,
   UserPoolIdentityProviderGoogle
 } from "aws-cdk-lib/aws-cognito";
+import { cognitoDomain } from "Util/CognitoConstant";
 
 export class CognitoGoogleStackV3 extends Stack {
 
@@ -122,9 +123,9 @@ export class CognitoGoogleStackV3 extends Stack {
       userPool: this.userPool,
       disableOAuth: false,
       oAuth: {
-        /* when it was just "code", I was getting "unauthorized client" from 
-         the cognito /login url.  Needs research - implicit is considered 
-         insecure by security wonks. */
+        /* IMPROVE: get rid of implicit - considered insecure. 
+        when it was just "code", I was getting "unauthorized client" from 
+        the cognito /login url. */
         flows: {
           authorizationCodeGrant: true,
           implicitCodeGrant: true,
@@ -144,6 +145,7 @@ export class CognitoGoogleStackV3 extends Stack {
 
       idTokenValidity: Duration.minutes(60),
       accessTokenValidity: Duration.minutes(60),
+      // IMPROVE: we don't use this, should be set short 
       refreshTokenValidity: Duration.minutes(60),
 
       supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE]
@@ -191,6 +193,4 @@ export class CognitoGoogleStackV3 extends Stack {
   }
 }
 
-/* Add to Google dev console OAuth consent screen "Authorized domains" */
-export const cognitoDomain = "amazoncognito.com";
 

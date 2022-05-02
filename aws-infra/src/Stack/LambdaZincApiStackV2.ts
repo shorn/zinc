@@ -24,7 +24,7 @@ const lambdaSrcDir = `${lambdaBaseDir}/src`;
  * So you end up with example code like this; or even better, all the CDK 
  * examples and doco where they just embed secrets in source code.
  */
-export class LambdaApiStackV2 extends Stack {
+export class LambdaZincApiStackV2 extends Stack {
   lambdaFunction: NodejsFunction;
   functionUrl: FunctionUrl;
 
@@ -50,8 +50,9 @@ export class LambdaApiStackV2 extends Stack {
       timeout: Duration.seconds(5),
     }
 
+    // TODO:STO rename to Zinc
     this.lambdaFunction = new NodejsFunction(this, 'LambdaApiV2', {
-      entry: join(__dirname, lambdaSrcDir, 'LambdaApiV2.ts'),
+      entry: join(__dirname, lambdaSrcDir, 'LambdaZincApiV2.ts'),
       ...nodeJsFunctionProps,
       reservedConcurrentExecutions: 5,
       environment: {
@@ -67,10 +68,19 @@ export class LambdaApiStackV2 extends Stack {
           creds.EmailCognitoUserPoolId.parameterName,
         COGNITO_EMAIL_USER_POOL_CLIENT_ID_SSM_PARAM:
           creds.EmailCognitoUserPoolClientId.parameterName,
+        COGNITO_GITHUB_USER_POOL_DOMAIN_SSM_PARAM:
+          creds.GithubCognitoUserPoolDomain.parameterName,
+        COGNITO_GITHUB_USER_POOL_ID_SSM_PARAM:
+          creds.GithubCognitoUserPoolId.parameterName,
+        COGNITO_GITHUB_USER_POOL_CLIENT_ID_SSM_PARAM:
+          creds.GithubCognitoUserPoolClientId.parameterName,
+        COGNITO_GITHUB_CLIENT_SECRET_SSM_PARAM:
+          creds.GithubCognitoUserPoolClientSecret.parameterName,
         AUTHZ_SECRETS_SSM_PARAM: creds.AuthzSecrets2.parameterName,
       }
     });
 
+    // TODO:STO rename to Zinc
     this.functionUrl = new FunctionUrl(this, 'LambdaApiUrl', {
       function: this.lambdaFunction,
       authType: FunctionUrlAuthType.NONE,
@@ -86,6 +96,10 @@ export class LambdaApiStackV2 extends Stack {
     creds.GoogleCognitoUserPoolClientId.grantRead(this.lambdaFunction);
     creds.EmailCognitoUserPoolId.grantRead(this.lambdaFunction);
     creds.EmailCognitoUserPoolClientId.grantRead(this.lambdaFunction);
+    creds.GithubCognitoUserPoolDomain.grantRead(this.lambdaFunction);
+    creds.GithubCognitoUserPoolId.grantRead(this.lambdaFunction);
+    creds.GithubCognitoUserPoolClientId.grantRead(this.lambdaFunction);
+    creds.GithubCognitoUserPoolClientSecret.grantRead(this.lambdaFunction);
     creds.AuthzSecrets2.grantRead(this.lambdaFunction);
 
     table.grantReadWriteData(this.lambdaFunction);

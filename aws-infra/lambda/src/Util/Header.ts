@@ -4,7 +4,7 @@ const authLowerHeader = "authorization";
 const authInitHeader = "Authorization";
 const bearerPrefix = "bearer ";
 
-export function getBearerToken(headers: LambdaEventHeaders){
+export function getBearerToken(headers: LambdaEventHeaders): string | undefined{
   // IMPROVE: use a fast case insensitive compare
   let headerValue = headers[authLowerHeader] || 
     headers[authInitHeader];
