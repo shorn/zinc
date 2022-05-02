@@ -14,3 +14,8 @@ The Lamba implementation is in
 
 The AWS CDK setup for Github is in 
 [CognitoGithubStackV1.ts](/aws-infra/src/Stack/CognitoGithubStackV1.ts)
+
+```puml
+A -> B
+B -> C
+```
