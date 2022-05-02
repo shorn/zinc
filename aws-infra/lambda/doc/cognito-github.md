@@ -17,8 +17,8 @@ The AWS CDK setup for Github is in
 
 ```mermaid
 sequenceDiagram
-   participant client as Client
-   participant cognito as Cognito
-   client -> cognito
+    Alice->>John: Hello John, how are you?
+    John-->>Alice: Great!
+    Alice-)John: See you later!
 
 ```
