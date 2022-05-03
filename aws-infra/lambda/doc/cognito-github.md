@@ -7,7 +7,8 @@ login to the Zinc app.
 * it only supports public github, not enterprise
 * id_token is signed with HS256 (symmetric signing based on the shared 
   client_secret configured in the Cognito USerPool) 
-  instead of RS256 (asymmetric signing, using JWKS certificate standard)
+  instead of RS256 (asymmetric signing, using certificates published via JWKS 
+  standard)
 * supports only the OIDC attributes that Zinc needs, not the full standard set
 
 The Lamba implementation is in 
