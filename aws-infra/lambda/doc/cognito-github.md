@@ -70,7 +70,7 @@ sequenceDiagram
     github->>lambda: {access_token}
     lambda->>cognito: JWT: {access_token, id_token}
     cognito->>lambda: GET /userinfo?access_token
-    lambda->>github: GET /user
+    lambda->>github: GET /user?access_token
     github->>lambda: {id}
     lambda->>github: GET /user/emails?access_token
     github->>lambda: {email[]}
