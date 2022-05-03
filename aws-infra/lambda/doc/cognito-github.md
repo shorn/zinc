@@ -69,13 +69,13 @@ sequenceDiagram
     lambda->>github: POST /login/oauth/access_token
     github->>lambda: {access_token}
     lambda->>cognito: JWT: {access_token, id_token}
-    cognito->>lambda: GET /userinfo
+    cognito->>lambda: GET /userinfo?access_token
     lambda->>github: GET /user
     github->>lambda: {id}
-    lambda->>github: GET /user/emails
+    lambda->>github: GET /user/emails?access_token
     github->>lambda: {email[]}
     lambda->>cognito: {sub, email, email_verified}
-    cognito-->>user: redirect to client {id_token}
+    cognito-->>user: redirect to client JWT: {id_token}
     user-->>client: follow redirect
     Note right of client: parse id_token in url
 
