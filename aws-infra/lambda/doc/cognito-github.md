@@ -5,7 +5,8 @@ Note that the Zinc implementation is not meant to be an OIDC wrapper, it's
 just the simplest thing that will work for the use-case of allowing a Github 
 login to the Zinc app.
 * it only supports public github, not enterprise
-* id_token is signed with HS256 (symmetric signing based on shared secret) 
+* id_token is signed with HS256 (symmetric signing based on the shared 
+  client_secret configured in the Cognito USerPool) 
   instead of RS256 (asymmetric signing, using JWKS certificate standard)
 * supports only the OIDC attributes that Zinc needs, not the full standard set
 
