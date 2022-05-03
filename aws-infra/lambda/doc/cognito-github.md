@@ -16,6 +16,8 @@ The AWS CDK setup for Github is in
 [CognitoGithubStackV1.ts](/aws-infra/src/Stack/CognitoGithubStackV1.ts)
 
 
+### Authentication flow 
+
 * user clicks client "login with github" button
 * client redirects browser to zinc-github-au.cognito/login 
   * cognito/login shows "sign in with your corp ID"
@@ -40,7 +42,6 @@ The AWS CDK setup for Github is in
   * cognito redirects browser to client
 * client parses id_token out of url params
   * the user is now "authenticated" with Cognito via Github
-
 
 
 ```mermaid
