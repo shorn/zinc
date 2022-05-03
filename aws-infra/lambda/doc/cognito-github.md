@@ -58,9 +58,9 @@ sequenceDiagram
     client-->>user: redirect browser to cognito/login
     user-->>cognito: follow redirect
     user->>cognito: click "sign in with Corp ID"
-    cognito-->>user: redirect browser to lambda/authorize
+    cognito-->>user: redirect browser to lambda/authorize?client_id&scope
     user-->>lambda: follow redirect
-    lambda-->>user: redirect browser to github/login/oauth/authorize
+    lambda-->>user: redirect browser to github/login/oauth/authorize? client_id&scope
     user-->>github: follow redirect
     user->>github: click "authorize Zinc app"
     github-->>user: redirect to cognito/oauth2/idpresponse?code
