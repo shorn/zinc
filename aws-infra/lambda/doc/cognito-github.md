@@ -76,7 +76,7 @@ sequenceDiagram
     lambda->>cognito: {sub, email, email_verified}
     cognito-->>user: redirect to client {id_token}
     user-->>client: follow redirect
-    Note right of client: client parses id_token from url
+    Note right of client: parse id_token in url
 
 ```
 
