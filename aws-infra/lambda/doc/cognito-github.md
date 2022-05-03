@@ -65,8 +65,8 @@ sequenceDiagram
     user->>github: click "authorize Zinc app"
     github-->>user: redirect to cognito/oauth2/idpresponse
     user-->>cognito: follow redirect
-    cognito->>lambda: GET /token
-    lambda->>github: POST /login/oauth/access_token
+    cognito->>lambda: GET /token?client_id&client_secret
+    lambda->>github: POST /login/oauth/access_token {client_id, client_secret}
     github->>lambda: {access_token}
     lambda->>cognito: JWT: {access_token, id_token}
     cognito->>lambda: GET /userinfo?access_token
