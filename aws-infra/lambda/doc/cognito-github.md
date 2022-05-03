@@ -1,9 +1,9 @@
 The Github support is a custom shim, based off of: 
 https://github.com/TimothyJones/github-cognito-openid-wrapper
 
-The Zinc implementation is cut down from the wrapper though, it's not 
-really an "OIDC wrapper" so much as a "do the simplest possible thing I can
-to get it going".
+Note that the Zinc implementation is not meant to be an OIDC wrapper, it's 
+just the simplest thing that will work for the use-case of allowing a Github 
+login to the Zinc app.
 * it only supports public github, not enterprise
 * id_token is signed with HS256 (symmetric signing based on shared secret) 
   instead of RS256 (asymmetric signing, using JWKS certificate standard)
