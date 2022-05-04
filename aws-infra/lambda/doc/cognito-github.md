@@ -76,4 +76,16 @@ sequenceDiagram
 
 ```
 
+### Zinc Authorization
+
+This part has nothing to do with Github or OIDC - I don't want to add it to 
+the diagram since it's non-standard and the diagram is already too complicated.
+
+After the `id_token` is parsed out by the client, it is sent to the 
+`zinc/authorize` url to be exchanged for a Zinc `accessToken`.  Zinc validates 
+the JWT `id_token` using the certificate published by Cognito at the 
+JWKS standard URL.
+
+----
+
 https://mermaid-js.github.io/mermaid/#/sequenceDiagram
