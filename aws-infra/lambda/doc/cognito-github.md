@@ -1,14 +1,16 @@
 The Github support is a custom shim, based off of: 
 https://github.com/TimothyJones/github-cognito-openid-wrapper
 
-Note that the Zinc implementation is not meant to be an OIDC wrapper, it's 
-just the simplest thing that will work for the use-case of allowing a Github 
-login to the Zinc app.
+Note that the Zinc implementation is not meant to be a reusable, generic OIDC 
+wrapper, it's just the simplest thing that will work for the use-case of 
+allowing a Github login to the Zinc app.
 * it only supports public github, not enterprise
-* id_token is signed with HS256 (symmetric signing based on the shared 
-  client_secret configured in the Cognito USerPool) 
-  instead of RS256 (asymmetric signing, using certificates published via JWKS 
-  standard)
+* id_token is signed with the Github `client_secret` configured in 
+  Cognito instead of a certificate
+  * Zinc signature: HS256, symmetric signing based on the shared 
+  client_secret configured in the Cognito UserPool. 
+  * openid-wrapper signature: RS256, asymmetric signing using certificates 
+    published via JWKS standard.
 * supports only the OIDC attributes that Zinc needs, not the full standard set
 
 The Lamba implementation is in 
