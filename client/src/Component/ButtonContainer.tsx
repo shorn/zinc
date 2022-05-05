@@ -20,11 +20,14 @@ export function  ButtonContainer({
 } & SpanProps ){
   const justifyContent = spanProps.style?.justifyContent ?? 'flex-start';
   const buttonPadding = {paddingRight: "1em", paddingBottom: ".35em"};
-  const errorComponent = <span style={{...buttonPadding, marginBottom: ".35em"}}>
-    <CompactErrorPanel error={error}/>
-  </span>;
+  let errorComponent = null;
+  if( error ){
+    errorComponent = <span style={{...buttonPadding, marginBottom: ".35em"}}>
+      <CompactErrorPanel error={error}/>
+    </span>;
+  }
 
-  return <div>
+  return <div >
     { justifyContent === 'flex-end' && errorComponent }
     <span {...spanProps} style={{
       display: "flex", flexWrap: "wrap",
