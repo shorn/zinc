@@ -1,6 +1,6 @@
 import { Algorithm, JwtPayload, sign, verify } from "jsonwebtoken";
 import { forceError } from "Util/Error";
-import { AuthzTokenPayload } from "../../../../../shared/ApiTypes";
+import { AuthzTokenPayload } from "shared/ApiTypes";
 
 const authzSignOptions = {
   algorithm: "HS256" as Algorithm,
