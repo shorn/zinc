@@ -1,14 +1,13 @@
-import { CognitoConfig } from "shared";
 import React from "react";
 import { navBrowserByAssign } from "Util/WindowUtil";
 import { ContainerCard } from "Design/ContainerCard";
 import { PrimaryButton } from "Component/AppButton";
 import { formatCognitoIdProviderRedirect } from "Auth/Authn";
 import { ButtonContainer } from "Component/ButtonContainer";
+import { useServerInfo } from "Api/ServerInfoProvider";
 
-export function SocialSignInContainer({cognito}: {
-  cognito: CognitoConfig
-}){
+export function CognitoSocialSignInContainer(){
+  const {cognito} = useServerInfo();
   const [isWorking, setIsWorking] = React.useState(false);
 
   async function googleSignIn(){
@@ -25,7 +24,7 @@ export function SocialSignInContainer({cognito}: {
     navBrowserByAssign( redirectUrl);
   }
 
-  return <ContainerCard title={"Social Sign-in"}>
+  return <ContainerCard title={"Cognito Social Sign-in"}>
       <ButtonContainer style={{justifyContent: "center"}}>
         <PrimaryButton isLoading={isWorking} disabled={isWorking}
           onClick={googleSignIn}
@@ -37,7 +36,6 @@ export function SocialSignInContainer({cognito}: {
         >
           Github
         </PrimaryButton>
-        
       </ButtonContainer>
   </ContainerCard>
 }

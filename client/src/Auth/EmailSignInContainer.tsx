@@ -11,6 +11,7 @@ import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { CognitoEmailConfig } from "shared";
 import { TextSpan } from "Component/TextSpan";
+import { useServerInfo } from "Api/ServerInfoProvider";
 
 export type EmailSignInState =
   {status: "succeeded", email: string} |
@@ -18,23 +19,22 @@ export type EmailSignInState =
   {status: "error", error: ErrorInfo}
 
 export function EmailContainer({
-  emailConfig,
   onSignInSucceeded,
 }: {
-  emailConfig: CognitoEmailConfig
   onSignInSucceeded: () => void,
   initEmail?: string, initPassword?: string,
 }){
+  const {cognito} = useServerInfo();
   const [state, setState] = React.useState("signin" as 
     "signin" | "signup" | "forgot" );
   
   // don't create every render (probably not expensive, but w/e)
   const pool = React.useMemo(()=>{
     return new CognitoUserPool({
-      UserPoolId: emailConfig.userPoolId,
-      ClientId: emailConfig.userPoolClientId,
+      UserPoolId: cognito.email.userPoolId,
+      ClientId: cognito.email.userPoolClientId,
     });
-  }, [emailConfig.userPoolId, emailConfig.userPoolClientId]);
+  }, [cognito.email.userPoolId, cognito.email.userPoolClientId]);
 
   const signInButton = <span> 
     <SecondaryButton onClick={() => setState("signin")}>

@@ -123,6 +123,9 @@ export interface PublicUserData {
 /** requested by the client app so it knows how to authenticate, etc. */
 export interface ServerInfo {
   cognito: CognitoConfig,
+  directAuthn: {
+    githubIssuer: string,
+  }
   lambdaCreateDate: Date,
 }
 

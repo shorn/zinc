@@ -7,13 +7,10 @@ import {
 import { join } from "path";
 import {
   FunctionUrl,
-  FunctionUrlAuthType, HttpMethod,
+  FunctionUrlAuthType,
+  HttpMethod,
   Runtime
 } from "aws-cdk-lib/aws-lambda";
-import { Table } from "aws-cdk-lib/aws-dynamodb";
-import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
-
-export const initialParamValue = 'set me via the console';
 
 const lambdaBaseDir = "../../lambda";
 const lambdaSrcDir = `${lambdaBaseDir}/src`;
@@ -64,8 +61,6 @@ export class LambdaGithubOidcApiStackV1 extends Stack {
         allowedOrigins: ["*"],
         allowCredentials: true,
         allowedMethods: [HttpMethod.ALL],
-        //exposedHeaders: [],
-        //allowedHeaders: [],
         maxAge: Duration.seconds(10),
       }
     });

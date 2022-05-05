@@ -8,12 +8,13 @@ import {
   LambdaResponse
 } from "Util/LambdaEvent";
 import {
+  createIdTokenJwt,
   formatTokenResponse,
-  parseAuthorizeRequest,
   parseTokenRequest,
   parseUserInfoAccessToken,
 } from "GithubOidcApi/CognitoApi";
-import { getAuthorizeUrlRedirect, GithubApi } from "GithubOidcApi/GithubApi";
+import { getAuthorizeUrlRedirect, GithubApi } from "Downstream/GithubApi";
+import { parseAuthorizeCodeGrantRequest } from "OAuth/OAuth";
 
 const name = "LambdaGithubOidcApiV1";
 
@@ -52,7 +53,7 @@ async function dispatchOidcApiCall(
   const query = event.queryStringParameters;
 
   if( method === "GET" && path === "/authorize" ){
-    const params = parseAuthorizeRequest(query);
+    const params = parseAuthorizeCodeGrantRequest(query);
     const githubAuthUrl = getAuthorizeUrlRedirect(params);
     return formatRedirectResponse(githubAuthUrl);
   }
@@ -68,12 +69,12 @@ async function dispatchOidcApiCall(
     const attributes = await githubApi.mapOidcAttributes(
       githubToken.access_token );
     
-    const tokenResponse = formatTokenResponse({
+    const idToken = createIdTokenJwt({
+      secret: tokenRequest.client_secret,
       issuer: `https://${event.headers.host}`,
-      attributes,
-      tokenRequest,
-      githubToken,
-    }) ;
+      audience: tokenRequest.client_id,
+      attributes });
+    const tokenResponse = formatTokenResponse({idToken, githubToken});
     console.log("token response", tokenResponse);
     
     return formatSuccessResponse(tokenResponse);

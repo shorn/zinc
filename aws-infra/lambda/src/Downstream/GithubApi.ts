@@ -1,11 +1,11 @@
 import { Agent } from "https";
 import {
-  CognitoAuthorizeRequest,
-  CognitoTokenRequest
+  OauthTokenRequest
 } from "GithubOidcApi/CognitoApi";
 import fetch, { Response as FetchResponse } from "node-fetch";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
+import { AuthorizeCodeGrantParameters } from "OAuth/OAuth";
 
 /* Hardcoded because Zinc is only designed to work with public Github, not
 the enterprise version. */
@@ -82,7 +82,7 @@ export class GithubApi {
   }
 
   public async getToken(
-    tokenRequest: CognitoTokenRequest
+    tokenRequest: OauthTokenRequest
   ): Promise<GithubTokenResponse>{
     const githubResponse = await fetch(githubUrlBase.token, {
       agent: this.httpsAgent,
@@ -104,10 +104,11 @@ export class GithubApi {
   public async mapOidcAttributes(
     accessToken: string
   ): Promise<ZincMappedOidcAttributes>{
-    const [userDetails, userEmail] = await Promise.all([
-      this.getUserDetails(accessToken),
-      this.getUserEmail(accessToken),
-    ]);
+    const [userDetails, userEmail]: [GithubUserDetail, GithubUserEmail] = 
+      await Promise.all([
+        this.getUserDetails(accessToken),
+        this.getUserEmail(accessToken),
+      ]);
 
     /* Standard OIDC claims, but only the ones that we defined in the
     UserPool IdProvider AttributeMapping */
@@ -252,15 +253,16 @@ async function parseGithubUserEmailsResponse(
 }
 
 export function getAuthorizeUrlRedirect(
-  params: CognitoAuthorizeRequest
+  params: AuthorizeCodeGrantParameters
 ): string{
-  const {client_id, scope, state, response_type} = params;
+  const {client_id, scope, state, response_type, redirect_uri} = params;
 
   return githubUrlBase.authorize +
     `?client_id=${client_id}` +
     `&scope=${encodeURIComponent(scope)}` +
     `&state=${state}` +
-    `&response_type=${response_type}`;
+    `&response_type=${response_type}`+
+    (redirect_uri ? `&redirect_uri=${redirect_uri}` : "");
 }
 
 export async function parseGithubTokenResponse(
@@ -274,7 +276,7 @@ export async function parseGithubTokenResponse(
     });
   }
 
-  const tokenResponse = await response.json() as any;
+  const tokenResponse: any = await response.json();
 
   if( !tokenResponse ){
     throw new AuthError({
@@ -288,12 +290,12 @@ export async function parseGithubTokenResponse(
     throw new AuthError({
       publicMsg: GENERIC_DENIAL, privateMsg:
         "GitHub API responded with a failure: " +
-        `${tokenResponse.error}, ${tokenResponse.error_description}`
+        `${tokenResponse.error}, ${tokenResponse["error_description"]}`
     });
   }
 
   if( !tokenResponse.scope ){
-    console.log("maformed github response", tokenResponse);
+    console.log("malformed github response", tokenResponse);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL, privateMsg:
         "GitHub API response json has no [scope]"
@@ -301,7 +303,7 @@ export async function parseGithubTokenResponse(
   }
 
   if( !tokenResponse.access_token ){
-    console.log("maformed github response", tokenResponse);
+    console.log("malformed github response", tokenResponse);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL, privateMsg:
         "GitHub API response json has no [access_token]"
@@ -309,7 +311,7 @@ export async function parseGithubTokenResponse(
   }
 
   if( !tokenResponse.token_type ){
-    console.log("maformed github response", tokenResponse);
+    console.log("malformed github response", tokenResponse);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL, privateMsg:
         "GitHub API response json has no [token_type]"

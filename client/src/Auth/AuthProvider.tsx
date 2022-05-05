@@ -3,7 +3,7 @@ import { LargeContentMain, SmallContentMain } from "Design/LayoutMain";
 import { SmallPageSpinner } from "Component/SmallPageSpinner";
 import { ErrorInfoComponent } from "Error/ErrorInforComponent";
 import { ErrorInfo, isErrorInfo } from "Error/ErrorUtil";
-import { AuthzTokenPayload, CognitoConfig } from "shared";
+import { AuthzTokenPayload } from "shared";
 import {
   authorizeWithServer,
   getAuthSessionFromStorage,
@@ -12,8 +12,11 @@ import {
 import { EmailContainer } from "Auth/EmailSignInContainer";
 import { findSignInIdToken } from "Auth/Authn";
 import { IntroContainer } from "Auth/IntroContainer";
-import { SocialSignInContainer } from "Auth/SocialSignInContainer";
+import {
+  CognitoSocialSignInContainer
+} from "Auth/CognitoSocialSignInContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
+import { DirectSocialSignInContainer } from "Auth/DirectSocialSignInContainer";
 
 export interface AuthState {
   signOut: ()=>void,
@@ -125,7 +128,7 @@ export function AuthProvider({children}: {children: React.ReactNode}){
   }
   
   if( state.current === "not-signed-in" ){
-    return <NotSignedInContent cognito={serverInfo.cognito}
+    return <NotSignedInContent 
       /* once the user has actually succeeded signing in, this logic 
        will be able to pick that up from the userpool or url. */
       onSignInSucceeded={checkLoginState}
@@ -142,18 +145,19 @@ export function AuthProvider({children}: {children: React.ReactNode}){
   </AuthContext.Provider>;
 }
 
-function NotSignedInContent({cognito, onSignInSucceeded}: {
-  cognito: CognitoConfig
+function NotSignedInContent({onSignInSucceeded}: {
   onSignInSucceeded: () => void,
 }){
   return <LargeContentMain>
     <IntroContainer/>
     <SmallContentMain>
-      <EmailContainer emailConfig={cognito.email}
+      <EmailContainer 
         onSignInSucceeded={onSignInSucceeded}
       />
       <br/>
-      <SocialSignInContainer cognito={cognito}/>
+      <CognitoSocialSignInContainer />
+      <br/>
+      <DirectSocialSignInContainer />
     </SmallContentMain>
   </LargeContentMain>
 }

@@ -12,8 +12,9 @@ import {
 } from "aws-cdk-lib/aws-lambda";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
-
-export const initialParamValue = 'set me via the console';
+import {
+  ZincGithubCredentialSsmStackV1
+} from "Stack/ZincGithubCredentialSsmStackV1";
 
 const lambdaBaseDir = "../../lambda";
 const lambdaSrcDir = `${lambdaBaseDir}/src`;
@@ -31,8 +32,9 @@ export class LambdaZincApiStackV2 extends Stack {
   constructor(
     scope: Construct,
     id: string,
-    {creds, table, ...props}: StackProps & {
+    {creds, table, githubCreds, ...props}: StackProps & {
       creds: CredentialSsmStackV3,
+      githubCreds: ZincGithubCredentialSsmStackV1,
       table: Table,
     },
   ){
@@ -74,6 +76,12 @@ export class LambdaZincApiStackV2 extends Stack {
           creds.GithubCognitoUserPoolId.parameterName,
         COGNITO_GITHUB_USER_POOL_CLIENT_ID_SSM_PARAM:
           creds.GithubCognitoUserPoolClientId.parameterName,
+        ZINC_GITHUB_CLIENT_ID_SSM_PARAM:
+          githubCreds.GithubClientId.parameterName,
+        ZINC_GITHUB_CLIENT_SECRET_SSM_PARAM:
+          githubCreds.GithubClientSecret.parameterName,
+        ZINC_GITHUB_AUTHN_FUNCTION_URL_SSM_PARAM:
+          githubCreds.ZincGithubAuthnFunctionUrl.parameterName,
         AUTHZ_SECRETS_SSM_PARAM: creds.AuthzSecrets2.parameterName,
       }
     });
@@ -102,6 +110,9 @@ export class LambdaZincApiStackV2 extends Stack {
     "ExportsOutputRefGithubCognitoXXX cannot be deleted as it is in use 
     by LambdaApiStackV2" */
     creds.GithubCognitoUserPoolClientSecret.grantRead(this.lambdaFunction);
+    githubCreds.GithubClientId.grantRead(this.lambdaFunction);
+    githubCreds.GithubClientSecret.grantRead(this.lambdaFunction);
+    githubCreds.ZincGithubAuthnFunctionUrl.grantRead(this.lambdaFunction);
     creds.AuthzSecrets2.grantRead(this.lambdaFunction);
 
     table.grantReadWriteData(this.lambdaFunction);

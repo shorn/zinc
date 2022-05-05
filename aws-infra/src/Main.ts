@@ -14,6 +14,12 @@ import { LambdaZincApiStackV2 } from "Stack/LambdaZincApiStackV2";
 import { CloudFrontStackV5 } from "Stack/CloudFrontStackV5";
 import { CognitoGithubStackV1 } from "Stack/CognitoGithubStackV1";
 import { LambdaGithubOidcApiStackV1 } from "Stack/LambdaGithubOidcApiStackV1";
+import {
+  ZincGithubCredentialSsmStackV1
+} from "Stack/ZincGithubCredentialSsmStackV1";
+import {
+  LambdaZincGithubAuthnStackV2
+} from "Stack/LambdaZincGithubAuthnStackV2";
 
 const main = new App();
 
@@ -31,10 +37,24 @@ const auCreds = new CredentialSsmStackV3(main, `AuCredentialSsmStack`, {
   ...auStackProps(),
 });
 
+const auZincGithubAuthnCreds = new ZincGithubCredentialSsmStackV1(
+  main, 'ZincGithubCredentialSsmStackV1', {
+    ...auStackProps(),
+  }
+);
+
+const auZincGithubAuthnLambda = new LambdaZincGithubAuthnStackV2(
+  main, 'LambdaZincGithubAuthnStackV2', {
+    ...auStackProps(),
+    creds: auZincGithubAuthnCreds,
+  }
+);
+
 // IMPROVE: rename to Zinc, but that will force recreation
 const auLambdaZincApi = new LambdaZincApiStackV2(main, `LambdaApiStackV2`, {
   ...auStackProps(),
   creds: auCreds,
+  githubCreds: auZincGithubAuthnCreds,
   table: auOneTableV1.table,
 });
 
@@ -93,8 +113,6 @@ const auGithubCognito = new CognitoGithubStackV1(
   }
 );
 
-
-// to be deleted 
 
 
 

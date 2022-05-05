@@ -1,9 +1,9 @@
-import { AuthorizeUserResponse, AuthzTokenPayload } from "shared/ApiTypes";
+import { AuthorizeUserResponse } from "shared/ApiTypes";
 import { AuthError, forceError } from "Util/Error";
 import { signAuthzToken } from "ZincApi/Authz/AuthzToken";
 import { LambaApiV2Config } from "LambdaZincApiV2";
-import { decode, JwtPayload, SignOptions } from "jsonwebtoken";
-import { guardGenericAuthz } from "ZincApi/Authz/GuardAuthz";
+import { Algorithm, decode, JwtPayload, verify } from "jsonwebtoken";
+import { GENERIC_DENIAL, guardGenericAuthz } from "ZincApi/Authz/GuardAuthz";
 
 const oneDaySeconds = 1 * 24 * 60 * 60;
 const tenMinutesSeconds = 10 * 60;
@@ -11,7 +11,7 @@ const accessTokenLifeSeconds = oneDaySeconds;
 
 type CognitoPocIdToken = JwtPayload & {sub: string, email: string};
 
-/** Turns an IdToken into an AccessToken */
+/** Exchange an OAuth/OIDC standard IdToken for an app-specific AccessToken */
 export async function authorizeUser(
   idToken: string,
   config: LambaApiV2Config,
@@ -26,7 +26,10 @@ export async function authorizeUser(
   PII. I believe these are UUID values (not sure of the flavour) and are 
   intended to be globally unique. If Cognito assigns the same `subject` to two
   different principles across our user pools - that that would result in 
-  undesirable behaviour (user-A sees user-B's data). */
+  undesirable behaviour (user-A sees user-B's data). 
+  For a direct login, the `subject` is the user identifier that the idprovider
+  uses - i.e. authn direct with Github instead of through Cognito,
+  the "subject" will be a numeric id that Github assigned to the user. */
   let user = await config.database.getServerUser(userId);
 
   if( !user ){
@@ -119,6 +122,17 @@ async function verifyCognitoIdToken(
       });
     }
   }
+  else if( decoded.aud === config.directAuthn.github.clientId ){
+    try {
+      payload = await verifyGithubDirectAuthn(idToken, config);
+    }
+    catch( err ){
+      throw new AuthError({
+        publicMsg: "while verifying github cognito",
+        privateMsg: forceError(err).message
+      });
+    }
+  }
   else {
     console.error("unknown JWT [aud]", decoded);
     throw new AuthError({
@@ -136,4 +150,38 @@ async function verifyCognitoIdToken(
   }
 
   return payload;
+}
+
+function verifyGithubDirectAuthn(
+  idToken: string, 
+  config: LambaApiV2Config
+): JwtPayload{
+  let result: string | JwtPayload;
+  try {
+    result = verify(
+      idToken, 
+      config.directAuthn.github.clientSecret,
+      {
+        algorithms: ["HS256"] as Algorithm[],
+        issuer: config.directAuthn.github.functionUrl,
+        audience: config.directAuthn.github.clientId,
+      }
+    );
+  }
+  catch( err ){
+    console.log("problem verifying", err);
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "failed verification: " + forceError(err).message
+    });
+  }
+
+  if( typeof(result) === 'string' ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "payload was string: " + result
+    });
+  }
+
+  return result;
 }

@@ -32,6 +32,9 @@ const lambdaCreateDate = new Date();
 export const authApi: AuthApi = {
   readConfig: async () => ({
     cognito: (await config).cognito,
+    directAuthn: {
+      githubIssuer: (await config).directAuthn.github.functionUrl,
+    },
     lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,
   }),
 
@@ -45,10 +48,17 @@ const postApi: PostApi = {
   updateUser: async (req, token) => updateUser(req, await config, token!),
 }
 
-// time spent in here is part of the "cold start" 
+// time spent in initConfig() is part of the "cold start" 
 let config: Promise<LambaApiV2Config> = initConfig();
 export interface LambaApiV2Config {
   cognito: CognitoConfig,
+  directAuthn: {
+    github: {
+      functionUrl: string,
+      clientId: string,
+      clientSecret: string,
+    }
+  }
   verifier: {
     // "MultiIssuer" might be better, but this seems simpler right now
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
@@ -86,12 +96,19 @@ async function initConfig(): Promise<LambaApiV2Config>{
   const emailClientId = readStringParam(
     process.env.COGNITO_EMAIL_USER_POOL_CLIENT_ID_SSM_PARAM);
 
-  const githubUserPoolDomain = readStringParam(
+  const cognitoGithubUserPoolDomain = readStringParam(
     process.env.COGNITO_GITHUB_USER_POOL_DOMAIN_SSM_PARAM);
-  const githubUserPoolId = readStringParam(
+  const cognitoGithubUserPoolId = readStringParam(
     process.env.COGNITO_GITHUB_USER_POOL_ID_SSM_PARAM);
-  const githubClientId = readStringParam(
+  const cognitoGithubClientId = readStringParam(
     process.env.COGNITO_GITHUB_USER_POOL_CLIENT_ID_SSM_PARAM);
+  
+  const zincGithubClientId = readStringParam(
+    process.env.ZINC_GITHUB_CLIENT_ID_SSM_PARAM);
+  const zincGithubClientSecret = readStringParam(
+    process.env.ZINC_GITHUB_CLIENT_SECRET_SSM_PARAM);
+  const zincGithubAuthnFunctionUrl = readStringParam(
+    process.env.ZINC_GITHUB_AUTHN_FUNCTION_URL_SSM_PARAM);
   
   const authzSecretsSsmParam = readStringListParam(
     process.env.AUTHZ_SECRETS_SSM_PARAM );
@@ -104,7 +121,7 @@ async function initConfig(): Promise<LambaApiV2Config>{
     userPoolId: await emailUserPoolId });
   const githubIdpUrl: string = formatCognitoIdpUrl({
     region: await cognitoRegion, 
-    userPoolId: await githubUserPoolId });
+    userPoolId: await cognitoGithubUserPoolId });
 
   const googleVerifier = JwtRsaVerifier.create({
     issuer: googleIdpUrl,
@@ -120,7 +137,7 @@ async function initConfig(): Promise<LambaApiV2Config>{
 
   const githubVerifier = JwtRsaVerifier.create({
     issuer: githubIdpUrl,
-    audience: await githubClientId,
+    audience: await cognitoGithubClientId,
     jwksUri: `${githubIdpUrl}/.well-known/jwks.json`,
   });
 
@@ -139,10 +156,17 @@ async function initConfig(): Promise<LambaApiV2Config>{
         userPoolDomain: await googleUserPoolDomain,
       },
       github: {
-        userPoolId: await githubUserPoolId,
-        userPoolClientId: await githubClientId,
-        userPoolDomain: await githubUserPoolDomain,
+        userPoolId: await cognitoGithubUserPoolId,
+        userPoolClientId: await cognitoGithubClientId,
+        userPoolDomain: await cognitoGithubUserPoolDomain,
       },
+    },
+    directAuthn: {
+      github: {
+        clientId: await zincGithubClientId,
+        clientSecret: await zincGithubClientSecret,
+        functionUrl: await zincGithubAuthnFunctionUrl,
+      }
     },
     verifier: {
       google: googleVerifier,
