@@ -5,6 +5,8 @@ import { PrimaryButton } from "Component/AppButton";
 import { formatCognitoIdProviderRedirect } from "Auth/Authn";
 import { ButtonContainer } from "Component/ButtonContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
+import { TextSpan } from "Component/TextSpan";
+import { NewWindowLink, zincGithubOidcDocUrl } from "Component/ExternalLinks";
 
 export function CognitoSocialSignInContainer(){
   const {cognito} = useServerInfo();
@@ -25,7 +27,11 @@ export function CognitoSocialSignInContainer(){
   }
 
   return <ContainerCard title={"Cognito Social Sign-in"}>
-      <ButtonContainer style={{justifyContent: "center"}}>
+      <ButtonContainer style={{
+        justifyContent: "center",
+        // the textspan following was too cramped
+        marginBottom: ".5em"
+      }}>
         <PrimaryButton isLoading={isWorking} disabled={isWorking}
           onClick={googleSignIn}
         >
@@ -37,6 +43,11 @@ export function CognitoSocialSignInContainer(){
           Github
         </PrimaryButton>
       </ButtonContainer>
+    <TextSpan>
+      Sign in to the IdProvider through Cognito.
+      Github uses an <NewWindowLink href={zincGithubOidcDocUrl}>
+      OIDC shim</NewWindowLink> to integrate with Cognito.
+    </TextSpan>
   </ContainerCard>
 }
 

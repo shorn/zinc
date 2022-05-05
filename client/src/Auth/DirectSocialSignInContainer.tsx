@@ -4,6 +4,12 @@ import { ContainerCard } from "Design/ContainerCard";
 import { PrimaryButton } from "Component/AppButton";
 import { ButtonContainer } from "Component/ButtonContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
+import { TextSpan } from "Component/TextSpan";
+import {
+  NewWindowLink,
+  zincGithubDirectDocUrl,
+  zincGithubOidcDocUrl
+} from "Component/ExternalLinks";
 
 export function DirectSocialSignInContainer(){
   const {directAuthn} = useServerInfo();
@@ -18,14 +24,21 @@ export function DirectSocialSignInContainer(){
   }
 
   return <ContainerCard title={"Direct Social Sign-in"}>
-      <ButtonContainer style={{justifyContent: "center"}}>
+    <ButtonContainer style={{
+      justifyContent: "center",
+      // the textspan following was too cramped
+      marginBottom: ".5em"
+    }}>
         <PrimaryButton isLoading={isWorking} disabled={isWorking}
           onClick={githubSignIn}
         >
           Github
         </PrimaryButton>
-        
       </ButtonContainer>
+    <TextSpan>
+      Sign in <NewWindowLink href={zincGithubDirectDocUrl}>
+      direct with the provider</NewWindowLink>, do not use Cognito at all.
+    </TextSpan>
   </ContainerCard>
 }
 
