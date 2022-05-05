@@ -26,7 +26,7 @@ export function isMyDetailsPagePath(path: String): boolean{
 }
 
 export function MyDetailsPage(){
-  return <NavTransition isPath={isMyDetailsPagePath} title={"POC - My details"}>
+  return <NavTransition isPath={isMyDetailsPagePath} title={"Zinc - My details"}>
     <Content/>
   </NavTransition>
 }

@@ -34,7 +34,7 @@ export function isListUserPagePath(path: String): boolean{
 }
 
 export function ListUserPage(){
-  return <NavTransition isPath={isListUserPagePath} title={"POC - list users"}>
+  return <NavTransition isPath={isListUserPagePath} title={"Zinc - list users"}>
     <Content/>
   </NavTransition>
 }
