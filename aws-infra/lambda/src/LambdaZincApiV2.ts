@@ -33,7 +33,10 @@ export const authApi: AuthApi = {
   readConfig: async () => ({
     cognito: (await config).cognito,
     directAuthn: {
-      githubIssuer: (await config).directAuthn.github.functionUrl,
+      github: {
+        issuer: (await config).directAuthn.github.functionUrl,
+        clientId: (await config).directAuthn.github.clientId,
+      },
     },
     lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,
   }),

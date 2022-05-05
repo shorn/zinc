@@ -1,4 +1,3 @@
-import { Context } from "aws-lambda";
 import { AuthError, forceError } from "Util/Error";
 import {
   formatErrorResponse,
@@ -12,6 +11,7 @@ import { readStringListParam, readStringParam } from "Util/Ssm";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { decodeBase64, encodeBase64 } from "Util/Encoding";
 import { createIdTokenJwt } from "GithubOidcApi/CognitoApi";
+import { ZincOauthState } from "shared/ApiTypes";
 
 const name = "ZincGithubAuthnV1";
 
@@ -46,7 +46,6 @@ async function initConfig(): Promise<ZincGithubV1Config>{
 
 export async function handler(
   event: LambdaFunctionUrlEvent,
-  context: Context
 ): Promise<LambdaResponse>{
   console.log(name + " exec");
 
@@ -78,24 +77,7 @@ async function dispatchApiCall(
   console.log("ZincGithubAuthn API event", event);
   const {method, path} = event.requestContext.http; 
   const query = event.queryStringParameters;
-
-  if( method === "GET" && path === "/authorize" ){
-    const authParams = parseAuthorizeRequest(query);
-    validateRedirectUri(authParams.redirect_uri, config);
-    const state: ZincOauthState = {
-      redirectUri: authParams.redirect_uri,
-    }
-    const githubAuthUrl = getAuthorizeUrlRedirect({
-      // this is how github figures out what oauth app is being authorized 
-      // It defines the name, description, and callback url that github will use 
-      client_id: config.githubClientId,
-      scope: "openid read:user user:email",
-      response_type: "code",
-      state: encodeBase64(JSON.stringify(state))
-    });
-    return formatRedirectResponse(githubAuthUrl);
-  }
-
+  
   if( method === "GET" && path === "/idpresponse" ){
     // do not log the tokenRequest without protecting the secrets it contains
     const idpResponse = parseIdpResponse(query);
@@ -109,7 +91,8 @@ async function dispatchApiCall(
       grant_type: "code"
     });
     console.log("githubToken", githubToken);
-
+    validateIdpResponseScope(githubToken.scope);
+    
     const attributes = await githubApi.mapOidcAttributes(
       githubToken.access_token );
     console.log("github attributes", attributes);
@@ -120,6 +103,7 @@ async function dispatchApiCall(
       audience: config.githubClientId,
       attributes }) ;
 
+    // redirect back to the client with the new id_token
     const signedInUrl = `${idpResponse.state.redirectUri}#id_token=${idToken}`;
     return formatRedirectResponse(signedInUrl);
   }
@@ -127,41 +111,15 @@ async function dispatchApiCall(
   return undefined;
 }
 
-/* SPA doesn't need CSRF protection, but we do need a redirectUri so we 
- can use the same lambda for different clients (thinK: localhost for dev,
- TST and PRD environments. */
-export type ZincOauthState = {
-  redirectUri: string
-}
-
-export type ZincAuthorizeRequestParams = {
-  redirect_uri: string,
-};
-
-function parseAuthorizeRequest(  
-  query: LamdbaQueryStringParameters | undefined,
-): ZincAuthorizeRequestParams {
-  if( !query ){
+function validateIdpResponseScope(
+  scope: string,
+){
+  // IMPROVE: need to parse the scope, I doubt the order is guaranteed
+  if( scope !== "read:user,user:email" ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
-      privateMsg: "/authorize call with no query params"
+      privateMsg: "/idpresponse unexpected [scope] value: " + scope,
     });
-  }
-  // Github error: The+redirect_uri+MUST+match+the+registered+callback+URL+for+this+application
-  // so this can't be passed directly to the github /auth url 
-  const {redirect_uri} = query;
-
-  if( !redirect_uri ){
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "/authorize missing redirect_uri param"
-    });
-  }
-  
-  console.log("/authorize redirect_uri", redirect_uri)
-
-  return { 
-    redirect_uri
   }
 }
 

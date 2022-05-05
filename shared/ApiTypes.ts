@@ -124,7 +124,10 @@ export interface PublicUserData {
 export interface ServerInfo {
   cognito: CognitoConfig,
   directAuthn: {
-    githubIssuer: string,
+    github: {
+      issuer: string,
+      clientId: string,
+    }
   }
   lambdaCreateDate: Date,
 }
@@ -146,6 +149,13 @@ export interface CognitoConfig {
   email: CognitoEmailConfig,
   google: CognitoUserPoolConfig,
   github: CognitoUserPoolConfig,
+}
+
+/* SPA doesn't need CSRF protection, but we do need a redirectUri so we 
+ can use the same lambda for different clients (think: localhost for dev,
+ TST and PRD environments. */
+export type ZincOauthState = {
+  redirectUri: string
 }
 
 
