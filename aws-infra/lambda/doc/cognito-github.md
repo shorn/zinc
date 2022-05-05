@@ -51,7 +51,7 @@ sequenceDiagram
     lambda->>github: POST /login/oauth/access_token 
     note right of lambda: {code, client_id, client_secret}
     github->>lambda: 
-    note left of github: {access_token}
+    note left of github: {access_token, scope}
     lambda->>lambda: create JWT id_token
     note right of lambda: signed with client_secret
     lambda->>cognito: 
