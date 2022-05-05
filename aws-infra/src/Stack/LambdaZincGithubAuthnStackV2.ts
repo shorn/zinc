@@ -60,16 +60,11 @@ export class LambdaZincGithubAuthnStackV2 extends Stack {
       }
     });
 
+    /* doesn't need CORS, flow only involves redirecting the browser so the 
+    SOP does not apply. */
     this.functionUrl = new FunctionUrl(this, 'ZincGithubAuthnApiUrl', {
       function: this.lambdaFunction,
       authType: FunctionUrlAuthType.NONE,
-      cors: {
-        // IMPROVE: WIP, fix it when I know WTF is going on
-        allowedOrigins: ["*"],
-        allowCredentials: true,
-        allowedMethods: [HttpMethod.ALL],
-        maxAge: Duration.seconds(10),
-      }
     });
 
     creds.GithubClientId.grantRead(this.lambdaFunction);
