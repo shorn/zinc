@@ -91,7 +91,7 @@ async function dispatchApiCall(
       grant_type: "code"
     });
     console.log("githubToken", githubToken);
-    validateIdpResponseScope(githubToken.scope);
+    validateGithubTokenScope(githubToken.scope);
     
     const attributes = await githubApi.mapOidcAttributes(
       githubToken.access_token );
@@ -111,14 +111,14 @@ async function dispatchApiCall(
   return undefined;
 }
 
-function validateIdpResponseScope(
+function validateGithubTokenScope(
   scope: string,
 ){
   // IMPROVE: need to parse the scope, I doubt the order is guaranteed
   if( scope !== "read:user,user:email" ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
-      privateMsg: "/idpresponse unexpected [scope] value: " + scope,
+      privateMsg: "github /access_token returned unexpected [scope]: " + scope,
     });
   }
 }
