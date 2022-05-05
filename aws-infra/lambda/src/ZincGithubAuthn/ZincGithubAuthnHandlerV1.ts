@@ -3,7 +3,6 @@ import { AuthError, forceError } from "Util/Error";
 import {
   formatErrorResponse,
   formatRedirectResponse,
-  formatSuccessResponse,
   LambdaFunctionUrlEvent,
   LambdaResponse,
   LamdbaQueryStringParameters
@@ -12,10 +11,7 @@ import { getAuthorizeUrlRedirect, GithubApi } from "Downstream/GithubApi";
 import { readStringListParam, readStringParam } from "Util/Ssm";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { decodeBase64, encodeBase64 } from "Util/Encoding";
-import {
-  createIdTokenJwt,
-  formatTokenResponse
-} from "GithubOidcApi/CognitoApi";
+import { createIdTokenJwt } from "GithubOidcApi/CognitoApi";
 
 const name = "ZincGithubAuthnV1";
 
