@@ -53,16 +53,11 @@ export class LambdaGithubOidcApiStackV1 extends Stack {
       }
     });
 
+    /* doesn't need CORS, flow only involves redirecting the browser or 
+    backend API calls from Cognito - browser SOP does not apply. */
     this.githubOidcUrl = new FunctionUrl(this, 'LambdaGithubOidcApiUrl', {
       function: this.githubOidcFn,
       authType: FunctionUrlAuthType.NONE,
-      cors: {
-        // IMPROVE: WIP, fix it when I know WTF is going on
-        allowedOrigins: ["*"],
-        allowCredentials: true,
-        allowedMethods: [HttpMethod.ALL],
-        maxAge: Duration.seconds(10),
-      }
     });
 
   }
