@@ -43,8 +43,9 @@ export function DirectSocialSignInContainer(){
       </PrimaryButton>
     </ButtonContainer>
     <TextSpan>
-      Sign in <NewWindowLink href={zincGithubDirectDocUrl}>
-      direct with the provider</NewWindowLink>, do not use Cognito at all.
+      Sign in directly to the ID Provider,{" "}
+      <NewWindowLink href={zincGithubDirectDocUrl}>without using Cognito
+      </NewWindowLink>.
     </TextSpan>
   </ContainerCard>
 }

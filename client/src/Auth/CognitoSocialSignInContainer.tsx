@@ -44,9 +44,9 @@ export function CognitoSocialSignInContainer(){
         </PrimaryButton>
       </ButtonContainer>
     <TextSpan>
-      Sign in to the IdProvider through Cognito.
-      Github uses an <NewWindowLink href={zincGithubOidcDocUrl}>
-      OIDC shim</NewWindowLink> to integrate with Cognito.
+      Sign in to an ID Provider via Cognito.
+      Zinc uses a <NewWindowLink href={zincGithubOidcDocUrl}>
+      custom OIDC shim</NewWindowLink> to integrate Cognito with Github.
     </TextSpan>
   </ContainerCard>
 }
