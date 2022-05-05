@@ -67,3 +67,15 @@ changed lambda code
   haven't dug into it
 
 
+## Privacy
+
+Zinc is just a demonstration app.
+
+* All data collected (Account details such as email) is only collected to 
+show that the code works.
+* No data is sent or sold to any third party other than AWS.
+* When the Zinc example infrastructure is shutdown, all data will be deleted. 
+
+Contact the author via Gihub issue/discussion or email if you have any 
+  concerns.
+
