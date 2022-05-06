@@ -120,6 +120,8 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
     return null;
   }
 
+  window.document.title = "Zinc - sign in";
+  
   if( state.current === "init" || state.current === "authenticating" ){
     return <SmallPageSpinner message={"Signing in"}/>
   }

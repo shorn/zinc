@@ -20,6 +20,12 @@ import {
 import {
   LambdaZincGithubAuthnStackV2
 } from "Stack/LambdaZincGithubAuthnStackV2";
+import {
+  ZincGoogleCredentialSsmStackV1
+} from "Stack/ZincGoogleCredentialSsmStackV1";
+import {
+  LambdaZincGoogleAuthnStackV1
+} from "Stack/LambdaZincGoogleAuthnStackV1";
 
 const main = new App();
 
@@ -43,10 +49,23 @@ const auZincGithubAuthnCreds = new ZincGithubCredentialSsmStackV1(
   }
 );
 
+const auZincGoogleAuthnCreds = new ZincGoogleCredentialSsmStackV1(
+  main, 'ZincGoogleCredentialSsmStackV1', {
+    ...auStackProps(),
+  }
+);
+
 const auZincGithubAuthnLambda = new LambdaZincGithubAuthnStackV2(
   main, 'LambdaZincGithubAuthnStackV2', {
     ...auStackProps(),
     creds: auZincGithubAuthnCreds,
+  }
+);
+
+const auZincGoogleAuthnLambda = new LambdaZincGoogleAuthnStackV1(
+  main, 'LambdaZincGoogleAuthnStackV1', {
+    ...auStackProps(),
+    creds: auZincGoogleAuthnCreds,
   }
 );
 

@@ -2,6 +2,7 @@ import { LamdbaQueryStringParameters } from "Util/LambdaEvent";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { sign, SignOptions } from "jsonwebtoken";
+import { ZincOauthState } from "shared";
 
 /**
  * https://www.oauth.com/oauth2-servers/single-page-apps/
@@ -89,3 +90,18 @@ export function signHs256Jwt({
   });
 }
 
+
+export interface OAuthClientConfig {
+  clientId: string,
+  clientSecret: string,
+  allowedCallbackUrls: string[],
+}
+
+/**
+ * This specifically about Zinc state, which should always be a json object with
+ * the params as defined.
+  */ 
+export type ZincOAuthIdpResponse = {
+  code: string,
+  state: ZincOauthState,
+}

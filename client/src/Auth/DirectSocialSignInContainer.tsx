@@ -30,12 +30,38 @@ export function DirectSocialSignInContainer(){
     navBrowserByAssign(loginUrl);
   }
 
+  async function googleSignIn(){
+    // from https://accounts.google.com/.well-known/openid-configuration
+    
+    alert("not yet implemented");
+    //const googleAuthorizeUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+    //const googleClientId = "64241242940-lpdkq5kmjtkarfmmkba9kjg2pfadde03.apps.googleusercontent.com";
+    //const googleRedirectUri = "https://ibz2lijpy7dkepkxniymv2j5im0hjvrv.lambda-url.ap-southeast-2.on.aws/idpresponse" 
+    //const scope = "openid email";
+    //const state: ZincOauthState = {
+    //  redirectUri: serverLocationUrl()
+    //}
+    //let loginUrl = `${googleAuthorizeUrl}` +
+    //  `?client_id=${googleClientId}` +
+    //  `&scope=${encodeURIComponent(scope)}` +
+    //  `&response_type=code` +
+    //  `&redirect_uri=${googleRedirectUri}` +
+    //  `&state=${encodeBase64(JSON.stringify(state))}`;
+    //setIsWorking(true);
+    //navBrowserByAssign(loginUrl);
+  }
+
   return <ContainerCard title={"Direct Social Sign-in"}>
     <ButtonContainer style={{
       justifyContent: "center",
       // the textspan following was too cramped
       marginBottom: ".5em"
     }}>
+      <PrimaryButton isLoading={isWorking} disabled={isWorking}
+        onClick={googleSignIn}
+      >
+        Google
+      </PrimaryButton>
       <PrimaryButton isLoading={isWorking} disabled={isWorking}
         onClick={githubSignIn}
       >
