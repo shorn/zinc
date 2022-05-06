@@ -12,6 +12,8 @@ import { MyDetailsPage } from 'Page/MyDetailsPage';
 import { ListUserPage } from "Page/ListUserPage";
 import { ServerInfoProvider } from "Api/ServerInfoProvider";
 import { PostApiProvider } from "Api/PostApiProvider";
+import { getPrivacyPagePath, PrivacyPage } from "Page/PrivacyPage";
+import { getUsageTermsPagePath, UsageTermsPage } from "Page/UsageTermsPage";
 
 export function App(){
   return <ZincTheme>
@@ -26,7 +28,9 @@ export function App(){
           {/* reads some important config from server */}
           <ServerInfoProvider>
             {/* authentication and authorisation */}
-            <AuthProvider>
+            <AuthProvider unauthenticatedPaths={[
+              getPrivacyPagePath(), getUsageTermsPagePath()
+            ]}>
               {/* convenient access to PostApi for making server calls */}
               <PostApiProvider>
                 {/* transition animation and delegates to location infra */}
@@ -34,13 +38,18 @@ export function App(){
                   {/* NavBar across the top of screen and sliding drawer */}
                   <AppNavBar/>
                   
-                  {/* List of all navigable pages for the app (self-routed) */}
+                  {/* Navigable, authenticated pages, self-routed */}
                   <MyDetailsPage/>
                   <ListUserPage/>
                   
                 </NavigationProvider>
               </PostApiProvider>
             </AuthProvider>
+            
+            {/* unauthenticated pages, self-routed */}
+            <PrivacyPage/>
+            <UsageTermsPage/>
+            
           </ServerInfoProvider>
         </LocationPathnameProvider>
       </ErrorDialogProvider>

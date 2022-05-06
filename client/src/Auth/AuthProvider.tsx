@@ -17,6 +17,7 @@ import {
 } from "Auth/CognitoSocialSignInContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
 import { DirectSocialSignInContainer } from "Auth/DirectSocialSignInContainer";
+import { useLocationPathname } from "Util/Hook/LocationPathname";
 
 export interface AuthState {
   signOut: ()=>void,
@@ -57,8 +58,12 @@ type ProviderState =
 /**
  * Handles both Authentication and Authorization.
  */
-export function AuthProvider({children}: {children: React.ReactNode}){
+export function AuthProvider({unauthenticatedPaths = [], children}: {
+  unauthenticatedPaths?: string[]
+  children: React.ReactNode,
+}){
   const serverInfo = useServerInfo();
+  const {pathname} = useLocationPathname();
   const [state, setState] = React.useState<ProviderState>({current:"init"});
 
   /** 
@@ -110,7 +115,11 @@ export function AuthProvider({children}: {children: React.ReactNode}){
     //   noinspection JSIgnoredPromiseFromCall
     checkLoginState();
   }, [checkLoginState]);
-  
+
+  if( unauthenticatedPaths.includes(pathname) ){
+    return null;
+  }
+
   if( state.current === "init" || state.current === "authenticating" ){
     return <SmallPageSpinner message={"Signing in"}/>
   }

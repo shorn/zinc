@@ -80,3 +80,16 @@ export function parseBoolean<T extends Record<string, string>>(
   return parseBool(record[key]);
 }
 
+export function normalisePath(path: string): string{
+  if( !path ){
+    return "";
+  }
+  const normalizedPath = path.toLowerCase().trim();
+  if( normalizedPath.charAt(normalizedPath.length-1) === "/" ){
+    return normalizedPath.slice(0, -1);
+  }
+  else {
+    return normalizedPath;
+  }
+}
+
