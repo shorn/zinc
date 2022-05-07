@@ -7,21 +7,7 @@ import {
   ZincMappedOidcAttributes
 } from "Downstream/GithubApi";
 import { getBearerToken } from "Util/Header";
-import { signHs256Jwt } from "OAuth/OAuth";
-
-/**
- * This module contains stuff about the Cognito side of the integration,
- * i.e. stuff related to the calls that Cognito will make to our lambda.
- */
-
-export type OauthTokenRequest = {
-  grant_type: string,
-  client_id: string,
-  client_secret: string,
-  code: string,
-  redirect_uri?: string,
-  state?: string,
-};
+import { OAuthTokenRequest, signHs256Jwt } from "OAuth/OAuth";
 
 export type CognitoTokenResponse = GithubTokenResponse & {
   id_token: string,
@@ -42,7 +28,7 @@ decoded body (wrapped on `&`):
 */
 export function parseTokenRequest(
   requestBody: string | undefined
-): OauthTokenRequest{
+): OAuthTokenRequest{
   if( !requestBody ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL, privateMsg:

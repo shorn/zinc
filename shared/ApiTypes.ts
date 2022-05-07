@@ -128,6 +128,10 @@ export interface ServerInfo {
       issuer: string,
       clientId: string,
     }
+    google: {
+      issuer: string,
+      clientId: string,
+    }
   }
   lambdaCreateDate: Date,
 }
@@ -154,7 +158,7 @@ export interface CognitoConfig {
 /* SPA doesn't need CSRF protection, but we do need a redirectUri so we 
  can use the same lambda for different clients (think: localhost for dev,
  TST and PRD environments. */
-export type ZincOauthState = {
+export type ZincOAuthState = {
   redirectUri: string
 }
 

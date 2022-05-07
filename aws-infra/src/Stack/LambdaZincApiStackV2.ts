@@ -15,6 +15,9 @@ import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
 import {
   ZincGithubCredentialSsmStackV1
 } from "Stack/ZincGithubCredentialSsmStackV1";
+import {
+  ZincGoogleCredentialSsmStackV1
+} from "Stack/ZincGoogleCredentialSsmStackV1";
 
 const lambdaBaseDir = "../../lambda";
 const lambdaSrcDir = `${lambdaBaseDir}/src`;
@@ -32,9 +35,10 @@ export class LambdaZincApiStackV2 extends Stack {
   constructor(
     scope: Construct,
     id: string,
-    {creds, table, githubCreds, ...props}: StackProps & {
+    {creds, table, githubCreds, googleCreds, ...props}: StackProps & {
       creds: CredentialSsmStackV3,
       githubCreds: ZincGithubCredentialSsmStackV1,
+      googleCreds: ZincGoogleCredentialSsmStackV1,
       table: Table,
     },
   ){
@@ -80,6 +84,8 @@ export class LambdaZincApiStackV2 extends Stack {
           githubCreds.GithubClientId.parameterName,
         ZINC_GITHUB_CLIENT_SECRET_SSM_PARAM:
           githubCreds.GithubClientSecret.parameterName,
+        GOOGLE_CLIENT_OAUTH_CONFIG_SSM_PARAM:
+          googleCreds.GoogleOauthClientConfig.parameterName,
         ZINC_GITHUB_AUTHN_FUNCTION_URL_SSM_PARAM:
           githubCreds.ZincGithubAuthnFunctionUrl.parameterName,
         AUTHZ_SECRETS_SSM_PARAM: creds.AuthzSecrets2.parameterName,
@@ -113,6 +119,7 @@ export class LambdaZincApiStackV2 extends Stack {
     githubCreds.GithubClientId.grantRead(this.lambdaFunction);
     githubCreds.GithubClientSecret.grantRead(this.lambdaFunction);
     githubCreds.ZincGithubAuthnFunctionUrl.grantRead(this.lambdaFunction);
+    googleCreds.GoogleOauthClientConfig.grantRead(this.lambdaFunction);
     creds.AuthzSecrets2.grantRead(this.lambdaFunction);
 
     table.grantReadWriteData(this.lambdaFunction);

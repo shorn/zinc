@@ -124,20 +124,32 @@ async function verifyCognitoIdToken(
   }
   else if( decoded.aud === config.directAuthn.github.clientId ){
     try {
-      payload = await verifyGithubDirectAuthn(idToken, config);
+      payload = await verifyGithubDirectAuthn(
+        idToken, {...config.directAuthn.github} );
     }
     catch( err ){
       throw new AuthError({
-        publicMsg: "while verifying github cognito",
+        publicMsg: "while verifying github direct",
+        privateMsg: forceError(err).message
+      });
+    }
+  }
+  else if( decoded.aud === config.directAuthn.google.clientId ){
+    try {
+      payload = await config.verifier.googleDirect.verify(idToken);
+    }
+    catch( err ){
+      throw new AuthError({
+        publicMsg: "while verifying google direct",
         privateMsg: forceError(err).message
       });
     }
   }
   else {
-    console.error("unknown JWT [aud]", decoded);
+    console.error("unknown JWT [aud]: ", decoded);
     throw new AuthError({
       publicMsg: "while authorizing",
-      privateMsg: "unknown JWT [aud]" + decoded.aud
+      privateMsg: "unknown JWT [aud]: " + decoded.aud
     });
   }
 
@@ -154,17 +166,21 @@ async function verifyCognitoIdToken(
 
 function verifyGithubDirectAuthn(
   idToken: string, 
-  config: LambaApiV2Config
+  config: {
+    functionUrl: string,
+    clientId: string,
+    clientSecret: string,
+  }
 ): JwtPayload{
   let result: string | JwtPayload;
   try {
     result = verify(
       idToken, 
-      config.directAuthn.github.clientSecret,
+      config.clientSecret,
       {
         algorithms: ["HS256"] as Algorithm[],
-        issuer: config.directAuthn.github.functionUrl,
-        audience: config.directAuthn.github.clientId,
+        issuer: config.functionUrl,
+        audience: config.clientId,
       }
     );
   }
@@ -172,14 +188,14 @@ function verifyGithubDirectAuthn(
     console.log("problem verifying", err);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
-      privateMsg: "failed verification: " + forceError(err).message
+      privateMsg: "failed direct verification: " + forceError(err).message
     });
   }
 
   if( typeof(result) === 'string' ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
-      privateMsg: "payload was string: " + result
+      privateMsg: "direct payload was string: " + result
     });
   }
 

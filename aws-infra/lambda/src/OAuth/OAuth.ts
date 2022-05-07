@@ -2,7 +2,8 @@ import { LamdbaQueryStringParameters } from "Util/LambdaEvent";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { sign, SignOptions } from "jsonwebtoken";
-import { ZincOauthState } from "shared";
+import { ZincOAuthState } from "shared";
+import {z as zod} from "zod";
 
 /**
  * https://www.oauth.com/oauth2-servers/single-page-apps/
@@ -91,11 +92,53 @@ export function signHs256Jwt({
 }
 
 
-export interface OAuthClientConfig {
-  clientId: string,
-  clientSecret: string,
-  allowedCallbackUrls: string[],
-}
+/**
+ * This module contains stuff about the Cognito side of the integration,
+ * i.e. stuff related to the calls that Cognito will make to our lambda.
+ */
+
+export type OAuthTokenRequest = {
+  grant_type: string,
+  client_id: string,
+  client_secret: string,
+  code: string,
+  redirect_uri?: string,
+  state?: string,
+};
+
+
+export const OAuthClientConfig = zod.object({
+  clientId: zod.string(),
+  clientSecret: zod.string(),
+  allowedCallbackUrls: zod.string().url().array().nonempty(),
+  functionUrl: zod.string().url(),
+}); 
+export type OAuthClientConfig = zod.infer<typeof OAuthClientConfig>;
+export const oAuthClientConfigHelp = `
+OAuthClientConfig:
+* clientId, clientSecret 
+  * sourced from OAuth configuration you create in the idprovider's UI 
+    (google, github, etc.)  
+  * used by the authn lambda in the processing of the "/idpresponse" call from
+    the OIDC provider
+  * used by the authz lambda verifying the id_token signature when exhanging 
+    for an accessToken
+* allowedCallbackUrls 
+  * addresses that your site is served from that will be 
+    "called back" once the user is authenticated 
+  * examples: (localhsot for dev, cloudfront instances for test, prod, etc.)
+  * used by the authn lambda to validate the state.redirect_uri
+* functionUrl
+  * address that the OIDC lambda is published at
+  * used by the authz lambda when analysing the id_token "audience" claim
+Example:   
+`;
+export const oAuthClientConfigExample: OAuthClientConfig = {
+  clientId: "do not set in code",
+  clientSecret: "do not set in code",
+  allowedCallbackUrls: ["https://localhost:9090", "https://xxx.cloudfront.net/"],
+  functionUrl: "https://xxx.lambda-url.ap-southeast-2.on.aws",
+};
 
 /**
  * This specifically about Zinc state, which should always be a json object with
@@ -103,5 +146,29 @@ export interface OAuthClientConfig {
   */ 
 export type ZincOAuthIdpResponse = {
   code: string,
-  state: ZincOauthState,
+  state: ZincOAuthState,
 }
+
+
+// see zinc-google-token-response.md
+export const OAuthTokenResponse = zod.object({
+  access_token: zod.string(),
+  expires_in: zod.number(),
+  scope: zod.string(),
+  token_type: zod.string(),
+  id_token: zod.string(),
+});
+export type OAuthTokenResponse = zod.infer<typeof OAuthTokenResponse>;
+
+// see zinc-google-token-response.md
+export const OAuthIdToken = zod.object({
+  iss: zod.string(),
+  aud: zod.string(),
+  sub: zod.string(),
+  email: zod.string(),
+  email_verified: zod.boolean(),
+  iat: zod.number(),
+  exp: zod.number(),
+});
+export type OAuthIdToken = zod.infer<typeof OAuthIdToken>;
+

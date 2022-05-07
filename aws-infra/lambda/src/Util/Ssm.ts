@@ -3,9 +3,7 @@ import {
   GetParameterCommandOutput,
   SSMClient
 } from "@aws-sdk/client-ssm";
-import { URLSearchParams } from "url";
-import { AuthError, forceError } from "Util/Error";
-import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
+import { forceError } from "Util/Error";
 
 /* executes at lambda init-time, don't do too much here.
 Might be better to turn it into a class the lambda instantiates at init-time.

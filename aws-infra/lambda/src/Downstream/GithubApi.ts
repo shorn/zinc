@@ -1,11 +1,8 @@
 import { Agent } from "https";
-import {
-  OauthTokenRequest
-} from "GithubOidcApi/CognitoApi";
 import fetch, { Response as FetchResponse } from "node-fetch";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
-import { AuthorizeCodeGrantParameters } from "OAuth/OAuth";
+import { AuthorizeCodeGrantParameters, OAuthTokenRequest } from "OAuth/OAuth";
 
 /* Hardcoded because Zinc is only designed to work with public Github, not
 the enterprise version. */
@@ -82,7 +79,7 @@ export class GithubApi {
   }
 
   public async getToken(
-    tokenRequest: OauthTokenRequest
+    tokenRequest: OAuthTokenRequest
   ): Promise<GithubTokenResponse>{
     const githubResponse = await fetch(githubUrlBase.token, {
       agent: this.httpsAgent,

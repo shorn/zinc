@@ -8,7 +8,7 @@ import {
 } from "shared/ApiTypes";
 import { JwtRsaVerifierSingleIssuer } from "aws-jwt-verify/jwt-rsa";
 import { AuthError, forceError } from "Util/Error";
-import { readStringListParam, readStringParam } from "Util/Ssm";
+import { readJsonParam, readStringListParam, readStringParam } from "Util/Ssm";
 import { listPublicUserData, readUser, updateUser } from "ZincApi/User";
 import { UserTableV1Db } from "Db/UserTableV1Db";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -24,10 +24,10 @@ import {
 import { prdApiPath } from "../../src/Stack/CloudFrontStackV5";
 import { authorizeUser } from "ZincApi/AuthorizeUser";
 import { formatCognitoIdpUrl } from "Util/Cognito";
+import { OAuthClientConfig } from "OAuth/OAuth";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();
-
 
 export const authApi: AuthApi = {
   readConfig: async () => ({
@@ -36,6 +36,10 @@ export const authApi: AuthApi = {
       github: {
         issuer: (await config).directAuthn.github.functionUrl,
         clientId: (await config).directAuthn.github.clientId,
+      },
+      google: {
+        issuer: (await config).directAuthn.google.functionUrl,
+        clientId: (await config).directAuthn.google.clientId,
       },
     },
     lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,
@@ -60,13 +64,20 @@ export interface LambaApiV2Config {
       functionUrl: string,
       clientId: string,
       clientSecret: string,
-    }
+    },
+    // might not be needed
+    google: {
+      functionUrl: string,
+      clientId: string,
+      clientSecret: string,
+    },
   }
   verifier: {
     // "MultiIssuer" might be better, but this seems simpler right now
     google: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
     email: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
     github: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
+    googleDirect: JwtRsaVerifierSingleIssuer<CognitoVerifierProps>,
   },
   authzSecrets: string[],
   authzSigningSecret: string,
@@ -112,6 +123,10 @@ async function initConfig(): Promise<LambaApiV2Config>{
     process.env.ZINC_GITHUB_CLIENT_SECRET_SSM_PARAM);
   const zincGithubAuthnFunctionUrl = readStringParam(
     process.env.ZINC_GITHUB_AUTHN_FUNCTION_URL_SSM_PARAM);
+
+  const zincGoogleParam = await readJsonParam(
+    process.env.GOOGLE_CLIENT_OAUTH_CONFIG_SSM_PARAM);
+  const zincGoogleConfig = OAuthClientConfig.parse(zincGoogleParam);
   
   const authzSecretsSsmParam = readStringListParam(
     process.env.AUTHZ_SECRETS_SSM_PARAM );
@@ -144,6 +159,12 @@ async function initConfig(): Promise<LambaApiV2Config>{
     jwksUri: `${githubIdpUrl}/.well-known/jwks.json`,
   });
 
+  const googleDirectVerifier = JwtRsaVerifier.create({
+    issuer: "https://accounts.google.com",
+    audience: zincGoogleConfig.clientId,
+    jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
+  });
+
   console.log("idToken verifiers created");
 
   return {
@@ -169,13 +190,18 @@ async function initConfig(): Promise<LambaApiV2Config>{
         clientId: await zincGithubClientId,
         clientSecret: await zincGithubClientSecret,
         functionUrl: await zincGithubAuthnFunctionUrl,
+      },
+      google: {
+        clientId: zincGoogleConfig.clientId,
+        clientSecret: zincGoogleConfig.clientSecret,
+        functionUrl: zincGoogleConfig.functionUrl,
       }
     },
     verifier: {
       google: googleVerifier,
       email: emailVerifier,
-      github: githubVerifier
-      //githubClientSecret, 
+      github: githubVerifier,
+      googleDirect: googleDirectVerifier,
     },
     authzSecrets: await authzSecretsSsmParam,
     // didn't want to run the checks on each invocation, so do it here
@@ -227,7 +253,7 @@ async function dispatchAuthApiCall(
     return undefined;
   }
 
-  console.log("get event", event);
+  console.log("get event ", event);
   
   const apiName = parseApiName(config, event);
 

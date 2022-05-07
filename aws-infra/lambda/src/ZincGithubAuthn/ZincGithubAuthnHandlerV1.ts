@@ -6,12 +6,12 @@ import {
   LambdaResponse,
   LamdbaQueryStringParameters
 } from "Util/LambdaEvent";
-import { getAuthorizeUrlRedirect, GithubApi } from "Downstream/GithubApi";
+import { GithubApi } from "Downstream/GithubApi";
 import { readStringListParam, readStringParam } from "Util/Ssm";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
-import { decodeBase64, encodeBase64 } from "Util/Encoding";
+import { decodeBase64 } from "Util/Encoding";
 import { createIdTokenJwt } from "GithubOidcApi/CognitoApi";
-import { ZincOauthState } from "shared/ApiTypes";
+import { ZincOAuthState } from "shared";
 
 const name = "ZincGithubAuthnV1";
 
@@ -139,7 +139,7 @@ function validateRedirectUri(
 
 export type ZincOAuthIdpResonse = {
   code: string,
-  state: ZincOauthState,
+  state: ZincOAuthState,
 }
 
 export function parseIdpResponse(

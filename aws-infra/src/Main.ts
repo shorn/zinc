@@ -74,6 +74,7 @@ const auLambdaZincApi = new LambdaZincApiStackV2(main, `LambdaApiStackV2`, {
   ...auStackProps(),
   creds: auCreds,
   githubCreds: auZincGithubAuthnCreds,
+  googleCreds: auZincGoogleAuthnCreds,
   table: auOneTableV1.table,
 });
 

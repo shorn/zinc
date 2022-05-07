@@ -6,7 +6,7 @@ import { ButtonContainer } from "Component/ButtonContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
 import { TextSpan } from "Component/TextSpan";
 import { NewWindowLink, zincGithubDirectDocUrl } from "Component/ExternalLinks";
-import { ZincOauthState } from "shared";
+import { ZincOAuthState } from "shared";
 import { encodeBase64 } from "Util/Encoding";
 
 export function DirectSocialSignInContainer(){
@@ -18,7 +18,7 @@ export function DirectSocialSignInContainer(){
     const githubAuthorizeUrl = "https://github.com/login/oauth/authorize";
     // this is not an OIDC sign-in, github uses `,` to separate scopes
     const scope = "read:user,user:email";
-    const state: ZincOauthState = {
+    const state: ZincOAuthState = {
       redirectUri: serverLocationUrl()
     }
     let loginUrl = `${githubAuthorizeUrl}` +
@@ -31,24 +31,23 @@ export function DirectSocialSignInContainer(){
   }
 
   async function googleSignIn(){
-    // from https://accounts.google.com/.well-known/openid-configuration
-    
-    alert("not yet implemented");
-    //const googleAuthorizeUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+    const googleAuthorizeUrl = "https://accounts.google.com/o/oauth2/v2/auth";
     //const googleClientId = "64241242940-lpdkq5kmjtkarfmmkba9kjg2pfadde03.apps.googleusercontent.com";
-    //const googleRedirectUri = "https://ibz2lijpy7dkepkxniymv2j5im0hjvrv.lambda-url.ap-southeast-2.on.aws/idpresponse" 
-    //const scope = "openid email";
-    //const state: ZincOauthState = {
-    //  redirectUri: serverLocationUrl()
-    //}
-    //let loginUrl = `${googleAuthorizeUrl}` +
-    //  `?client_id=${googleClientId}` +
-    //  `&scope=${encodeURIComponent(scope)}` +
-    //  `&response_type=code` +
-    //  `&redirect_uri=${googleRedirectUri}` +
-    //  `&state=${encodeBase64(JSON.stringify(state))}`;
-    //setIsWorking(true);
-    //navBrowserByAssign(loginUrl);
+    const scope = "openid email";
+    const state: ZincOAuthState = {
+      // this redirectUril is about the lambda redirect back our client
+      redirectUri: serverLocationUrl()
+    }
+    let loginUrl = `${googleAuthorizeUrl}` +
+      `?client_id=${serverInfo.directAuthn.google.clientId}` +
+      `&scope=${encodeURIComponent(scope)}` +
+      `&response_type=code` +
+      /* this redirect_uri is about google redirecting to the lambda for hte 
+      "authorization code grant" flow, beore it issues the id_token */
+      `&redirect_uri=${serverInfo.directAuthn.google.issuer}idpresponse` +
+      `&state=${encodeBase64(JSON.stringify(state))}`;
+    setIsWorking(true);
+    navBrowserByAssign(loginUrl);
   }
 
   return <ContainerCard title={"Direct Social Sign-in"}>

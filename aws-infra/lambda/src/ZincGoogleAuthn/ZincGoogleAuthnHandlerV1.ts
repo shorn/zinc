@@ -6,10 +6,15 @@ import {
   LambdaResponse,
   LamdbaQueryStringParameters
 } from "Util/LambdaEvent";
-import { readJsonParam } from "Util/Ssm";
+import { readJsonParam, readStringParam } from "Util/Ssm";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { decodeBase64 } from "Util/Encoding";
-import { OAuthClientConfig, ZincOAuthIdpResponse } from "OAuth/OAuth";
+import {
+  OAuthClientConfig, oAuthClientConfigExample,
+  oAuthClientConfigHelp,
+  ZincOAuthIdpResponse
+} from "OAuth/OAuth";
+import { GoogleApi } from "Downstream/GoogleApi";
 
 const name = "ZincGoogleAuthnV1";
 
@@ -22,14 +27,15 @@ async function initConfig(): Promise<OAuthClientConfig>{
   if( config ){
     return config;
   }
-
-  const oauthConfig = await readJsonParam<OAuthClientConfig>(
-    process.env.GOOGLE_CLIENT_OAUTH_CONFIG_SSM_PARAM, []);
-  
-  return {
-    clientId: oauthConfig.clientId,
-    clientSecret: oauthConfig.clientSecret,
-    allowedCallbackUrls: oauthConfig.allowedCallbackUrls,
+  try {
+    const paramValue = await readJsonParam(
+      process.env.GOOGLE_CLIENT_OAUTH_CONFIG_SSM_PARAM);
+    return OAuthClientConfig.parse(paramValue);
+  }
+  catch( err ){
+    console.log("problem parsing lambda config", 
+      oAuthClientConfigHelp, JSON.stringify(oAuthClientConfigExample, undefined, 1) );
+    throw err;
   }
 }
 
@@ -55,7 +61,8 @@ export async function handler(
       return formatErrorResponse(400, err.message);
     }
     console.error("error", err);
-    return formatErrorResponse(500, forceError(err).message);
+    // don't leak error messages to caller
+    return formatErrorResponse(500, GENERIC_DENIAL);
   }
 }
 
@@ -72,30 +79,23 @@ async function dispatchApiCall(
     const idpResponse = parseIdpResponse(query);
     validateRedirectUri(idpResponse.state.redirectUri, config);
  
-    // TODO:STO start here
-    //const githubApi = new GithubApi();
-    //const githubToken = await githubApi.getToken({
-    //  code: idpResponse.code,
-    //  client_id: config.githubClientId,
-    //  client_secret: config.githubClientSecret,
-    //  grant_type: "code"
-    //});
-    //console.log("githubToken", githubToken);
-    //validateGithubTokenScope(githubToken.scope);
-    //
-    //const attributes = await githubApi.mapOidcAttributes(
-    //  githubToken.access_token );
-    //console.log("github attributes", attributes);
-    //
-    //const idToken = createIdTokenJwt({
-    //  secret: config.githubClientSecret,
-    //  issuer: `https://${event.headers.host}`,
-    //  audience: config.githubClientId,
-    //  attributes }) ;
+    const googleApi = new GoogleApi();
 
-    const idToken = "not yet implemented";
+    /* logging this will log the access and id tokens - not quite as bad as 
+    logging a secret since it has an expiry, but still not something we want 
+    to leak. */
+    const googleToken = await googleApi.getToken({
+      code: idpResponse.code,
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: "authorization_code",
+      redirect_uri: `https://${event.headers.host}/idpresponse`
+    });
+    validateGoogleTokenScope(googleToken.scope);
+    
     // redirect back to the client with the new id_token
-    const signedInUrl = `${idpResponse.state.redirectUri}#id_token=${idToken}`;
+    const signedInUrl = idpResponse.state.redirectUri + 
+      `#id_token=${googleToken.id_token}`;
     return formatRedirectResponse(signedInUrl);
   }
 
@@ -105,14 +105,28 @@ async function dispatchApiCall(
 function validateGoogleTokenScope(
   scope: string,
 ){
-  // TODO:STO implement
-  //// IMPROVE: need to parse the scope, I doubt the order is guaranteed
-  //if( scope !== "read:user,user:email" ){
-  //  throw new AuthError({
-  //    publicMsg: GENERIC_DENIAL,
-  //    privateMsg: "github /access_token returned unexpected [scope]: " + scope,
-  //  });
-  //}
+  const scopes = scope.trim().toLowerCase().split(" ");
+  
+  if( scopes.length !== 2 ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "google /token [scope] problem, count: " + scope,
+    });
+  }
+  if( !scopes.includes("openid") ){
+    console.log("parsed scopes", scopes);
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "google /token [scope] problem, openid: " + scope,
+    });
+  }
+  if( !scopes.includes("https://www.googleapis.com/auth/userinfo.email") ){
+    console.log("parsed scopes", scopes);
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "google /token [scope] problem, userinfo.email: " + scope,
+    });
+  }
 }
 
 function validateRedirectUri(
