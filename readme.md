@@ -18,6 +18,8 @@ It doesn't do much of anything:
   the other directly to the ID Providers.
   * the Github-Cognito integration requires an entire 
     [cognito-github OIDC shim](aws-infra/lambda/doc/cognito-github.md)
+  * the direct sign-in is significantly simpler, see   
+    [direct-github-sign-in.md](aws-infra/lambda/doc/direct-github-sign-in.md)
 * Set your own "display name" .
 * List all users that have signed up 
   * only lists created date and user-entered "display name", 
