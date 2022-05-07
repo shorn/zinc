@@ -1,6 +1,6 @@
 The Zinc repo is for my learning about Cognito and aws-cdk.
 Begun as a Proof-of-Concept ("PoC") of Cognito functionality for 
-https://kopi.cloud.
+kopi.cloud.
 
 
 ## Functionality
@@ -14,10 +14,10 @@ Or I might just not be running the project live any more.  See instructions for
 
 It doesn't do much of anything:
 * Login via email, Google or Github.
+  * there are two implementations of Social Signg-in - one through cognito and
+  the other directly to the ID Providers.
   * the Github-Cognito integration requires an entire 
     [cognito-github OIDC shim](aws-infra/lambda/doc/cognito-github.md)
-  * the Zinc implemenation is based off of:
-    https://github.com/TimothyJones/github-cognito-openid-wrapper
 * Set your own "display name" .
 * List all users that have signed up 
   * only lists created date and user-entered "display name", 
@@ -67,15 +67,27 @@ changed lambda code
   haven't dug into it
 
 
-## Privacy
+## Security considerations
 
-Zinc is just a demonstration app.
+There are a lot of shortcuts taken in the Zinc codebase.
 
-* All data collected (Account details such as email) is only collected to 
-show that the code works.
-* No data is sent or sold to any third party other than AWS.
-* When the Zinc example infrastructure is shutdown, all data will be deleted. 
+* the accessToken is stored in local-storage, not as a secure http cookie - 
+  so there's no implementaiton of CSRF prevention
+  * I'm personally fine with this, but some people think it's "not the way"
+  * if you decide to use a cookie, you'll need to implement a CSRF prevention
+  strategy
+* the direct login providers leak the uniuq ID providers user identifier - e.g.
+  if you login and go to the user list, you can find out my Github and Google 
+  unique id
+  * I don't know what the threat model is for this, seems innocuous to me, but
+  it's worth pointing out
+* the backend authentication and authorization code needs lot more 
+  logic (and testing) of checking and verifying claims, scopes, etc.
+* secrets stored in plain SSM params
+  * this is done for cost
+  * AWS App Config and Secrets Manager cost money I don't want to pay for a 
+  demo code base.  If you're adapting any of this code for real, you should
+  not store secrets in SSM.
 
-Contact the author via Gihub issue/discussion or email if you have any 
-  concerns.
-
+Please use Github to create issues or discussion topics regarding these or
+other security considerations you'd like to talk about.
