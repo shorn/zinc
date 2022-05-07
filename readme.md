@@ -77,8 +77,8 @@ There are a lot of shortcuts taken in the Zinc codebase.
   * if you decide to use a cookie, you'll need to implement a CSRF prevention
   strategy
 * the direct login implementation leaks the unique-ID that provider's use to  
-  identify a user - e.g. if you login and go to the user list, you can find out
-  my Github and Google unique id
+identify a user - e.g. if you login and go to the user list, you can find out
+my Github and Google unique id
   * I don't know what the threat model is for this, seems innocuous to me, but
     it's worth pointing out
 * the backend authentication and authorization code needs lot more 
