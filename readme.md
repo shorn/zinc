@@ -81,7 +81,7 @@ identify a user - e.g. if you login and go to the user list, you can find out
 my Github and Google unique id
   * I don't know what the threat model is for this, seems innocuous to me, but
     it's worth pointing out
-* the backend authentication and authorization code needs lot more 
+* the backend authentication and authorization code needs lots more 
   logic (and testing) of checking and verifying claims, scopes, etc.
 * secrets stored in plain SSM params
   * this is done for cost
