@@ -14,7 +14,7 @@ Or I might just not be running the project live any more.  See instructions for
 
 It doesn't do much of anything:
 * Login via email, Google or Github.
-  * there are two implementations of Social Signg-in - one through cognito and
+  * there are two implementations of Social Sign-in - one through Cognito and
   the other directly to the ID Providers.
   * the Github-Cognito integration requires an entire 
     [cognito-github OIDC shim](aws-infra/lambda/doc/cognito-github.md)
