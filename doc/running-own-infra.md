@@ -10,29 +10,6 @@
       [instructions](create-iam-account.md) for creating an IAM account and
       access key
 
-## Cost 
-
-During development, monthly costs were  2 cents per month (because of many
-read and write calls to S3 during the many deployments) - every thing else 
-fits easily within the [Always free](https://aws.amazon.com/free) tier.
-
-I haven't done any estimation analysis but I would not be surprised to find the
-Zinc app (as-is) could support many hundres of users within the free tier. 
-Though you would need to bump the max concurrency of the lambdas.
-
-This would change quickly with a real app though.  Lambda and DynamoDB can get
-expensive to run when you use them a lot under constant load.  They only 
-become a sensible choice again for high-scale requirements.
-
-My personal choice of cloud architecture for medium scale apps would be a 
-container-based backend running on an ASG -> ELB -> EC2 setup backed by an 
-RDS database. Swap out the EC2 stuff for an AppRunner setup when it becomes
-viable.
-The API and security model is designed for a state-free backend approach, so 
-the above setup is fairly easy to implement and support.
-There'd probably still be a few Lambdas being used for low-volume 
-integration/glue purposes (which is their sweet-spot, in my opinion).
-
 ## Configure AWS credentials
 
 There's no CI/CD setup, soost people would run this project from a developer 
