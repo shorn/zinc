@@ -86,10 +86,10 @@ my Github and Google unique id
 * the backend authentication and authorization code needs lots more 
   logic (and testing) of checking and verifying claims, scopes, etc.
 * secrets stored in plain SSM params
-  * this is done for cost
-  * AWS App Config and Secrets Manager cost money I don't want to pay for a 
-  demo code base.  If you're adapting any of this code for real, you should
-  not store secrets in SSM.
+  * this is done for cost, AWS App Config and Secrets Manager cost money I 
+  don't want to pay for a demo code base.  
+  * If you're adapting any of this code for real, you should not store 
+  secrets in SSM.
 
 Please use Github to create issues or discussion topics regarding these or
 other security considerations you'd like to talk about.
