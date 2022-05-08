@@ -1,3 +1,5 @@
+The lambda codebase is a bit out of control at the moment.
+Especially there are too many SSM parameters flying about.
 
 ## Structure
 
@@ -11,8 +13,10 @@
   * Individual functions that implement "Zinc API calls".
 * [src/LambdaGithubOidcApiV1.ts](src/LambdaGithubOidcApiV1.ts)
   * The lambda handler for the Cognito-Github OIDC API shim
-* [src/GithubOidcApi/](src/GithubOidcApi)
-  * implementaion for the OIDC shim 
+* [src/ZincGithubAuthn/](src/ZincGithubAuthn)
+  * Direct Github authentication 
+* [src/ZincGoogleAuthn/](src/ZincGoogleAuthn)
+  * Direct Google authentication 
 * [/src/Db/](src/Db)
   * The logic for reading/writing with DynamoDb using 
   [dynamodb-onetable](https://github.com/sensedeep/dynamodb-onetable).
@@ -20,8 +24,10 @@
   * Contains logic for "authorizing" an "authenticated" user.  That is,
   verifying idTokens as a valid JWT issued by Cognito, verifying the identity 
   contained against our DB and generating an accessToken for making API calls.
-* [/doc/lambda/](doc/lambda)
-  * notes about observed examples of various API calls
+* [/doc/](doc)
+  * notes about authetnication request flows
+  * [/doc/lambda-event/](doc/lambda-event)
+    * notes about observed examples of various API calls
 
 
 ## Tests

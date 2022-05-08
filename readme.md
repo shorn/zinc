@@ -28,14 +28,15 @@ It doesn't do much of anything:
 
 ## Project structure
 
-It's all Typescript, structured as a monorepo, using NPM to build and deploy.
+Typescript codebase structured as a monorepo, using NPM to build and deploy.
 
 There's no CI/CD infrastructure, though I may stand up a CDK pipeline one day.
 
 * [aws-infra/](aws-infra)
   * `aws-cdk` project for building the infrastructure
   * [lambda /](aws-infra/lambda)
-    * contains all code for the API served by Lambda  
+    * contains all code for the APIs served by Lambda
+    * no framework (Serverless, SAM, etc.)
 * [client/](client)
   * React based SPA, using Material UI for components 
 * [doc/](doc)
@@ -56,7 +57,7 @@ instructions on bootstrapping and configuring the whole project in your own
 AWS account.
 
 
-## AWS Cost
+## AWS cost
 
 During development, monthly costs were  2 cents per month (because of many
 read and write calls to S3 during the many deployments) - every thing else
