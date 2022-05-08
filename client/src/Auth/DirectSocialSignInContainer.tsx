@@ -32,7 +32,6 @@ export function DirectSocialSignInContainer(){
 
   async function googleSignIn(){
     const googleAuthorizeUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-    //const googleClientId = "64241242940-lpdkq5kmjtkarfmmkba9kjg2pfadde03.apps.googleusercontent.com";
     const scope = "openid email";
     const state: ZincOAuthState = {
       // this redirectUril is about the lambda redirect back our client
@@ -44,7 +43,7 @@ export function DirectSocialSignInContainer(){
       `&response_type=code` +
       /* this redirect_uri is about google redirecting to the lambda for hte 
       "authorization code grant" flow, beore it issues the id_token */
-      `&redirect_uri=${serverInfo.directAuthn.google.issuer}idpresponse` +
+      `&redirect_uri=${serverInfo.directAuthn.google.issuer}/idpresponse` +
       `&state=${encodeBase64(JSON.stringify(state))}`;
     setIsWorking(true);
     navBrowserByAssign(loginUrl);

@@ -123,12 +123,14 @@ OAuthClientConfig:
     the OIDC provider
   * used by the authz lambda verifying the id_token signature when exhanging 
     for an accessToken
-* allowedCallbackUrls 
+* allowedCallbackUrls
+  * no trailing slash
   * addresses that your site is served from that will be 
     "called back" once the user is authenticated 
   * examples: (localhsot for dev, cloudfront instances for test, prod, etc.)
   * used by the authn lambda to validate the state.redirect_uri
-* functionUrl
+* functionUrl 
+  * no trailing slash
   * address that the OIDC lambda is published at
   * used by the authz lambda when analysing the id_token "audience" claim
 Example:   
@@ -136,7 +138,7 @@ Example:
 export const oAuthClientConfigExample: OAuthClientConfig = {
   clientId: "do not set in code",
   clientSecret: "do not set in code",
-  allowedCallbackUrls: ["https://localhost:9090", "https://xxx.cloudfront.net/"],
+  allowedCallbackUrls: ["https://localhost:9090", "https://xxx.cloudfront.net"],
   functionUrl: "https://xxx.lambda-url.ap-southeast-2.on.aws",
 };
 
