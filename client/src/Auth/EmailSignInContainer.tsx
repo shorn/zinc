@@ -9,7 +9,6 @@ import { Stack, TextField } from "@mui/material";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { ErrorInfo } from "Error/ErrorUtil";
-import { CognitoEmailConfig } from "shared";
 import { TextSpan } from "Component/TextSpan";
 import { useServerInfo } from "Api/ServerInfoProvider";
 
@@ -339,7 +338,7 @@ export async function resolveEmailSignIn({pool, email, password}: {
     password: string,
   }
 ): Promise<EmailSignInState>{
-  return new Promise<EmailSignInState>((resolve, reject) => {
+  return new Promise<EmailSignInState>((resolve) => {
       // https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js
       const user = new CognitoUser({Username: email, Pool: pool});
       user.authenticateUser(

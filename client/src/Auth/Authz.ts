@@ -159,6 +159,18 @@ export function debugSession(session: CognitoUserSession){
 export async function signOutUser({cognito}: {
   cognito: CognitoConfig,
 }): Promise<void>{
+  clearAccessTokenFromStorage();
+
+  /* call signOut() to clean up the client side pools - e.g. email user pool 
+  sticks stuff in local storage and our login logic would pick up that 
+  "signed-in" state if we didn't get rid of it.
+  Note sure if social provides need sign-out, but might as well. */
+  await signOutPools(cognito);
+}
+
+async function signOutPools(cognito: CognitoConfig){
+  console.log("signing out from all cognito pools");
+
   const emailPool = new CognitoUserPool({
     UserPoolId: cognito.email.userPoolId,
     ClientId: cognito.email.userPoolClientId,
@@ -172,40 +184,28 @@ export async function signOutUser({cognito}: {
     ClientId: cognito.github.userPoolClientId,
   });
 
-  clearAccessTokenFromStorage();
-
-  /* call signOut() to clean up the client side pools - e.g. email user pool 
-  sticks stuff in local storage and our login logic would pick up that 
-  "signed-in" state if we didn't get rid of it.
-  Don't think the google signout actually does anything, but it's here for
-  completeness, and the symmerty pleases me. */
-  return new Promise((resolve, reject) =>{
-    console.log("signing out from all");
-    if( emailPool?.getCurrentUser() ){
-      console.log("signing out email");
-      emailPool.getCurrentUser()?.signOut(()=>{
-        console.log("signed out from email")
-        return resolve();
-      });
-    }
-
-    if( googlePool.getCurrentUser() ){
-      console.log("signing out google");
-      googlePool.getCurrentUser()?.signOut(()=>{
-        console.log("signed out from google")
-        return resolve();
-      });
-    }
-    
-    if( githubPool.getCurrentUser() ){
-      console.log("signing out github");
-      googlePool.getCurrentUser()?.signOut(()=>{
-        console.log("signed out from github")
-        return resolve();
-      });
-    }
-    
-    console.log("nothing logged in, nothing to signOut from");
-    return resolve();
-  });
+  await signOutCurrentUser(emailPool, "email");
+  await signOutCurrentUser(googlePool, "google");
+  await signOutCurrentUser(githubPool, "github");
 }
+
+/**
+ * This never resolves if Cognito doesn't invoke the callback, might need a 
+ * timeout.
+ */
+function signOutCurrentUser(pool: CognitoUserPool, name: string): Promise<void>{
+  const currentUser = pool.getCurrentUser();
+  if( !currentUser ){
+    console.log(`signOutCurrentUser() - no currentUser for ${name}`);
+    return Promise.resolve();
+  }
+
+  console.log(`signOutCurrentUser() - signing out from ${name}`);
+  return new Promise((resolve) => {
+    currentUser.signOut(() => {
+      console.log(`signOutCurrentUser() - signed out from ${name}`);
+      return resolve();
+    });  
+  });  
+}
+
