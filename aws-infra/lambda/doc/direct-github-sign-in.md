@@ -1,4 +1,4 @@
-Implemented in [ZincGithubAuthnHandlerV1.ts](/aws-infra/lambda/src/ZincGithubAuthn/ZincGoogle2AuthnHandlerV1.ts)
+Implemented in [ZincGithubAuthnHandlerV1.ts](/aws-infra/lambda/src/ZincGithubAuthn/ZincGithubAuthnHandlerV1.ts)
 
 ```mermaid
 sequenceDiagram
