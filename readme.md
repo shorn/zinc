@@ -51,7 +51,7 @@ There's no CI/CD infrastructure, though I may stand up a CDK pipeline one day.
 
 ## AWS infrastructure
 
-![architecture](doc/aws-infra.svg)
+![architecture](doc/aws-infra.svg "AWS infrastructure")
 Diagram by [Cloudcraft](https://www.cloudcraft.co/).
 See [aws-infra/readme](aws-infra/readme.md) for more details.
 See [running your own infrastructure](doc/running-own-infra.md) for 
