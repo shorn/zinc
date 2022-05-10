@@ -46,7 +46,7 @@ There's no CI/CD infrastructure, though I may stand up a CDK pipeline one day.
     create-react-app codebase
   * the actual shared code sits under the `client` project at  
   [/client/src/Shared](/client/src/Shared), see the [readme](/shared/readme.md) 
-  for more info.  
+  for more detail.  
 
 
 ## AWS infrastructure
