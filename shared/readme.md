@@ -4,7 +4,8 @@ monorepo Typescript setup like Zinc.
 My current bodgey work-around is to put the shared code underneath the CRA 
 project and import it into the lambda code with a relative reference all the
 way into [/client/src/Shared](/client/src/Shared) from the lambda 
-[package.json](/aws-infra/lambda/package.json).
+[package.json](/aws-infra/lambda/package.json) (as a "file" dependency: 
+`"Shared": "file:../../client/src/Shared"`).
 
 ---
 
