@@ -3,7 +3,7 @@ import { LargeContentMain, SmallContentMain } from "Design/LayoutMain";
 import { SmallPageSpinner } from "Component/SmallPageSpinner";
 import { ErrorInfoComponent } from "Error/ErrorInforComponent";
 import { ErrorInfo, isErrorInfo } from "Error/ErrorUtil";
-import { AuthzTokenPayload } from "shared";
+import { AuthzTokenPayload } from "Shared/ApiTypes";
 import {
   authorizeWithServer,
   getAuthSessionFromStorage,

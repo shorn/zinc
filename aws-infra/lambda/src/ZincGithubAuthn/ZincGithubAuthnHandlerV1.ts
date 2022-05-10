@@ -11,7 +11,7 @@ import { readStringListParam, readStringParam } from "Util/Ssm";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { decodeBase64 } from "Util/Encoding";
 import { createIdTokenJwt } from "GithubOidcApi/CognitoApi";
-import { ZincOAuthState } from "shared";
+import { ZincOAuthState } from "Shared/ApiTypes";
 
 const name = "ZincGithubAuthnV1";
 

@@ -20,7 +20,7 @@
     "zod": "3.15.1",
     "node-fetch": "3.2.4",
     "dynamodb-onetable": "2.3.6",
-    "shared": "file:../../shared",
+    "Shared": "file:../../client/src/Shared",
     "jsonwebtoken": "8.5.1",
     "aws-jwt-verify": "3.0.0",
     "@aws-sdk/client-dynamodb": "3.58.0",

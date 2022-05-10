@@ -4,7 +4,7 @@ import { ContainerCard } from "Design/ContainerCard";
 import { SmallContentMain } from "Design/LayoutMain";
 import { Stack, TextField } from "@mui/material";
 import { ErrorInfo } from "Error/ErrorUtil";
-import { PrivateUserData } from "shared";
+import { PrivateUserData } from "Shared/ApiTypes";
 import { usePostApi } from "Api/PostApiProvider";
 import { useAuth } from "Auth/AuthProvider";
 import { ButtonContainer } from "Component/ButtonContainer";

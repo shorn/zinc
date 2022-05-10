@@ -2,7 +2,7 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 
 import Dynamo from 'dynamodb-onetable/Dynamo'
 import { Model, Paged, Table } from 'dynamodb-onetable'
-import { PublicUserData, PrivateUserData } from "shared";
+import { PublicUserData, PrivateUserData } from "Shared/ApiTypes";
 
 export interface ServerUser {
   userId: string,

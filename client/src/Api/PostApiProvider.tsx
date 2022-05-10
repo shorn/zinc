@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { PostApi } from "shared";
+import { PostApi } from "Shared/ApiTypes";
 import { useAuth } from "Auth/AuthProvider";
 import { apiMapPost } from "Api/PocServerApi";
 

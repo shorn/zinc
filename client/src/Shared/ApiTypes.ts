@@ -8,6 +8,8 @@
  - server code can read the token from the auth header and bind it in when
    it calls the implementation function 
 */
+import { z as zod } from "zod";
+
 export type AuthorizedPost<TReqest, TResult> =
   (req: TReqest, accessToken?: string) => Promise<TResult>;
 
@@ -158,8 +160,8 @@ export interface CognitoConfig {
 /* SPA doesn't need CSRF protection, but we do need a redirectUri so we 
  can use the same lambda for different clients (think: localhost for dev,
  TST and PRD environments. */
-export type ZincOAuthState = {
-  redirectUri: string
-}
-
+export const ZincOAuthState = zod.object({
+  redirectUri: zod.string(),
+});
+export type ZincOAuthState = zod.infer<typeof ZincOAuthState>;
 

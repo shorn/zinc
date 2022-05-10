@@ -217,7 +217,6 @@ export const handler: Handler<LambdaFunctionUrlEvent, LambdaResponse> =
   async (event, context)=> 
 {
   console.log(name + " exec");
-
   try {
     
     const authApiResult = await dispatchAuthApiCall(await config, event);

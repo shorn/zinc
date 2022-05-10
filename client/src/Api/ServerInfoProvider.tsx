@@ -1,4 +1,4 @@
-import { AuthzTokenPayload, CognitoConfig, ServerInfo } from "shared";
+import { ServerInfo } from "Shared/ApiTypes";
 import React, { useContext } from "react";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { serverConfigRequest } from "index";

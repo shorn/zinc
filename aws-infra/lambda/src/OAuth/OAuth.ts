@@ -2,7 +2,7 @@ import { LamdbaQueryStringParameters } from "Util/LambdaEvent";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { sign, SignOptions } from "jsonwebtoken";
-import { ZincOAuthState } from "shared";
+import { ZincOAuthState } from "Shared/ApiTypes";
 import {z as zod} from "zod";
 
 /**

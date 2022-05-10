@@ -1,8 +1,11 @@
 import { LambaApiV2Config } from "LambdaZincApiV2";
-import { PrivateUserData, UdpateUserData } from "shared";
 import { guardAuthz, guardCrossAccountUpdate } from "ZincApi/Authz/GuardAuthz";
 import { mapToPrivateUser } from "Db/UserTableV1Db";
-import { PublicUserData } from "shared/ApiTypes";
+import {
+  PrivateUserData,
+  PublicUserData,
+  UdpateUserData
+} from "Shared/ApiTypes";
 
 export async function listPublicUserData(
   req: {},

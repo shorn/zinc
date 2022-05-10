@@ -11,7 +11,7 @@
     "audit": "npm audit"
   },
   "dependencies": {
-    "shared": "file:../shared",
+    "zod": "3.15.1",
     "source-map-explorer": "2.5.2",
     "jwt-decode": "3.1.2",
     "@mui/material": "5.5.2", 

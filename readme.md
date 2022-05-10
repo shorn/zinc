@@ -42,9 +42,11 @@ There's no CI/CD infrastructure, though I may stand up a CDK pipeline one day.
 * [doc/](doc)
   * documentation topics to link to from readme files / source code  
 * [shared/](shared)
-  * Code shared between `client` and `aws-infra`
-  * in a real app, I'd generate the API types from an IDL such as jsonschema or 
-  similar 
+  * placeholder for when I figure out how to actually do this with a 
+    create-react-app codebase
+  * the actual shared code sits under the `client` project at  
+  [/client/src/Shared](/client/src/Shared), see the [readme](/shared/readme.md) 
+  for more info.  
 
 
 ## AWS infrastructure

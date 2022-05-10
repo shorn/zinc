@@ -1,4 +1,4 @@
-import { AuthApi } from "shared/ApiTypes";
+import { AuthApi } from "Shared/ApiTypes";
 import { apiMapGet } from "Api/PocServerApi";
 
 /**

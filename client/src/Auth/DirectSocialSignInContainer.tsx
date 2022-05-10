@@ -6,7 +6,7 @@ import { ButtonContainer } from "Component/ButtonContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
 import { TextSpan } from "Component/TextSpan";
 import { NewWindowLink, zincGithubDirectDocUrl } from "Component/ExternalLinks";
-import { ZincOAuthState } from "shared";
+import { ZincOAuthState } from "Shared/ApiTypes";
 import { encodeBase64 } from "Util/Encoding";
 
 export function DirectSocialSignInContainer(){
@@ -49,6 +49,9 @@ export function DirectSocialSignInContainer(){
     navBrowserByAssign(loginUrl);
   }
 
+  //const importedVal = sharedString;
+  //console.log("imported", importedVal);
+  
   return <ContainerCard title={"Direct Social Sign-in"}>
     <ButtonContainer style={{
       justifyContent: "center",

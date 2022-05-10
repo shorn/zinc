@@ -8,9 +8,9 @@ import {
   CognitoConfig,
   CognitoEmailConfig,
   CognitoUserPoolConfig
-} from "shared";
+} from "Shared/ApiTypes";
 import { forceError } from "Error/ErrorUtil";
-import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
+import { serverLocationUrl } from "Util/WindowUtil";
 
 /** no logic, just a helper for turning callback into promise */
 export function getCognitoUserSession(

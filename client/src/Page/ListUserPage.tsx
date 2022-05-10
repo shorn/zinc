@@ -14,7 +14,7 @@ import {
   TableRow
 } from "@mui/material";
 import { formatShortIsoDateTime } from "Util/DateUtil";
-import { PublicUserData } from "shared";
+import { PublicUserData } from "Shared/ApiTypes";
 import { RefreshIconButton } from "Component/RefreshIconButton";
 import { AlternatingTableRow } from "Component/Util";
 import { ErrorInfo } from "Error/ErrorUtil";

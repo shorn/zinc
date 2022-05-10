@@ -2,7 +2,7 @@ import {
   AuthorizeUserResponse,
   AuthzTokenPayload,
   CognitoConfig
-} from "shared";
+} from "Shared/ApiTypes";
 import jwtDecode from "jwt-decode";
 import { parseJwtDate, parseServerDate } from "Util/DateUtil";
 import { ErrorInfo, forceError } from "Error/ErrorUtil";

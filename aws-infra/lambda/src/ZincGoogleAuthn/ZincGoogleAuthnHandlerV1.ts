@@ -1,4 +1,4 @@
-import { AuthError, forceError } from "Util/Error";
+import { AuthError } from "Util/Error";
 import {
   formatErrorResponse,
   formatRedirectResponse,
@@ -6,11 +6,12 @@ import {
   LambdaResponse,
   LamdbaQueryStringParameters
 } from "Util/LambdaEvent";
-import { readJsonParam, readStringParam } from "Util/Ssm";
+import { readJsonParam } from "Util/Ssm";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { decodeBase64 } from "Util/Encoding";
 import {
-  OAuthClientConfig, oAuthClientConfigExample,
+  OAuthClientConfig,
+  oAuthClientConfigExample,
   oAuthClientConfigHelp,
   ZincOAuthIdpResponse
 } from "OAuth/OAuth";
