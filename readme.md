@@ -12,6 +12,9 @@ I may have forgotten to update this doco.
 Or I might just not be running the project live any more.  See instructions for 
 [running your own infrastructure](doc/running-own-infra.md).
 
+If the code is not working on your machine, please do let me know in the Github
+discussions.
+
 It doesn't do much of anything:
 * Login via email, Google or Github.
   * there are two implementations of Social Sign-in - one through Cognito and
