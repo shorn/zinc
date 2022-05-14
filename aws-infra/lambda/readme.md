@@ -3,29 +3,34 @@ Especially there are too many SSM parameters flying about.
 
 ## Structure
 
-* [src/LambdaZincApiV2.ts](src/LambdaZincApiV2.ts)
-  * The lambda handler for the Zinc API. It "dispatches" to various 
-    implementation 
-  functions. 
-  * The `api` constant defines how the `ApiMap` defined in the shared 
-  [ApiTypes.ts](../../shared/ApiTypes.ts) maps to implementations.
 * [/src/ZincApi/](src/ZincApi)
-  * Individual functions that implement "Zinc API calls".
-* [src/LambdaGithubOidcApiV1.ts](src/LambdaGithubOidcApiV1.ts)
-  * The lambda handler for the Cognito-Github OIDC API shim
-* [src/ZincGithubAuthn/](src/ZincGithubAuthn)
-  * Direct Github authentication 
-* [src/ZincGoogleAuthn/](src/ZincGoogleAuthn)
-  * Direct Google authentication 
+  * Individual functions that implement "Zinc API".
+  * [/src/ZincApi/ZincApiHandler.ts](src/ZincApi/ZincApiHandler.ts)
+    * entry point for the ZincApi lambda
+    * handles "business logic", including authorization
+* [src/AuthnApi](src/AuthnApi)
+  * various lambdas for handling authentication
+  * [src/AuthnApi/CognitoGithubOidcApiHandler.ts](src/AuthnApi/CognitoGithubOidcApiHandler.ts)
+    * publishes a set of endpoints that map Github's OAuth API to the 
+    standard OIDC endpoints (Github doesn't support OIDC)
+    * see [cognito-github.md](/aws-infra/lambda/doc/cognito-github.md)
+  * [src/AuthnApi/DirectGoogleAuthnApiHandler.ts](src/AuthnApi/DirectGoogleAuthnApiHandler.ts)
+    * publishes a callback url that Google can redirect the browser to as part
+    of the direct authentication flow
+  * [src/AuthnApi/DirectGithubAuthnApiHandler.ts](src/AuthnApi/DirectGithubAuthnApiHandler.ts)
+    * publishes a callback url that Github can redirect the browser to as part
+    of the direct authentication flow
+    * see [direct-github-sign-in.md](/aws-infra/lambda/doc/direct-github-sign-in.md)
 * [/src/Db/](src/Db)
   * The logic for reading/writing with DynamoDb using 
   [dynamodb-onetable](https://github.com/sensedeep/dynamodb-onetable).
 * [/src/ZincApi/Authz/](src/ZincApi/Authz)
   * Contains logic for "authorizing" an "authenticated" user.  That is,
-  verifying idTokens as a valid JWT issued by Cognito, verifying the identity 
-  contained against our DB and generating an accessToken for making API calls.
+  verifying idTokens as a valid JWT issued by Cognito or the IdProvider, 
+    verifying the identity contained against our DB and generating an 
+  * accessToken for making API calls.
 * [/doc/](doc)
-  * notes about authetnication request flows
+  * notes about authentication request flows
   * [/doc/lambda-event/](doc/lambda-event)
     * notes about observed examples of various API calls
 
