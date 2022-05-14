@@ -31,10 +31,18 @@ function Content(){
       Zinc is just a demonstration app.
     </Typography>
     <List >
-      <ListItemText>All data collected (Account details such as email) is only collected to
-        show that the code works.</ListItemText>
-      <ListItemText>No data is sent or sold to any third party other than AWS.</ListItemText>
-      <ListItemText>When the Zinc example infrastructure is shutdown, all data will be deleted.</ListItemText>
+      <ListItemText>All data collected (Account details such as email) is only 
+        collected to show that the code works.</ListItemText>
+      <ListItemText>No data is sent or sold to any third party other than AWS.
+      </ListItemText>
+      <ListItemText>When the Zinc example infrastructure is shutdown, all data 
+        will be deleted.
+      </ListItemText>
+      <ListItemText>You can request that your own data be deleted by submitting 
+        a request as an issue or discussion via Github.
+        All data associated with your account (especially anything from ID 
+        providers like Google or Facebook will be deleted within 7 days.
+      </ListItemText>
     </List>
     <Typography paragraph>
       Contact me via Gihub issue/discussion if you have any concerns.
