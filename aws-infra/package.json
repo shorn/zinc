@@ -17,7 +17,8 @@
     "deploy-dev": "npm run zinc deploy LambdaApiStackV2",
     "destroy-dev": "cdk --profile zinc donot_destroy LambdaGithubOidcApiStackV1",
     "deploy-lambda": "npm run zinc deploy LambdaApiStackV1",
-    "hotswap-lambda": "cdk --hotswap --profile zinc deploy LambdaZincGoogleAuthnStackV1",
+    "hotswap-dev": "cdk --hotswap --profile zinc deploy LambdaZincGoogleAuthnStackV1",
+    "hotswap-all": "cdk --all --hotswap --profile zinc deploy",
     "deploy-client": "npm run zinc deploy ClientBucketDeploymentStackV1",
     "deploy-cloudfront": "npm run zinc deploy CloudFrontStackV4",
     "deploy-cog-google": "npm run zinc deploy AuCognitoGoogleStackV3",
@@ -28,19 +29,20 @@
     "outputs": "cdk --all --profile zinc --outputs-file cdk.out/outputs.json deploy"
   },
   "devDependencies": {
-    "esbuild": "0.14.34",
+    "esbuild": "0.14.39",
     "@types/jest": "27.4.1",
     "@types/node": "10.17.27",
     "jest": "27.5.1",
     "ts-jest": "27.1.4",
-    "aws-cdk": "2.21.1",
+    "aws-cdk": "2.24.0",
     "ts-node": "10.7.0",
     "tsconfig-paths": "3.14.1",    
     "typescript": "4.6.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.21.1",
-    "constructs": "10.0.126",
+    "json5": "2.2.1",
+    "aws-cdk-lib": "2.24.0",
+    "constructs": "10.1.7",
     "source-map-support": "0.5.21"
   }
 }

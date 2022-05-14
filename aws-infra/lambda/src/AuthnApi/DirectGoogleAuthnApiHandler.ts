@@ -1,4 +1,4 @@
-import { AuthError, forceError } from "Util/Error";
+import { AuthError, isError } from "Util/Error";
 import {
   formatErrorResponse,
   formatRedirectResponse,
@@ -6,42 +6,30 @@ import {
   LambdaResponse,
   LamdbaQueryStringParameters
 } from "Util/LambdaEvent";
-import { GithubApi } from "Downstream/GithubApi";
-import { readStringListParam, readStringParam } from "Util/Ssm";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { decodeBase64 } from "Util/Encoding";
-import { createIdTokenJwt } from "GithubOidcApi/CognitoApi";
-import { ZincOAuthState } from "Shared/ApiTypes";
+import {
+  OAuthClientConfig,
+  readOAuthConfigFromSsm,
+  ZincOAuthIdpResponse
+} from "AuthnApi/OAuth";
+import { GoogleApi } from "AuthnApi/Downstream/GoogleApi";
 
-const name = "ZincGithubAuthnV1";
+const name = "DirectGoogleAuthnApi";
 
 // time spent in here is part of the "cold start" 
-let config: Promise<ZincGithubV1Config> = initConfig();
-export interface ZincGithubV1Config {
-  githubClientId: string,
-  githubClientSecret: string,
-  allowedCallbackUrls: string[],
-}
+let config: Promise<OAuthClientConfig> = initConfig();
 
-
-// bump lambda to force re-reading config
-async function initConfig(): Promise<ZincGithubV1Config>{
+async function initConfig(): Promise<OAuthClientConfig>{
   if( config ){
     return config;
   }
-
-  const githubClientId = readStringParam(
-    process.env.GITHUB_CLIENT_ID_SSM_PARAM);
-  const githubClientSecret = readStringParam(
-    process.env.GITHUB_CLIENT_SECRET_SSM_PARAM);
-  const allowedCallbackUrls = readStringListParam(
-    process.env.GITHUB_CALLBACK_URLS_SSM_PARAM);
-  
-  return {
-    githubClientId: await githubClientId,
-    githubClientSecret: await githubClientSecret,
-    allowedCallbackUrls: await allowedCallbackUrls,
+  const result = await readOAuthConfigFromSsm(
+    process.env.DIRECT_GOOGLE_AUTHN_CONFIG_SSM_PARAM );
+  if( isError(result) ){
+    throw result;
   }
+  return result;
 }
 
 export async function handler(
@@ -66,15 +54,16 @@ export async function handler(
       return formatErrorResponse(400, err.message);
     }
     console.error("error", err);
-    return formatErrorResponse(500, forceError(err).message);
+    // don't leak error messages to caller
+    return formatErrorResponse(500, GENERIC_DENIAL);
   }
 }
 
 async function dispatchApiCall(
   event: LambdaFunctionUrlEvent,
-  config: ZincGithubV1Config
+  config: OAuthClientConfig
 ):Promise<LambdaResponse|undefined>{
-  console.log("ZincGithubAuthn API event", event);
+  console.log(name + " API event", event);
   const {method, path} = event.requestContext.http; 
   const query = event.queryStringParameters;
   
@@ -83,52 +72,62 @@ async function dispatchApiCall(
     const idpResponse = parseIdpResponse(query);
     validateRedirectUri(idpResponse.state.redirectUri, config);
  
-    const githubApi = new GithubApi();
-    const githubToken = await githubApi.getToken({
+    const googleApi = new GoogleApi();
+
+    /* logging this will log the access and id tokens - not quite as bad as 
+    logging a secret since it has an expiry, but still not something we want 
+    to leak. */
+    const googleToken = await googleApi.getToken({
       code: idpResponse.code,
-      client_id: config.githubClientId,
-      client_secret: config.githubClientSecret,
-      grant_type: "code"
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: "authorization_code",
+      redirect_uri: `https://${event.headers.host}/idpresponse`
     });
-    console.log("githubToken", githubToken);
-    validateGithubTokenScope(githubToken.scope);
+    validateGoogleTokenScope(googleToken.scope);
     
-    const attributes = await githubApi.mapOidcAttributes(
-      githubToken.access_token );
-    console.log("github attributes", attributes);
-
-    const idToken = createIdTokenJwt({
-      secret: config.githubClientSecret,
-      issuer: `https://${event.headers.host}`,
-      audience: config.githubClientId,
-      attributes }) ;
-
     // redirect back to the client with the new id_token
-    const signedInUrl = `${idpResponse.state.redirectUri}#id_token=${idToken}`;
+    const signedInUrl = idpResponse.state.redirectUri + 
+      `#id_token=${googleToken.id_token}`;
     return formatRedirectResponse(signedInUrl);
   }
 
   return undefined;
 }
 
-function validateGithubTokenScope(
+function validateGoogleTokenScope(
   scope: string,
 ){
-  // IMPROVE: need to parse the scope, I doubt the order is guaranteed
-  if( scope !== "read:user,user:email" ){
+  const scopes = scope.trim().toLowerCase().split(" ");
+  
+  if( scopes.length !== 2 ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
-      privateMsg: "github /access_token returned unexpected [scope]: " + scope,
+      privateMsg: "google /token [scope] problem, count: " + scope,
+    });
+  }
+  if( !scopes.includes("openid") ){
+    console.log("parsed scopes", scopes);
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "google /token [scope] problem, openid: " + scope,
+    });
+  }
+  if( !scopes.includes("https://www.googleapis.com/auth/userinfo.email") ){
+    console.log("parsed scopes", scopes);
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "google /token [scope] problem, userinfo.email: " + scope,
     });
   }
 }
 
 function validateRedirectUri(
   redirect_uri: string,
-  config: ZincGithubV1Config,
+  config: OAuthClientConfig,
 ){
   if( !config.allowedCallbackUrls.includes(redirect_uri) ){
-    //console.log("allowed urls", config.allowedCallbackUrls);
+    console.log("allowed urls", config.allowedCallbackUrls);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
       privateMsg: "[redirect_uri] not in allowed callback urls: " + 
@@ -137,14 +136,10 @@ function validateRedirectUri(
   }
 }
 
-export type ZincOAuthIdpResonse = {
-  code: string,
-  state: ZincOAuthState,
-}
 
 export function parseIdpResponse(
   query: LamdbaQueryStringParameters | undefined
-): ZincOAuthIdpResonse {
+): ZincOAuthIdpResponse {
   if( !query ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,

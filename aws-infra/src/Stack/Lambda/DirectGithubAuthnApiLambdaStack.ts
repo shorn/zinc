@@ -7,32 +7,25 @@ import {
 import { join } from "path";
 import {
   FunctionUrl,
-  FunctionUrlAuthType, HttpMethod,
+  FunctionUrlAuthType,
   Runtime
 } from "aws-cdk-lib/aws-lambda";
-import { Table } from "aws-cdk-lib/aws-dynamodb";
-import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
 import {
-  ZincGithubCredentialSsmStackV1
-} from "Stack/ZincGithubCredentialSsmStackV1";
-import {
-  ZincGoogleCredentialSsmStackV1
-} from "Stack/ZincGoogleCredentialSsmStackV1";
+  DirectGithubAuthnApiConfigParamStack
+} from "Stack/Lambda/DirectGithubAuthnApiConfigParamStack";
 
-export const initialParamValue = 'set me via the console';
+const lambdaBaseDir = "../../../lambda";
+const lambdaSrcDir = `${lambdaBaseDir}/src/AuthnApi`;
 
-const lambdaBaseDir = "../../lambda";
-const lambdaSrcDir = `${lambdaBaseDir}/src/ZincGoogleAuthn`;
-
-export class LambdaZincGoogleAuthnStackV1 extends Stack {
+export class DirectGithubAuthnApiLambdaStack extends Stack {
   lambdaFunction: NodejsFunction;
   functionUrl: FunctionUrl;
 
   constructor(
     scope: Construct,
     id: string,
-    {creds, ...props}: StackProps & {
-      creds: ZincGoogleCredentialSsmStackV1,
+    {config, ...props}: StackProps & {
+      config: DirectGithubAuthnApiConfigParamStack,
     },
   ){
     super(scope, id, props);
@@ -49,24 +42,24 @@ export class LambdaZincGoogleAuthnStackV1 extends Stack {
       timeout: Duration.seconds(5),
     }
 
-    this.lambdaFunction = new NodejsFunction(this, 'LambdaZincGoogleAuthnV1', {
-      entry: join(__dirname, lambdaSrcDir, 'ZincGoogleAuthnHandlerV1.ts'),
+    this.lambdaFunction = new NodejsFunction(this, 'DirectGithubAuthnApi', {
+      entry: join(__dirname, lambdaSrcDir, 'DirectGithubAuthnApiHandler.ts'),
       ...nodeJsFunctionProps,
       reservedConcurrentExecutions: 5,
       environment: {
-        GOOGLE_CLIENT_OAUTH_CONFIG_SSM_PARAM:
-          creds.GoogleOauthClientConfig.parameterName,
+        DIRECT_GITHUB_AUTHN_CONFIG_SSM_PARAM:
+          config.DirectGithubAuthnApiConfig.parameterName,
       }
     });
 
     /* doesn't need CORS, flow only involves redirecting the browser so the 
     SOP does not apply. */
-    this.functionUrl = new FunctionUrl(this, 'ZincGithubAuthnApiUrl', {
+    this.functionUrl = new FunctionUrl(this, 'DirectGithubAuthnApiUrl', {
       function: this.lambdaFunction,
       authType: FunctionUrlAuthType.NONE,
     });
 
-    creds.GoogleOauthClientConfig.grantRead(this.lambdaFunction);
+    config.DirectGithubAuthnApiConfig.grantRead(this.lambdaFunction);
     
   }
   

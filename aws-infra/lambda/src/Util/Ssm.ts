@@ -4,6 +4,7 @@ import {
   SSMClient
 } from "@aws-sdk/client-ssm";
 import { forceError } from "Util/Error";
+import { parse as json5Parse } from "json5";
 
 /* executes at lambda init-time, don't do too much here.
 Might be better to turn it into a class the lambda instantiates at init-time.
@@ -69,7 +70,10 @@ export async function readJsonParam<T extends JsonObject>(
 
   let jsonValue: any;
   try {
-    jsonValue = JSON.parse(paramValue);
+    /* Use json5 for a kinder, gentler config format. 
+    Notably, we can paste in the output from the console (unquoted identifiers),
+    we can have trailing commas, and even comments! */
+    jsonValue = json5Parse(paramValue);
   }
   catch( err ){
     console.error("problem parsing json config SSM value", forceError(err).message, paramValue);

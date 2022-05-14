@@ -1,9 +1,8 @@
-import { AuthzTokenPayload } from "shared/ApiTypes";
+import { AuthzTokenPayload } from "Shared/ApiTypes";
 import { verifyAuthzToken } from "ZincApi/Authz/AuthzToken";
 import { AuthError } from "Util/Error";
-import { LambaApiV2Config } from "LambdaZincApiV2";
 import { ServerUser } from "Db/UserTableV1Db";
-import { initialParamValue } from "../../../../src/Stack/CredentialSsmStackV3";
+import { ZincApiRuntime } from "ZincApi/ZincApiHandler";
 
 export const GENERIC_DENIAL = "while authorizing";
 
@@ -29,7 +28,7 @@ export interface ServerAuthzContainer {
  *   or invalid signature).
  */
 export async function guardAuthz(
-  config: LambaApiV2Config, 
+  config: ZincApiRuntime, 
   accessToken?: string
 ): Promise<ServerAuthzContainer>{
   console.log("verifying", accessToken);
@@ -116,7 +115,7 @@ export function getAuthzSigningSecret(authzSecrets: string[]): string{
       privateMsg: "no authzSecrets defined" });
   }
 
-  if( authzSecrets[0].length <= initialParamValue.length ){
+  if( authzSecrets[0].length <= 20 ){
     throw new AuthError({publicMsg: "while authorizing",
       privateMsg: "authzSecret[0] is too short, pick a better value" });
   }

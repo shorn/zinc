@@ -6,7 +6,6 @@ import {TextSpan} from "Component/TextSpan";
 import {isErrorInfo,} from "Error/ErrorUtil";
 import {useOpenErrorDialog} from "Error/ErrorDialog";
 import {isNonEmptyArrayOfString} from "Util/TypeUtil";
-import {captureException} from "Util/SendEventUtil";
 
 const log = console;
 
@@ -43,11 +42,6 @@ export function CompactErrorPanel({
 }){
   // unwrap to shallow, stable values so useEffect() doesn't fire unexpectedly
   const {problem, message} = unwrapError(error);
-  useEffect(()=>{
-    if( problem && sendEvent !== "skip" ){
-      captureException(problem, message);
-    }
-  }, [problem, message, sendEvent]);
 
   // must go *after* useEffect()
   if( !problem ){

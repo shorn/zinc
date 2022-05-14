@@ -2,7 +2,6 @@ import {TextSpan} from "Component/TextSpan";
 import {Divider} from "@mui/material";
 import * as React from "react";
 import {ErrorInfoComponent} from "Error/ErrorInforComponent";
-import {captureException} from "Util/SendEventUtil";
 import {LargeContentMain} from "Design/LayoutMain";
 
 /** This component deals with unexpected errors (usually programming errors)
@@ -31,7 +30,6 @@ export class ReactErrorBoundary extends React.Component {
    */
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.log("unhandled react render error", error, info);
-    captureException(error, "ReactErrorBoundary");
   }
 
   render() {

@@ -1,9 +1,10 @@
 import { LamdbaQueryStringParameters } from "Util/LambdaEvent";
-import { AuthError } from "Util/Error";
+import { AuthError, forceError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { sign, SignOptions } from "jsonwebtoken";
 import { ZincOAuthState } from "Shared/ApiTypes";
 import {z as zod} from "zod";
+import { readJsonParam } from "Util/Ssm";
 
 /**
  * https://www.oauth.com/oauth2-servers/single-page-apps/
@@ -138,7 +139,7 @@ Example:
 export const oAuthClientConfigExample: OAuthClientConfig = {
   clientId: "do not set in code",
   clientSecret: "do not set in code",
-  allowedCallbackUrls: ["https://localhost:9090", "https://xxx.cloudfront.net"],
+  allowedCallbackUrls: ["http://localhost:9090", "https://xxx.cloudfront.net"],
   functionUrl: "https://xxx.lambda-url.ap-southeast-2.on.aws",
 };
 
@@ -173,4 +174,19 @@ export const OAuthIdToken = zod.object({
   exp: zod.number(),
 });
 export type OAuthIdToken = zod.infer<typeof OAuthIdToken>;
+
+export async function readOAuthConfigFromSsm(
+  paramName: string|undefined
+): Promise<OAuthClientConfig|Error>{
+  try {
+    const paramValue = await readJsonParam(paramName);
+    return OAuthClientConfig.parse(paramValue);
+  }
+  catch( err ){
+    console.log(`problem parsing lambda config from ${paramName}`,
+      oAuthClientConfigHelp,
+      oAuthClientConfigExample );
+    return forceError(err);
+  }
+}
 

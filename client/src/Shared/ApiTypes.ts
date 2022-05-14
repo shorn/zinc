@@ -1,15 +1,16 @@
-/*
- note the `accessToken` is "out of band", it is transferred in the auth header
- and handled on both client and server by infrastructure rather than the
- application/business logic.
- It's modelled here as optional so that:
+import { z as zod } from "zod";
+
+/**
+ note that bearer tokens (`id_Token` and `accessToken`) are transferred 
+ "out of band" in the auth header and handled on both client and server by 
+ infrastructure code rather than the application/business logic.
+ `accessToken` is modelled here as optional so that:
  - client code can call it without passing the token and the infrastructure
    will take care of putting the token into the auth header 
  - server code can read the token from the auth header and bind it in when
-   it calls the implementation function 
+   calling the implementation function so we have a standard place for it to be
+   passed to the implementation functions.  
 */
-import { z as zod } from "zod";
-
 export type AuthorizedPost<TReqest, TResult> =
   (req: TReqest, accessToken?: string) => Promise<TResult>;
 
@@ -54,10 +55,6 @@ export type AuthApi = {
   readConfig: () => Promise<ServerInfo>,
 }
 
-
-//export interface AuthorizeUserRequest {
-//  idToken: string,
-//}
 
 /**
  * The token will conform to standard JWT claims (`exp`, etc.) and will 
@@ -127,7 +124,6 @@ export interface ServerInfo {
   cognito: CognitoConfig,
   directAuthn: {
     github: {
-      issuer: string,
       clientId: string,
     }
     google: {
@@ -138,28 +134,48 @@ export interface ServerInfo {
   lambdaCreateDate: Date,
 }
 
-export interface CognitoEmailConfig {
-  userPoolId: string,
-  userPoolClientId: string,
-}
+/* These "config" types model the server-side config that needs to be known by 
+the client.  It' a subset of the information used to configure the server-side. 
+The server-side code must be careful to only pass newly constructed objects to
+pass back to the client. This is to avoid accidentally passing server-side data 
+to clients. */
 
-export interface CognitoUserPoolConfig {
-  userPoolId: string,
-  userPoolClientId: string,
-  userPoolDomain: string,
-}
+/** This is the stuff the client needs to know to do direct authentication;
+ client must not see the secret, and doesn't care about the
+ allowedCallbackUrls.
+ */
+export const DirectOAuthConfig = zod.object({
+  issuer: zod.string().url(),
+  clientId: zod.string(),
+});
+export type DirectOAuthConfig = zod.infer<typeof DirectOAuthConfig>;
 
-/** must not contain secrets */
-export interface CognitoConfig {
-  region: string,
+export const CognitoEmailConfig = zod.object({
+  userPoolId: zod.string(),
+  userPoolClientId: zod.string(),
+});
+export type CognitoEmailConfig = zod.infer<typeof CognitoEmailConfig>;
+
+export const CognitoUserPoolConfig = zod.object({
+  userPoolId: zod.string(),
+  userPoolClientId: zod.string(),
+  userPoolDomain: zod.string(),
+});
+export type CognitoUserPoolConfig = zod.infer<typeof CognitoUserPoolConfig>;
+
+export const CognitoConfig = zod.object({
+  region: zod.string(),
   email: CognitoEmailConfig,
   google: CognitoUserPoolConfig,
   github: CognitoUserPoolConfig,
-}
+});
+export type CognitoConfig = zod.infer<typeof CognitoConfig>;
 
-/* SPA doesn't need CSRF protection, but we do need a redirectUri so we 
- can use the same lambda for different clients (think: localhost for dev,
- TST and PRD environments. */
+/** We need a client-driven redirectUri so we can use the same lambda for 
+different clients (think: localhost for dev, TST and PRD environments. 
+Can avoid this by using multiple authn APIs, one per environment (e.g. similar
+to what Github does where you can only have one /idpresponse callback URL 
+per client). */
 export const ZincOAuthState = zod.object({
   redirectUri: zod.string(),
 });

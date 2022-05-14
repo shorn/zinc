@@ -5,6 +5,16 @@ kopi.cloud.
 
 ## Functionality
 
+[Try it out](https://d3q1l9etnq2dqk.cloudfront.net) - hosted on my own AWS
+account.  If that's not working, have a look in `/client/package.json/proxy`-
+I may have forgotten to update this doco.
+
+Or I might just not be running the project live any more.  See instructions for
+[running your own infrastructure](doc/running-own-infra.md).
+
+If the code is not working on your machine, please let me know in the Github
+discussions.
+
 It doesn't do much of anything:
 * Login via email, Google or Github.
   * there are two implementations of Social Sign-in - one through Cognito and

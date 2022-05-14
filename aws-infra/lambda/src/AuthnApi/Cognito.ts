@@ -5,12 +5,19 @@ import { URLSearchParams } from "url";
 import {
   GithubTokenResponse,
   ZincMappedOidcAttributes
-} from "Downstream/GithubApi";
+} from "AuthnApi/Downstream/GithubApi";
 import { getBearerToken } from "Util/Header";
-import { OAuthTokenRequest, signHs256Jwt } from "OAuth/OAuth";
+import { OAuthTokenRequest, signHs256Jwt } from "AuthnApi/OAuth";
 
 export type CognitoTokenResponse = GithubTokenResponse & {
   id_token: string,
+}
+
+export function formatCognitoIdpUrl({region, userPoolId}:{
+  region: string,
+  userPoolId: string,
+}): string{
+  return `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`;
 }
 
 

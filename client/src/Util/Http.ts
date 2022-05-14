@@ -48,7 +48,9 @@ export function jsonFormat(body: undefined|object): string{
     return "{}";
   }
 
-  // IMPROVE: deal with dates, so that json parse/format are symmetrical
+  /* IMPROVE: deal with dates, so that json parse/format are symmetrical
+   though now that we're using Zod to define types, we can probably just
+   use the built-in date handling */
   return JSON.stringify(body, null, 4);
 }
 

@@ -8,20 +8,13 @@ import { join } from "path";
 import {
   FunctionUrl,
   FunctionUrlAuthType,
-  HttpMethod,
   Runtime
 } from "aws-cdk-lib/aws-lambda";
 
-const lambdaBaseDir = "../../lambda";
-const lambdaSrcDir = `${lambdaBaseDir}/src`;
+const lambdaBaseDir = "../../../lambda";
+const lambdaSrcDir = `${lambdaBaseDir}/src/AuthnApi`;
 
-/**
- * This should use SecureStrings but AWS intentionally don't support them, in 
- * a misguided attempt to force people to use Secrets Manager. 
- * So you end up with example code like this; or even better, all the CDK 
- * examples and doco where they just embed secrets in source code.
- */
-export class LambdaGithubOidcApiStackV1 extends Stack {
+export class CognitoGithubOidcApiLambdaStack extends Stack {
   githubOidcFn: NodejsFunction;
   githubOidcUrl: FunctionUrl;
 
@@ -45,8 +38,8 @@ export class LambdaGithubOidcApiStackV1 extends Stack {
       timeout: Duration.seconds(5),
     }
 
-    this.githubOidcFn = new NodejsFunction(this, 'LambdaGithubOidcApiV1', {
-      entry: join(__dirname, lambdaSrcDir, 'LambdaGithubOidcApiV1.ts'),
+    this.githubOidcFn = new NodejsFunction(this, 'CognitoGithubOidcApi', {
+      entry: join(__dirname, lambdaSrcDir, 'CognitoGithubOidcApiHandler.ts'),
       ...nodeJsFunctionProps,
       reservedConcurrentExecutions: 5,
       environment: {
@@ -55,7 +48,7 @@ export class LambdaGithubOidcApiStackV1 extends Stack {
 
     /* doesn't need CORS, flow only involves redirecting the browser or 
     backend API calls from Cognito - browser SOP does not apply. */
-    this.githubOidcUrl = new FunctionUrl(this, 'LambdaGithubOidcApiUrl', {
+    this.githubOidcUrl = new FunctionUrl(this, 'CognitoGithubOidcApiUrl', {
       function: this.githubOidcFn,
       authType: FunctionUrlAuthType.NONE,
     });

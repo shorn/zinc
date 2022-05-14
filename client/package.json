@@ -2,7 +2,7 @@
   "name": "zinc-client",
   "version": "0.0.1",
   "private": true,
-  "proxy": "https://d3q1l9etnq2dqk.cloudfront.net",
+  "proxy": "https://d10mxtejtt0tmd.cloudfront.net",
   "scripts": {
     "start-dev": "set REACT_APP_ZINC_ENV=dev && react-scripts start",
     "build-prd": "set REACT_APP_ZINC_ENV=prd && react-scripts build",
@@ -22,7 +22,6 @@
     "react-dom": "17.0.2",
     "react-scripts": "5.0.0",
     "typescript": "4.6.3",
-    "@sentry/browser": "5.30.0",
     "amazon-cognito-identity-js": "5.2.8"
   },
   "devDependencies": {

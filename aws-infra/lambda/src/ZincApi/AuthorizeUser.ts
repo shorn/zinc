@@ -1,9 +1,9 @@
-import { AuthorizeUserResponse } from "shared/ApiTypes";
+import { AuthorizeUserResponse } from "Shared/ApiTypes";
 import { AuthError, forceError } from "Util/Error";
 import { signAuthzToken } from "ZincApi/Authz/AuthzToken";
-import { LambaApiV2Config } from "LambdaZincApiV2";
 import { Algorithm, decode, JwtPayload, verify } from "jsonwebtoken";
 import { GENERIC_DENIAL, guardGenericAuthz } from "ZincApi/Authz/GuardAuthz";
+import { ZincApiRuntime } from "ZincApi/ZincApiHandler";
 
 const oneDaySeconds = 1 * 24 * 60 * 60;
 const tenMinutesSeconds = 10 * 60;
@@ -14,7 +14,7 @@ type CognitoPocIdToken = JwtPayload & {sub: string, email: string};
 /** Exchange an OAuth/OIDC standard IdToken for an app-specific AccessToken */
 export async function authorizeUser(
   idToken: string,
-  config: LambaApiV2Config,
+  config: ZincApiRuntime,
 ): Promise<AuthorizeUserResponse>{
   // verify signature of token and shape of payload
   const payload: CognitoPocIdToken =
@@ -81,7 +81,7 @@ function isCognitoPocIdToken(payload: JwtPayload): payload is CognitoPocIdToken{
  */
 async function verifyCognitoIdToken(
   idToken: string,
-  config: LambaApiV2Config,
+  config: ZincApiRuntime,
 ): Promise<CognitoPocIdToken>{
   /* used to dig out the `aud` claim to decide which pool to verify against,
    but the token itself is NOT verified */
@@ -89,9 +89,11 @@ async function verifyCognitoIdToken(
   console.log("authorize decode", decoded);
 
   let payload: JwtPayload;
+  // IMPROVE: it's about time to make this a map of verifier keyed by audience,
+  // verifier objects need to know how to do both RSA and HMAC.
   if( decoded.aud === config.cognito.google.userPoolClientId ){
     try {
-      payload = await config.verifier.google.verify(idToken);
+      payload = await config.rsaVerifier.googleCognito.verify(idToken);
     }
     catch( err ){
       throw new AuthError({
@@ -102,7 +104,7 @@ async function verifyCognitoIdToken(
   }
   else if( decoded.aud === config.cognito.email.userPoolClientId ){
     try {
-      payload = await config.verifier.email.verify(idToken);
+      payload = await config.rsaVerifier.emailCognito.verify(idToken);
     }
     catch( err ){
       throw new AuthError({
@@ -113,7 +115,7 @@ async function verifyCognitoIdToken(
   }
   else if( decoded.aud === config.cognito.github.userPoolClientId ){
     try {
-      payload = await config.verifier.github.verify(idToken);
+      payload = await config.rsaVerifier.githubCognito.verify(idToken);
     }
     catch( err ){
       throw new AuthError({
@@ -136,7 +138,7 @@ async function verifyCognitoIdToken(
   }
   else if( decoded.aud === config.directAuthn.google.clientId ){
     try {
-      payload = await config.verifier.googleDirect.verify(idToken);
+      payload = await config.rsaVerifier.googleDirect.verify(idToken);
     }
     catch( err ){
       throw new AuthError({

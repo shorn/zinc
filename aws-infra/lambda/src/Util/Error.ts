@@ -14,6 +14,21 @@ export function forceError(e: unknown): Error{
   return new Error("unknown error");
 }
 
+export function isError<T>(e: T | Error): e is Error{
+  if( e === undefined ){
+    return false;
+  }
+
+  const error = e as Error;
+  if( !error.name){
+    return false;
+  }
+  if( !error.message ){
+    return false;
+  }
+  return true;
+}
+
 export class AuthError extends Error {
   privateMsg: string;
 

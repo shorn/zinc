@@ -1,4 +1,3 @@
-import { Context } from "aws-lambda";
 import { AuthError, forceError } from "Util/Error";
 import {
   formatErrorResponse,
@@ -12,15 +11,19 @@ import {
   formatTokenResponse,
   parseTokenRequest,
   parseUserInfoAccessToken,
-} from "GithubOidcApi/CognitoApi";
-import { getAuthorizeUrlRedirect, GithubApi } from "Downstream/GithubApi";
-import { parseAuthorizeCodeGrantRequest } from "OAuth/OAuth";
+} from "AuthnApi/Cognito";
+import {
+  getAuthorizeUrlRedirect,
+  GithubApi
+} from "AuthnApi/Downstream/GithubApi";
+import { parseAuthorizeCodeGrantRequest } from "AuthnApi/OAuth";
 
-const name = "LambdaGithubOidcApiV1";
+const name = "CognitoGithubOidcApi";
 
+/* This has no config at all because Cognito passes all necessary info
+in the endpoint calls. */
 export async function handler(
   event: LambdaFunctionUrlEvent,
-  context: Context
 ): Promise<LambdaResponse>{
   console.log(name + " exec");
 
@@ -48,7 +51,9 @@ export async function handler(
 async function dispatchOidcApiCall(
   event: LambdaFunctionUrlEvent
 ):Promise<LambdaResponse|undefined>{
-  console.log("OIDC API event", event);
+  /* be careful with logging params because the Cognito passes the client_secret
+  to the /token endpoint */
+  //console.log("OIDC API event", event);
   const {method, path} = event.requestContext.http; 
   const query = event.queryStringParameters;
 

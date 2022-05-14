@@ -2,7 +2,10 @@ import { Agent } from "https";
 import fetch, { Response as FetchResponse } from "node-fetch";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
-import { AuthorizeCodeGrantParameters, OAuthTokenRequest } from "OAuth/OAuth";
+import {
+  AuthorizeCodeGrantParameters,
+  OAuthTokenRequest
+} from "AuthnApi/OAuth";
 
 /* Hardcoded because Zinc is only designed to work with public Github, not
 the enterprise version. */

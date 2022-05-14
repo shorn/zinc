@@ -5,27 +5,29 @@ import { CognitoGoogleStackV3 } from "Stack/CognitoGoogleStackV3";
 import { auStackProps } from "Util/SharedProps";
 import { OneTableStackV1 } from "Stack/OneTableStackV1";
 import { ClientBucketStackV1 } from "Stack/ClientBucketStack";
-import { CredentialSsmStackV3 } from "Stack/CredentialSsmStackV3";
 import {
   ClientBucketDeploymentStackV1
 } from "Stack/ClientBucketDeploymentStack";
 import { CognitoEmailStack } from "Stack/CognitoEmailStack";
-import { LambdaZincApiStackV2 } from "Stack/LambdaZincApiStackV2";
 import { CloudFrontStackV5 } from "Stack/CloudFrontStackV5";
 import { CognitoGithubStackV1 } from "Stack/CognitoGithubStackV1";
-import { LambdaGithubOidcApiStackV1 } from "Stack/LambdaGithubOidcApiStackV1";
+import { ZincApiConfigParamStack } from "Stack/Lambda/ZincApiConfigParamStack";
 import {
-  ZincGithubCredentialSsmStackV1
-} from "Stack/ZincGithubCredentialSsmStackV1";
+  DirectGoogleAuthnApiConfigParamStack
+} from "Stack/Lambda/DirectGoogleAuthnApiConfigParamStack";
 import {
-  LambdaZincGithubAuthnStackV2
-} from "Stack/LambdaZincGithubAuthnStackV2";
+  DirectGithubAuthnApiConfigParamStack
+} from "Stack/Lambda/DirectGithubAuthnApiConfigParamStack";
+import { ZincApiLambdaStack } from "Stack/Lambda/ZincApiLambdaStack";
 import {
-  ZincGoogleCredentialSsmStackV1
-} from "Stack/ZincGoogleCredentialSsmStackV1";
+  DirectGoogleAuthnApiLambdaStack
+} from "Stack/Lambda/DirectGoogleAuthnApiLambdaStack";
 import {
-  LambdaZincGoogleAuthnStackV1
-} from "Stack/LambdaZincGoogleAuthnStackV1";
+  DirectGithubAuthnApiLambdaStack
+} from "Stack/Lambda/DirectGithubAuthnApiLambdaStack";
+import {
+  CognitoGithubOidcApiLambdaStack
+} from "Stack/Lambda/CognitoGithubOidcApiLambdaStack";
 
 const main = new App();
 
@@ -39,48 +41,51 @@ const auClientBucket = new ClientBucketStackV1(main, `ClientBucketStackV1`, {
   ...auStackProps()
 });
 
-const auCreds = new CredentialSsmStackV3(main, `AuCredentialSsmStack`, {
-  ...auStackProps(),
-});
-
-const auZincGithubAuthnCreds = new ZincGithubCredentialSsmStackV1(
-  main, 'ZincGithubCredentialSsmStackV1', {
+const auZincApiConfig = new ZincApiConfigParamStack(
+  main, `ZincApiConfigParamStack`, {
     ...auStackProps(),
   }
 );
 
-const auZincGoogleAuthnCreds = new ZincGoogleCredentialSsmStackV1(
-  main, 'ZincGoogleCredentialSsmStackV1', {
+const auDirectGoogleAuthnConfig = new DirectGoogleAuthnApiConfigParamStack(
+  main, `DirectGoogleAuthnApiConfigParamStack`, {
     ...auStackProps(),
   }
 );
 
-const auZincGithubAuthnLambda = new LambdaZincGithubAuthnStackV2(
-  main, 'LambdaZincGithubAuthnStackV2', {
+const auDirectGithubAuthnConfig = new DirectGithubAuthnApiConfigParamStack(
+  main, `DirectGithubAuthnApiConfigParamStack`, {
     ...auStackProps(),
-    creds: auZincGithubAuthnCreds,
   }
 );
 
-const auZincGoogleAuthnLambda = new LambdaZincGoogleAuthnStackV1(
-  main, 'LambdaZincGoogleAuthnStackV1', {
+const auZincApiLambda = new ZincApiLambdaStack(
+  main, 'ZincApiLambdaStack', {
     ...auStackProps(),
-    creds: auZincGoogleAuthnCreds,
+    zincApiConfig: auZincApiConfig,
+    directGoogleConfig: auDirectGoogleAuthnConfig,
+    directGithubConfig: auDirectGithubAuthnConfig,
+    table: auOneTableV1.table,
   }
 );
 
-// IMPROVE: rename to Zinc, but that will force recreation
-const auLambdaZincApi = new LambdaZincApiStackV2(main, `LambdaApiStackV2`, {
-  ...auStackProps(),
-  creds: auCreds,
-  githubCreds: auZincGithubAuthnCreds,
-  googleCreds: auZincGoogleAuthnCreds,
-  table: auOneTableV1.table,
-});
+const auDirectGoogleAuthnLambda = new DirectGoogleAuthnApiLambdaStack(
+  main, 'DirectGoogleAuthnApiLambdaStack', {
+    ...auStackProps(),
+    config: auDirectGoogleAuthnConfig,
+  }
+);
+
+const auDirectGithubAuthnLambda = new DirectGithubAuthnApiLambdaStack(
+  main, 'DirectGithubAuthnApiLambdaStack', {
+    ...auStackProps(),
+    config: auDirectGithubAuthnConfig,
+  }
+);
 
 const auCloudFront5 = new CloudFrontStackV5(main, `CloudFrontStackV5`, {
   ...auStackProps(),
-  functionUrl: auLambdaZincApi.functionUrl,
+  functionUrl: auZincApiLambda.functionUrl,
   s3Site: auClientBucket.s3Site,
 })
 
@@ -102,21 +107,19 @@ const auGoogleCognito = new CognitoGoogleStackV3(
       "http://localhost:9090",
       `https://${(auCloudFront5.distribution.distributionDomainName)}`,
     ],
-    // TODO:STO rename to "zinc-google-au"
-    domainPrefix: "cog-poc-google-au", // unique?
+    domainPrefix: "zinc-google-au", // unique?
   }
 );
 
 const auEmailCognito = new CognitoEmailStack(
   main, 'AuCognitoEmailStackV1', {
     ...auStackProps(),
-    // TODO:STO rename to "zinc-email-au"
-    domainPrefix: "cog-poc-email-au", // unique?
+    domainPrefix: "zinc-email-au", // unique?
   }
 );
 
-const auGithubOidcLambda = new LambdaGithubOidcApiStackV1(
-  main, 'LambdaGithubOidcApiStackV1', {
+const auCognitoGithubOidcLambda = new CognitoGithubOidcApiLambdaStack(
+  main, 'CognitoGithubOidcApiLambdaStack', {
     ...auStackProps(),
   }
 );
@@ -128,7 +131,7 @@ const auGithubCognito = new CognitoGithubStackV1(
       "http://localhost:9090",
       `https://${(auCloudFront5.distribution.distributionDomainName)}`,
     ],
-    oidcApiUrl: auGithubOidcLambda.githubOidcUrl.url,
+    oidcApiUrl: auCognitoGithubOidcLambda.githubOidcUrl.url,
     domainPrefix: "zinc-github-au",
   }
 );

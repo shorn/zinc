@@ -2,7 +2,7 @@ import { Agent } from "https";
 import fetch, { Response as FetchResponse } from "node-fetch";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
-import { OAuthTokenRequest, OAuthTokenResponse } from "OAuth/OAuth";
+import { OAuthTokenRequest, OAuthTokenResponse } from "AuthnApi/OAuth";
 
 export class GoogleApi {
 

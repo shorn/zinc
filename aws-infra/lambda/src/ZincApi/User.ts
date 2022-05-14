@@ -1,4 +1,3 @@
-import { LambaApiV2Config } from "LambdaZincApiV2";
 import { guardAuthz, guardCrossAccountUpdate } from "ZincApi/Authz/GuardAuthz";
 import { mapToPrivateUser } from "Db/UserTableV1Db";
 import {
@@ -6,10 +5,11 @@ import {
   PublicUserData,
   UdpateUserData
 } from "Shared/ApiTypes";
+import { ZincApiRuntime } from "ZincApi/ZincApiHandler";
 
 export async function listPublicUserData(
   req: {},
-  config: LambaApiV2Config,
+  config: ZincApiRuntime,
   accessToken: string,
 ): Promise<PublicUserData[]>{
   await guardAuthz(config, accessToken);
@@ -18,7 +18,7 @@ export async function listPublicUserData(
 
 export async function readUser(
   req: {userId: string}, 
-  config: LambaApiV2Config, 
+  config: ZincApiRuntime, 
   accessToken: string
 ): Promise<PrivateUserData>{
   const authz = await guardAuthz(config, accessToken);
@@ -40,7 +40,7 @@ export async function readUser(
  */
 export async function updateUser(
   req: UdpateUserData,
-  config: LambaApiV2Config,
+  config: ZincApiRuntime,
   accessToken?: string,
 ): Promise<PrivateUserData>{
   const {userId, ...updateProps} = req;
