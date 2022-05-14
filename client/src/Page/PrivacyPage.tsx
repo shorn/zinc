@@ -41,7 +41,7 @@ function Content(){
       <ListItemText>You can request that your own data be deleted by submitting 
         a request as an issue or discussion via Github.
         All data associated with your account (especially anything from ID 
-        providers like Google or Facebook will be deleted within 7 days.
+        providers like Google or Facebook) will be deleted within 7 days.
       </ListItemText>
     </List>
     <Typography paragraph>

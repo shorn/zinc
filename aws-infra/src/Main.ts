@@ -28,6 +28,12 @@ import {
 import {
   CognitoGithubOidcApiLambdaStack
 } from "Stack/Lambda/CognitoGithubOidcApiLambdaStack";
+import {
+  DirectFacebookAuthnApiConfigParamStack
+} from "Stack/Lambda/DirectFacebookAuthnApiConfigParamStack";
+import {
+  DirectFacebookAuthnApiLambdaStack
+} from "Stack/Lambda/DirectFacebookAuthnApiLambdaStack";
 
 const main = new App();
 
@@ -59,12 +65,19 @@ const auDirectGithubAuthnConfig = new DirectGithubAuthnApiConfigParamStack(
   }
 );
 
+const auDirectFacebookAuthnConfig = new DirectFacebookAuthnApiConfigParamStack(
+  main, `DirectFacebookAuthnApiConfigParamStack`, {
+    ...auStackProps(),
+  }
+);
+
 const auZincApiLambda = new ZincApiLambdaStack(
   main, 'ZincApiLambdaStack', {
     ...auStackProps(),
     zincApiConfig: auZincApiConfig,
     directGoogleConfig: auDirectGoogleAuthnConfig,
     directGithubConfig: auDirectGithubAuthnConfig,
+    directFacebookConfig: auDirectFacebookAuthnConfig,
     table: auOneTableV1.table,
   }
 );
@@ -80,6 +93,13 @@ const auDirectGithubAuthnLambda = new DirectGithubAuthnApiLambdaStack(
   main, 'DirectGithubAuthnApiLambdaStack', {
     ...auStackProps(),
     config: auDirectGithubAuthnConfig,
+  }
+);
+
+const auDirectFacebookAuthnLambda = new DirectFacebookAuthnApiLambdaStack(
+  main, 'DirectFacebookAuthnApiLambdaStack', {
+    ...auStackProps(),
+    config: auDirectFacebookAuthnConfig,
   }
 );
 

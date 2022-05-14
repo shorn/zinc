@@ -147,6 +147,17 @@ async function verifyCognitoIdToken(
       });
     }
   }
+  else if( decoded.aud === config.directAuthn.facebook.clientId ){
+    try {
+      payload = await config.rsaVerifier.facebookDirect.verify(idToken);
+    }
+    catch( err ){
+      throw new AuthError({
+        publicMsg: "while verifying facebook direct",
+        privateMsg: forceError(err).message
+      });
+    }
+  }
   else {
     console.error("unknown JWT [aud]: ", decoded);
     throw new AuthError({

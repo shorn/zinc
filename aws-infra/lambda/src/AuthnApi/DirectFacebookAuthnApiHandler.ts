@@ -14,6 +14,7 @@ import {
   ZincOAuthIdpResponse
 } from "AuthnApi/OAuth";
 import { GoogleApi } from "AuthnApi/Downstream/GoogleApi";
+import { FacebookApi } from "AuthnApi/Downstream/FacebookApi";
 
 const name = "DirectGoogleAuthnApi";
 
@@ -25,7 +26,7 @@ async function initConfig(): Promise<OAuthClientConfig>{
     return config;
   }
   const result = await readOAuthConfigFromSsm(
-    process.env.DIRECT_GOOGLE_AUTHN_CONFIG_SSM_PARAM );
+    process.env.DIRECT_FACEBOOK_AUTHN_CONFIG_SSM_PARAM );
   if( isError(result) ){
     throw result;
   }
@@ -71,54 +72,27 @@ async function dispatchApiCall(
     // do not log the tokenRequest without protecting the secrets it contains
     const idpResponse = parseIdpResponse(query);
     validateRedirectUri(idpResponse.state.redirectUri, config);
- 
-    const googleApi = new GoogleApi();
+    
+    const facebookApi = new FacebookApi();
 
     /* logging this will log the access and id tokens - not quite as bad as 
     logging a secret since it has an expiry, but still not something we want 
     to leak. */
-    const googleToken = await googleApi.getToken({
+    const facebookToken = await facebookApi.getToken({
       code: idpResponse.code,
       client_id: config.clientId,
       client_secret: config.clientSecret,
       grant_type: "authorization_code",
       redirect_uri: `https://${event.headers.host}/idpresponse`
     });
-    validateGoogleTokenScope(googleToken.scope);
     
     // redirect back to the client with the new id_token
     const signedInUrl = idpResponse.state.redirectUri + 
-      `#id_token=${googleToken.id_token}`;
+      `#id_token=${facebookToken.id_token}`;
     return formatRedirectResponse(signedInUrl);
   }
 
   return undefined;
 }
 
-function validateGoogleTokenScope(
-  scope: string,
-){
-  const scopes = scope.trim().toLowerCase().split(" ");
-  
-  if( scopes.length !== 2 ){
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "google /token [scope] problem, count: " + scope,
-    });
-  }
-  if( !scopes.includes("openid") ){
-    console.log("parsed scopes", scopes);
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "google /token [scope] problem, openid: " + scope,
-    });
-  }
-  if( !scopes.includes("https://www.googleapis.com/auth/userinfo.email") ){
-    console.log("parsed scopes", scopes);
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "google /token [scope] problem, userinfo.email: " + scope,
-    });
-  }
-}
 

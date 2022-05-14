@@ -246,6 +246,8 @@ Run the `/aws-client` `hotswap-all` script, it will hotswap all lambd code,
 which results in a new version of the Lambda being created, which means the next
 lambda invocation will be a cold-start which will re-read the config.
 
+### TODO:STO add facebook instructions
+
 ---
 
 ## Deploy the client app

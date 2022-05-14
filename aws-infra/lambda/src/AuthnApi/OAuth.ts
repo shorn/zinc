@@ -5,6 +5,7 @@ import { sign, SignOptions } from "jsonwebtoken";
 import { ZincOAuthState } from "Shared/ApiTypes";
 import {z as zod} from "zod";
 import { readJsonParam } from "Util/Ssm";
+import { decodeBase64 } from "Util/Encoding";
 
 /**
  * https://www.oauth.com/oauth2-servers/single-page-apps/
@@ -157,7 +158,8 @@ export type ZincOAuthIdpResponse = {
 export const OAuthTokenResponse = zod.object({
   access_token: zod.string(),
   expires_in: zod.number(),
-  scope: zod.string(),
+  // facebook doesn't return scope
+  scope: zod.string().optional(),
   token_type: zod.string(),
   id_token: zod.string(),
 });
@@ -190,3 +192,57 @@ export async function readOAuthConfigFromSsm(
   }
 }
 
+export function validateRedirectUri(
+  redirect_uri: string,
+  config: OAuthClientConfig,
+){
+  if( !config.allowedCallbackUrls.includes(redirect_uri) ){
+    console.log("allowed urls", config.allowedCallbackUrls);
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "[redirect_uri] not in allowed callback urls: " +
+        redirect_uri,
+    });
+  }
+}
+
+
+export function parseIdpResponse(
+  query: LamdbaQueryStringParameters | undefined
+): ZincOAuthIdpResponse {
+  if( !query ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "/idpresponse no query params"
+    });
+  }
+
+  const {code, state} = query;
+  if( !code ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "/idpresponse missing [code] param"
+    });
+  }
+  if( !state ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "/idpresponse missing [state] param"
+    });
+  }
+
+  let decodedString = decodeBase64(state);
+  console.log("/idpresponse", code, decodedString);
+  const decodedState = JSON.parse(decodedString);
+
+  if( !decodedState.redirectUri ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "/idpresponse missing [state.redirectUri]"
+    });
+  }
+  return {
+    code,
+    state: decodedState
+  };
+}

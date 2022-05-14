@@ -129,7 +129,11 @@ export interface ServerInfo {
     google: {
       issuer: string,
       clientId: string,
-    }
+    },
+    facebook: {
+      issuer: string,
+      clientId: string,
+    },
   }
   lambdaCreateDate: Date,
 }

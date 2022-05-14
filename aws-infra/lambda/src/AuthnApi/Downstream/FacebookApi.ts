@@ -3,9 +3,9 @@ import fetch, { Response as FetchResponse } from "node-fetch";
 import { AuthError } from "Util/Error";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { OAuthTokenRequest, OAuthTokenResponse } from "AuthnApi/OAuth";
-import { googleTokenUrl } from "Shared/Constant";
+import { facebookTokenUrl } from "Shared/Constant";
 
-export class GoogleApi {
+export class FacebookApi {
 
   private _httpsAgent: Agent;
 
@@ -24,7 +24,7 @@ export class GoogleApi {
   public async getToken(
     tokenRequest: OAuthTokenRequest
   ): Promise<OAuthTokenResponse>{
-    const githubResponse = await fetch(googleTokenUrl, {
+    const githubResponse = await fetch(facebookTokenUrl, {
       agent: this.httpsAgent,
       method: "POST",
       headers: {
@@ -34,24 +34,23 @@ export class GoogleApi {
       body: JSON.stringify(tokenRequest),
     });
 
-    return parseGoogleTokenResponse(githubResponse);
+    return parseFacebookTokenResponse(githubResponse);
   }
 }
 
 
-export async function parseGoogleTokenResponse(
+export async function parseFacebookTokenResponse(
   response: FetchResponse
 ): Promise<OAuthTokenResponse>{
   if( response.status !== 200 ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL, privateMsg:
-        "Google /token responded with non-200 code: " +
+        "Facebook /token responded with non-200 code: " +
         `${response.status} (${response.statusText})`
     });
   }
 
   const tokenResponse: any = await response.json();
-
   try {
     return OAuthTokenResponse.parse(tokenResponse);
   }
@@ -59,7 +58,7 @@ export async function parseGoogleTokenResponse(
     console.log("zod parse error", err);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL, privateMsg:
-        "Google /token could not parse response"
+        "Facebook /token could not parse response"
     });
   }
 }

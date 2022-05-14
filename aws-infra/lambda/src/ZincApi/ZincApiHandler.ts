@@ -32,6 +32,11 @@ import {
   readZincApiConfigFromSsm,
   ZincApiConfig
 } from "ZincApi/ZincApiConfig";
+import {
+  facebookIssuerUrl, facebookJwksUrl,
+  googleIssuerUrl,
+  googleJwksUrl
+} from "Shared/Constant";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();
@@ -47,6 +52,10 @@ export const authApi: AuthApi = {
         issuer: (await runtime).directAuthn.google.functionUrl,
         clientId: (await runtime).directAuthn.google.clientId,
       },
+      facebook: {
+        issuer: (await runtime).directAuthn.facebook.functionUrl,
+        clientId: (await runtime).directAuthn.facebook.clientId,
+      }
     },
     lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,
   }),
@@ -86,11 +95,13 @@ export interface ZincApiRuntime {
     emailCognito: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
     githubCognito: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
     googleDirect: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
+    facebookDirect: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
   },
 
   directAuthn: {
     github: OAuthClientConfig,
     google: OAuthClientConfig,
+    facebook: OAuthClientConfig,
   }
 }
 
@@ -108,11 +119,11 @@ async function initRuntime(): Promise<ZincApiRuntime>{
     return runtime;
   }
 
-  // IMPROVE: log all failures - this logs info about only the first to fail
   const configResults = await Promise.all([
     readZincApiConfigFromSsm(process.env.ZINC_API_CONFIG_SSM_PARAM),
     readOAuthConfigFromSsm(process.env.DIRECT_GOOGLE_OAUTH_CONFIG_SSM_PARAM),
     readOAuthConfigFromSsm(process.env.DIRECT_GITHUB_OAUTH_CONFIG_SSM_PARAM),
+    readOAuthConfigFromSsm(process.env.DIRECT_FACEBOOK_OAUTH_CONFIG_SSM_PARAM),
   ]);
 
   const configErrors = configResults.filter(it=> isError(it));
@@ -124,6 +135,7 @@ async function initRuntime(): Promise<ZincApiRuntime>{
   const zincApiConfig = configResults[0] as ZincApiConfig;
   const googleDirectConfig = configResults[1] as OAuthClientConfig;
   const githubDirectConfig = configResults[2] as OAuthClientConfig;
+  const facebookDirectConfig = configResults[3] as OAuthClientConfig;
   
   console.log("SSM read and validated");
   
@@ -139,6 +151,7 @@ async function initRuntime(): Promise<ZincApiRuntime>{
     directAuthn: {
       github: githubDirectConfig,
       google: googleDirectConfig,
+      facebook: facebookDirectConfig,
     },
     authzSecrets: zincApiConfig.authzSecrets,
     authzSigningSecret: getAuthzSigningSecret(zincApiConfig.authzSecrets),
@@ -155,9 +168,14 @@ async function initRuntime(): Promise<ZincApiRuntime>{
       githubCognito: createCognitoJwtRsaVerifier(
         {region, ...zincApiConfig.cognito.github} ),
       googleDirect: JwtRsaVerifier.create({
-        issuer: "https://accounts.google.com",
+        issuer: googleIssuerUrl,
         audience: googleDirectConfig.clientId,
-        jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
+        jwksUri: googleJwksUrl,
+      }),
+      facebookDirect: JwtRsaVerifier.create({
+        issuer: facebookIssuerUrl,
+        audience: facebookDirectConfig.clientId,
+        jwksUri: facebookJwksUrl,
       }),
     },
   }
