@@ -1,5 +1,3 @@
-The lambda codebase is a bit out of control at the moment.
-Especially there are too many SSM parameters flying about.
 
 ## Structure
 
