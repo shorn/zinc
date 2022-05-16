@@ -5,6 +5,11 @@ import { Stack, TextField } from "@mui/material";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { EmailFieldState } from "Auth/Email/EmailTabContainer";
+import { useSignInContext } from "Auth/AuthProvider";
+import { delay } from "Util/EventUtil";
+
+const sendCodeAction = "sending-email-code";
+const confirmAction = "confirming-password";
 
 export function ForgotPasswordContainer({
   pool,
@@ -24,11 +29,13 @@ export function ForgotPasswordContainer({
   );
   const [code, setCode] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const signInContext = useSignInContext();
   const [email, setEmail] = emailState;
 
   async function sendCode(email: string){
     setState({status: "sending-code"});
-
+    signInContext.setAction(sendCodeAction);
+    
     const forgotUser = new CognitoUser({
       Username: email,
       Pool: pool
@@ -37,6 +44,7 @@ export function ForgotPasswordContainer({
       onSuccess: data => {
         console.debug("forgotPassword().onSuccess", data);
         setState({status: "verification-sent"});
+        signInContext.setAction(undefined);
       },
       onFailure: err => {
         console.debug("forgotPassword().onFailure", err);
@@ -44,12 +52,14 @@ export function ForgotPasswordContainer({
           status: "error",
           error: {message: err.message, problem: err}
         });
+        signInContext.setAction(undefined);
       },
     })
   }
 
   async function confirmPassword(email: string, code: string, password: string){
     setState({status: "confirming-password"});
+    signInContext.setAction(confirmAction);
     const forgotUser = new CognitoUser({
       Username: email,
       Pool: pool
@@ -57,6 +67,7 @@ export function ForgotPasswordContainer({
     forgotUser.confirmPassword(code, password, {
       onSuccess: data => {
         console.debug("confirmPassword().onSuccess", data);
+        signInContext.setAction(undefined);
         onConfirmed();
       },
       onFailure: err => {
@@ -65,12 +76,14 @@ export function ForgotPasswordContainer({
           status: "error",
           error: {message: err.message, problem: err}
         });
+        signInContext.setAction(undefined);
       },
     });
   }
 
   const isWorking = state.status === "sending-code" ||
     state.status === "confirming-password";
+  const disabled = !!signInContext.action;
   return <div>
     <Stack spacing={1}>
       <TextField id="email" label="Email" type="email"
@@ -96,13 +109,13 @@ export function ForgotPasswordContainer({
       />
       <div style={{display: "flex", flexWrap: "wrap", gap: ".5em"}}>
         <SecondaryButton isLoading={state.status === "sending-code"}
-          disabled={isWorking || !email}
+          disabled={disabled || !email}
           onClick={() => sendCode(email)}
         >
           Send code
         </SecondaryButton>
         <PrimaryButton isLoading={state.status === "confirming-password"}
-          disabled={isWorking || !code || !email || !password}
+          disabled={disabled || !code || !email || !password}
           onClick={() => confirmPassword(email, code, password)}
         >
           Confirm password

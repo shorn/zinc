@@ -5,6 +5,9 @@ import { Stack, TextField } from "@mui/material";
 import { PrimaryButton } from "Component/AppButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { EmailFieldState } from "Auth/Email/EmailTabContainer";
+import { useSignInContext } from "Auth/AuthProvider";
+
+const signUpAction = "signupAction";
 
 export function SignUpContainer({
   pool,
@@ -20,16 +23,18 @@ export function SignUpContainer({
       {status: "error", error: ErrorInfo}
   );
   const [password, setPassword] = React.useState("");
+  const signInContext = useSignInContext();
   const [email, setEmail] = emailState;
-
+  
   async function cognitoSignUp(email: string, password: string){
     setState({status: "working"});
-
+    signInContext.setAction(signUpAction);
     // https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js
     // const user = new CognitoUser({Username: email, Pool: pool});
     pool.signUp(email, password, [], [], (err, result) => {
       console.log("signUp()", result, err?.message);
       if( err ){
+        signInContext.setAction(undefined);
         setState({
           status: "error", error: {
             message: err.message,
@@ -45,6 +50,7 @@ export function SignUpContainer({
   }
 
   const isWorking = state.status === "working";
+  const disabled = !!signInContext.action;
   return <div>
     <form onSubmit={(e) => {
       e.preventDefault();
@@ -66,7 +72,7 @@ export function SignUpContainer({
           }/>
         <div style={{display: "flex", flexWrap: "wrap", gap: ".5em"}}>
           <PrimaryButton type={"submit"} isLoading={isWorking}
-            disabled={isWorking || !email || !password}>
+            disabled={disabled || !email || !password}>
             Sign up
           </PrimaryButton>
           {state.status === "error" &&
