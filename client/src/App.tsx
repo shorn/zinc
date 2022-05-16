@@ -12,8 +12,8 @@ import { MyDetailsPage } from 'Page/MyDetailsPage';
 import { ListUserPage } from "Page/ListUserPage";
 import { ServerInfoProvider } from "Api/ServerInfoProvider";
 import { PostApiProvider } from "Api/PostApiProvider";
-import { getPrivacyPagePath, PrivacyPage } from "Page/PrivacyPage";
-import { getUsageTermsPagePath, UsageTermsPage } from "Page/UsageTermsPage";
+import { isPrivacyPagePath, PrivacyPage } from "Page/PrivacyPage";
+import { isUsageTermsPagePath, UsageTermsPage } from "Page/UsageTermsPage";
 
 export function App(){
   return <ZincTheme>
@@ -29,7 +29,7 @@ export function App(){
           <ServerInfoProvider>
             {/* authentication and authorisation */}
             <AuthProvider unauthenticatedPaths={[
-              getPrivacyPagePath(), getUsageTermsPagePath()
+              isPrivacyPagePath, isUsageTermsPagePath, 
             ]}>
               {/* convenient access to PostApi for making server calls */}
               <PostApiProvider>

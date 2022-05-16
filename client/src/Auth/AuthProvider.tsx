@@ -9,7 +9,6 @@ import {
   getAuthSessionFromStorage,
   signOutUser
 } from "Auth/Authz";
-import { EmailContainer } from "Auth/EmailSignInContainer";
 import { findSignInIdToken } from "Auth/Authn";
 import { IntroContainer } from "Auth/IntroContainer";
 import {
@@ -18,6 +17,7 @@ import {
 import { useServerInfo } from "Api/ServerInfoProvider";
 import { DirectSocialSignInContainer } from "Auth/DirectSocialSignInContainer";
 import { useLocationPathname } from "Util/Hook/LocationPathname";
+import { EmailTabContainer } from "Auth/Email/EmailTabContainer";
 
 export interface AuthState {
   signOut: ()=>void,
@@ -59,7 +59,7 @@ type ProviderState =
  * Handles both Authentication and Authorization.
  */
 export function AuthProvider({unauthenticatedPaths = [], children}: {
-  unauthenticatedPaths?: string[]
+  unauthenticatedPaths?: ((pathname: string)=>boolean)[]
   children: React.ReactNode,
 }){
   const serverInfo = useServerInfo();
@@ -116,7 +116,7 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
     checkLoginState();
   }, [checkLoginState]);
 
-  if( unauthenticatedPaths.includes(pathname) ){
+  if( unauthenticatedPaths.some(it=>it(pathname))){
     return null;
   }
 
@@ -171,9 +171,7 @@ function NotSignedInContent({onSignInSucceeded}: {
   return <LargeContentMain>
     <IntroContainer/>
     <SmallContentMain>
-      <EmailContainer 
-        onSignInSucceeded={onSignInSucceeded}
-      />
+      <EmailTabContainer onSignInSucceeded={onSignInSucceeded} />
       <br/>
       <CognitoSocialSignInContainer />
       <br/>

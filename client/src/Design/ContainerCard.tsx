@@ -4,9 +4,12 @@ import CardContent from "@mui/material/CardContent";
 import * as React from "react";
 import {cardHeaderClasses, useMediaQuery} from "@mui/material";
 
-export function ContainerCard({ title, action, children}:{
+export function ContainerCard({ 
+  title, action, contentPadding = "1em", children
+}:{
   title: React.ReactNode,
   action?: React.ReactNode,
+  contentPadding?: string,
   children: React.ReactNode,
 }){
   return <Card>
@@ -27,8 +30,7 @@ export function ContainerCard({ title, action, children}:{
     />
     <CardContent
       sx={{
-        // same as header, remove extra whitespace
-        padding: "1em",
+        padding: contentPadding,
         // deal with possibility of long date / time strings on mobile
         overflowX: "auto",
       }}
