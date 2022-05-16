@@ -1,5 +1,8 @@
 # Running your own infrastructure
 
+If you're going to run your own infrastructure, it would be great to have 
+feedback about anything that went or where the documentation could be improved.
+
 ## Pre-requisites
 
 * Node/NPM available on the path
