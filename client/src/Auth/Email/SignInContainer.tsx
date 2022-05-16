@@ -10,6 +10,7 @@ import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { TextSpan } from "Component/TextSpan";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { EmailFieldState } from "Auth/Email/EmailTabContainer";
+import { useSignInContext } from "Auth/AuthProvider";
 
 export type EmailSignInState =
   {status: "succeeded", email: string} |
@@ -30,15 +31,22 @@ export function SignInContainer({
       EmailSignInState
   );
   const [password, setPassword] = React.useState("");
+  const signInContext = useSignInContext();
   const [email, setEmail] = emailState;
   
   async function emailSignIn(email: string, password: string){
     setState({status: "authenticating"});
+    signInContext.setAction("authenticating");
 
-    const result = await resolveEmailSignIn({pool, email, password});
-    setState(result);
-    if( result.status === "succeeded" ){
-      onSignInSucceeded();
+    try {
+      const result = await resolveEmailSignIn({pool, email, password});
+      setState(result);
+      if( result.status === "succeeded" ){
+        onSignInSucceeded();
+      }
+    }
+    finally {
+      signInContext.setAction(undefined);
     }
   }
 
@@ -66,7 +74,7 @@ export function SignInContainer({
         />
         <div style={{display: "flex", flexWrap: "wrap", gap: ".5em"}}>
           <PrimaryButton type={"submit"} isLoading={isWorking}
-            disabled={isWorking || !email || !password}>
+            disabled={!!signInContext.action  || !email || !password}>
             Signin
           </PrimaryButton>
           {state.status === "error" &&

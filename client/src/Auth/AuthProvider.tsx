@@ -20,22 +20,22 @@ import { useLocationPathname } from "Util/Hook/LocationPathname";
 import { EmailTabContainer } from "Auth/Email/EmailTabContainer";
 
 export interface AuthState {
-  signOut: ()=>void,
+  signOut: () => void,
   session: AuthorizedSession,
 }
 
-export interface AuthorizedSession{
+export interface AuthorizedSession {
   payload: AuthzTokenPayload,
   accessTokenExpiry: Date,
   accessToken: string,
 }
 
 const AuthContext = React.createContext(
-  undefined as unknown as AuthState );
+  undefined as unknown as AuthState);
 
 /** If `use()` is called when not underneath the context provider,
  * they will get an error. */
-export const useAuth = ()=> {
+export const useAuth = () => {
   let ctx = useContext(AuthContext);
   if( !ctx ){
     throw new Error("No AuthenticationProvider present in component hierarchy");
@@ -44,35 +44,35 @@ export const useAuth = ()=> {
 };
 
 type ProviderState =
-  // in-progress states
-  { current: "init" } |
-  { current: "authenticating" } |
-  { current: "authorizing" } |
-  { current: "signing-out" } |
-  
+// in-progress states
+  {current: "init"} |
+  {current: "authenticating"} |
+  {current: "authorizing"} |
+  {current: "signing-out"} |
+
   // terminal states
-  { current: "not-signed-in" } |
-  { current: "signed-in", authSession: AuthorizedSession } |
-  { current: "error", error: ErrorInfo };
+  {current: "not-signed-in"} |
+  {current: "signed-in", authSession: AuthorizedSession} |
+  {current: "error", error: ErrorInfo};
 
 /**
  * Handles both Authentication and Authorization.
  */
 export function AuthProvider({unauthenticatedPaths = [], children}: {
-  unauthenticatedPaths?: ((pathname: string)=>boolean)[]
+  unauthenticatedPaths?: ((pathname: string) => boolean)[]
   children: React.ReactNode,
 }){
   const serverInfo = useServerInfo();
   const {pathname} = useLocationPathname();
-  const [state, setState] = React.useState<ProviderState>({current:"init"});
+  const [state, setState] = React.useState<ProviderState>({current: "init"});
 
-  /** 
+  /**
    * - looks for a non-expired `accessToken` in local storage,
-   *   otherwise looks for an `idToken` from signing in with email/social 
+   *   otherwise looks for an `idToken` from signing in with email/social
    * - exchanges the idToken for an accessToken from the server
    * - save the accessToken to storage for next time
    */
-  const checkLoginState = React.useCallback( async () => {
+  const checkLoginState = React.useCallback(async () => {
     /* look for a cached accessToken, from a previous session */
     setState({current: "authenticating"});
     const authSession = getAuthSessionFromStorage();
@@ -80,7 +80,7 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
       setState({current: "signed-in", authSession});
       return;
     }
-    
+
     /* if they don't have a previous valid sign-in session and there's no 
     idToken from signing-in, then the user needs to sign-in. */
     const idToken = await findSignInIdToken(serverInfo.cognito);
@@ -100,8 +100,8 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
       return;
     }
 
-    setState({ current: "signed-in", authSession: authzResult });
-    
+    setState({current: "signed-in", authSession: authzResult});
+
   }, [serverInfo.cognito]);
 
   const onSignOutClicked = React.useCallback(async () => {
@@ -116,12 +116,12 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
     checkLoginState();
   }, [checkLoginState]);
 
-  if( unauthenticatedPaths.some(it=>it(pathname))){
+  if( unauthenticatedPaths.some(it => it(pathname)) ){
     return null;
   }
 
   window.document.title = "Zinc - sign in";
-  
+
   if( state.current === "init" || state.current === "authenticating" ){
     return <SmallPageSpinner message={"Signing in"}/>
   }
@@ -137,9 +137,9 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
   if( state.current === "error" ){
     return <ErrorInfoComponent error={state.error}/>
   }
-  
+
   if( state.current === "not-signed-in" ){
-    return <NotSignedInContent 
+    return <NotSignedInContent
       /* once the user has actually succeeded signing in, this logic 
        will be able to pick that up from the userpool or url. */
       onSignInSucceeded={checkLoginState}
@@ -168,15 +168,40 @@ IMPROVE:
 function NotSignedInContent({onSignInSucceeded}: {
   onSignInSucceeded: () => void,
 }){
+  const [signInAction, setSignInAction] = React.useState(
+    undefined as string | undefined);
+
   return <LargeContentMain>
     <IntroContainer/>
     <SmallContentMain>
-      <EmailTabContainer onSignInSucceeded={onSignInSucceeded} />
-      <br/>
-      <CognitoSocialSignInContainer />
-      <br/>
-      <DirectSocialSignInContainer />
+      <SignInContext.Provider value={{
+        action: signInAction,
+        setAction: setSignInAction
+      }}>
+        <EmailTabContainer onSignInSucceeded={onSignInSucceeded}/>
+        <br/>
+        <CognitoSocialSignInContainer/>
+        <br/>
+        <DirectSocialSignInContainer/>
+      </SignInContext.Provider>
     </SmallContentMain>
   </LargeContentMain>
 }
 
+export type SignInState = {
+  action: string | undefined,
+  setAction: (action: string | undefined) => void,
+};
+
+const SignInContext = React.createContext(
+  undefined as unknown as SignInState);
+
+/** If `use()` is called when not underneath the context provider,
+ * they will get an error. */
+export const useSignInContext = () => {
+  let ctx = useContext(SignInContext);
+  if( !ctx ){
+    throw new Error("No SignInContextProvider present in component hierarchy");
+  }
+  return ctx;
+};

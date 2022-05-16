@@ -14,24 +14,35 @@ import {
   githubAuthorizeUrl, googleAuthnScope,
   googleAuthorizeUrl
 } from "Shared/Constant";
+import { useSignInContext } from "Auth/AuthProvider";
+
+const githubAction = "github-direct";
+const googleAction = "google-direct";
+const facebookAction = "facebook-direct";
 
 export function DirectSocialSignInContainer(){
   const serverInfo = useServerInfo();
 
-  const [isWorking, setIsWorking] = React.useState(false);
+  const signInContext = useSignInContext();
 
   async function githubSignIn(){
     // this is not an OIDC sign-in, github uses `,` to separate scopes
     const state: ZincOAuthState = {
       redirectUri: serverLocationUrl()
     }
-    let loginUrl = `${githubAuthorizeUrl}` +
-      `?client_id=${serverInfo.directAuthn.github.clientId}` +
-      `&scope=${encodeURIComponent(githubAuthnScope)}` +
-      `&response_type=code` +
-      `&state=${encodeBase64(JSON.stringify(state))}`;
-    setIsWorking(true);
-    navBrowserByAssign(loginUrl);
+    signInContext.setAction(githubAction);
+    try {
+      let loginUrl = `${githubAuthorizeUrl}` +
+        `?client_id=${serverInfo.directAuthn.github.clientId}` +
+        `&scope=${encodeURIComponent(githubAuthnScope)}` +
+        `&response_type=code` +
+        `&state=${encodeBase64(JSON.stringify(state))}`;
+      navBrowserByAssign(loginUrl);
+    }
+    catch( err ){
+      signInContext.setAction(undefined);
+      throw err;
+    }
   }
 
   async function googleSignIn(){
@@ -39,16 +50,22 @@ export function DirectSocialSignInContainer(){
       // this redirectUril is about the lambda redirect back our client
       redirectUri: serverLocationUrl()
     }
-    let loginUrl = `${googleAuthorizeUrl}` +
-      `?client_id=${serverInfo.directAuthn.google.clientId}` +
-      `&scope=${encodeURIComponent(googleAuthnScope)}` +
-      `&response_type=code` +
-      /* this redirect_uri is about google redirecting to the lambda for hte 
-      "authorization code grant" flow, beore it issues the id_token */
-      `&redirect_uri=${serverInfo.directAuthn.google.issuer}/idpresponse` +
-      `&state=${encodeBase64(JSON.stringify(state))}`;
-    setIsWorking(true);
-    navBrowserByAssign(loginUrl);
+    signInContext.setAction(googleAction);
+    try {
+      let loginUrl = `${googleAuthorizeUrl}` +
+        `?client_id=${serverInfo.directAuthn.google.clientId}` +
+        `&scope=${encodeURIComponent(googleAuthnScope)}` +
+        `&response_type=code` +
+        /* this redirect_uri is about google redirecting to the lambda for hte 
+        "authorization code grant" flow, beore it issues the id_token */
+        `&redirect_uri=${serverInfo.directAuthn.google.issuer}/idpresponse` +
+        `&state=${encodeBase64(JSON.stringify(state))}`;
+      navBrowserByAssign(loginUrl);
+    }
+    catch( err ){
+      signInContext.setAction(undefined);
+      throw err;
+    }
   }
 
   async function facebookSignIn(){
@@ -56,39 +73,43 @@ export function DirectSocialSignInContainer(){
       // this redirectUril is about the lambda redirect back our client
       redirectUri: serverLocationUrl()
     }
-    let loginUrl = `${facebookAuthorizeUrl}` +
-      `?client_id=${serverInfo.directAuthn.facebook.clientId}` +
-      `&scope=${encodeURIComponent(facebookAuthnScope)}` +
-      `&response_type=code` +
-      /* this redirect_uri is about google redirecting to the lambda for hte 
-      "authorization code grant" flow, beore it issues the id_token */
-      `&redirect_uri=${serverInfo.directAuthn.facebook.issuer}/idpresponse` +
-      `&state=${encodeBase64(JSON.stringify(state))}`;
-    setIsWorking(true);
-    navBrowserByAssign(loginUrl);
+    signInContext.setAction(facebookAction);
+    try {
+      let loginUrl = `${facebookAuthorizeUrl}` +
+        `?client_id=${serverInfo.directAuthn.facebook.clientId}` +
+        `&scope=${encodeURIComponent(facebookAuthnScope)}` +
+        `&response_type=code` +
+        /* this redirect_uri is about google redirecting to the lambda for hte 
+        "authorization code grant" flow, beore it issues the id_token */
+        `&redirect_uri=${serverInfo.directAuthn.facebook.issuer}/idpresponse` +
+        `&state=${encodeBase64(JSON.stringify(state))}`;
+      navBrowserByAssign(loginUrl);
+    }
+    catch( err ){
+      signInContext.setAction(undefined);
+      throw err;
+    }
   }
 
-  //const importedVal = sharedString;
-  //console.log("imported", importedVal);
-  
+  const disabled = !!signInContext.action;
   return <ContainerCard title={"Direct Social Sign-in"}>
     <ButtonContainer style={{
       justifyContent: "center",
       // the textspan following was too cramped
       marginBottom: ".5em"
     }}>
-      <PrimaryButton isLoading={isWorking} disabled={isWorking}
-        onClick={googleSignIn}
+      <PrimaryButton isLoading={signInContext.action === googleAction} 
+        disabled={disabled} onClick={googleSignIn}
       >
         Google
       </PrimaryButton>
-      <PrimaryButton isLoading={isWorking} disabled={isWorking}
-        onClick={githubSignIn}
+      <PrimaryButton isLoading={signInContext.action === githubAction} 
+        disabled={disabled} onClick={githubSignIn}
       >
         Github
       </PrimaryButton>
-      <PrimaryButton isLoading={isWorking} disabled={isWorking}
-        onClick={facebookSignIn}
+      <PrimaryButton isLoading={signInContext.action === facebookAction} 
+        disabled={disabled} onClick={facebookSignIn}
       >
         Facebook
       </PrimaryButton>
