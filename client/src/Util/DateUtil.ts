@@ -54,12 +54,12 @@ export function parseServerDate(date: string): Date{
 }
 
 
-export function formatShortIsoDateTime(date?: Date){
+export function formatLocalDateAsIsoShortDateTime(date?: Date){
   if( !date ){
     return ""
   }
 
-  return formatIsoDate(date) + " " + formatShortTime(date);
+  return formatLocalDateAsIso(date) + " " + formatShortTime(date);
 }
 
 export function formatShortTime(
@@ -72,19 +72,19 @@ export function formatShortTime(
   return date.toLocaleTimeString(locale, shorTimeformatOptions);
 }
 
-export function formatIsoDate(date?: Date){
+/* if you just call date.toISOString(), you get the day in UTC, i.e.
+without timezone applied; so could be yesterday, today or tomorrow, depending
+on your TZ and when the data is for. 
+ */
+export function formatLocalDateAsIso(date?: Date){
   if( !date ){
     return "";
   }
-  return extractDateFromIsoFormat(date.toISOString());
-}
-
-export function extractDateFromIsoFormat(date: string): string{
-  if( !date ){
-    return ""
-  }
-  if( date.length < 10 ){
-    return ""
-  }
-  return date.substr(0, 10);
+  
+  const month = Number(date.getMonth()+1).toString();
+  const day = Number(date.getDate()).toString();
+  
+  return date.getFullYear() + "-" + 
+    month.padStart(2, "0") + "-" + 
+    day.padStart(2, "0");
 }

@@ -13,7 +13,7 @@ import {
   TableHead,
   TableRow
 } from "@mui/material";
-import { formatShortIsoDateTime } from "Util/DateUtil";
+import { formatLocalDateAsIsoShortDateTime } from "Util/DateUtil";
 import { PublicUserData } from "Shared/ApiTypes";
 import { RefreshIconButton } from "Component/RefreshIconButton";
 import { AlternatingTableRow } from "Component/Util";
@@ -80,7 +80,7 @@ function Content(){
         onClick={listUsers}
       />}
     >
-      {state.current === "error" &&
+      { state.current === "error" &&
         <CompactErrorPanel error={state.error}/>
       }
       <TableContainer><Table>
@@ -124,6 +124,6 @@ function UserDisplayName({displayName}: {displayName: string|undefined}){
 
 function UserCreatedText({user}: {user: PublicUserData}){
   return <TextSpan>
-    { formatShortIsoDateTime(user.userCreated) || "" }
+    { formatLocalDateAsIsoShortDateTime(user.userCreated) || "" }
   </TextSpan>
 }

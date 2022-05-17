@@ -12,6 +12,7 @@
     "zinc": "cdk --profile zinc",
     "synth": "npm run zinc synth",
     "diff": "npm run zinc diff",
+    "list": "npm run zinc list",
     "bootstrap": "npm run zinc bootstrap",
     "deploy": "cdk --all --profile zinc deploy",
     "deploy-dev": "npm run zinc deploy LambdaApiStackV2",
