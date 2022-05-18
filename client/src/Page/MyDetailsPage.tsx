@@ -32,6 +32,7 @@ export function MyDetailsPage(){
 }
 
 type PageState = 
+  {current: "init"} |
   {current: "loading-details"} |
   {current: "updating-details"} |
   {current: "editing"} |
@@ -41,7 +42,7 @@ function Content(){
   const {userId} = useAuth().session.payload;
   const api = usePostApi();
   const [state, setState] = React.useState<PageState>(
-    {current: "loading-details"} );
+    {current: "init"} );
   const [details, setDetails] = React.useState(
     undefined as undefined | PrivateUserData);
   const [displayName, setDisplayName] = React.useState("");
@@ -96,9 +97,9 @@ function Content(){
   }, [loadDetails]);
   
   
-  const isWorking = state.current === "loading-details" || 
+  const isWorking = state.current === "init" || 
+    state.current === "loading-details" || 
     state.current === "updating-details";
-  
   return <SmallContentMain>
     <ContainerCard title={"My details"}>
       <form onSubmit={(e) => {
@@ -117,7 +118,7 @@ function Content(){
           <ButtonContainer>
             <PrimaryButton type={"submit"}
               disabled={isWorking}
-              isLoading={isWorking}
+              isLoading={state.current === "updating-details"}
             >
               Update
             </PrimaryButton>
