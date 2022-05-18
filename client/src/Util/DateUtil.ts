@@ -1,7 +1,7 @@
 // https://stackoverflow.com/a/14509447/924597
 import { forceError } from "Error/ErrorUtil";
 
-/** expoected to be passed to the JSON.parse() method to "fix" Dates. */
+/** expected to be passed to the JSON.parse() method to "fix" Dates. */
 export function dateTimeReviver(key : string, value: any) {
   let a;
   if (typeof value === 'string') {
