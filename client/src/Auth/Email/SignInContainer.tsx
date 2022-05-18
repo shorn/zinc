@@ -51,7 +51,7 @@ export function SignInContainer({
   }
 
   const isWorking = state.status === "authenticating";
-  return <div>
+  return <>
     <form onSubmit={(e) => {
       e.preventDefault();
       // noinspection JSIgnoredPromiseFromCall
@@ -75,7 +75,7 @@ export function SignInContainer({
         <div style={{display: "flex", flexWrap: "wrap", gap: ".5em"}}>
           <PrimaryButton type={"submit"} isLoading={isWorking}
             disabled={!!signInContext.action  || !email || !password}>
-            Signin
+            Sign in
           </PrimaryButton>
           {state.status === "error" &&
             <CompactErrorPanel error={state.error}/>
@@ -89,7 +89,7 @@ export function SignInContainer({
         </div>
       </Stack>
     </form>
-  </div>
+  </>
 }
 
 /** Authenticating email users, but also handles "unconfirmed" users
