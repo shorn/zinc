@@ -15,7 +15,7 @@ export function EmailTabContainer({onSignInSucceeded}: {
   const {cognito} = useServerInfo();
   const [tabIndex, setTabIndex] = React.useState(0);
   const emailState = React.useState("") as EmailFieldState;
-  
+
   // don't create every render (probably not expensive, but w/e)
   const pool = React.useMemo(() => {
     return new CognitoUserPool({
@@ -29,31 +29,31 @@ export function EmailTabContainer({onSignInSucceeded}: {
     setTabIndex(newValue);
   };
 
-  return <div>
-    <ContainerCard title={"Email"} contentPadding={"0"}>    
-    <Tabs
-      value={tabIndex}
-      onChange={handleChange}
-      variant="fullWidth"
-      aria-label="full width tabs example"
-    >
-      <Tab label="Sign in" {...a11yProps(0)} />
-      <Tab label="Sign up" {...a11yProps(1)} />
-      <Tab label="Forgot password" {...a11yProps(2)} />
-    </Tabs>
-    <TabPanel value={tabIndex} index={0}>
-      <SignInContainer pool={pool} emailState={emailState}
-        onSignInSucceeded={onSignInSucceeded} />
-    </TabPanel>
-    <TabPanel value={tabIndex} index={1}>
-      <SignUpContainer pool={pool} emailState={emailState} />
-    </TabPanel>
-    <TabPanel value={tabIndex} index={2}>
-      <ForgotPasswordContainer pool={pool} emailState={emailState}  
-        onConfirmed={()=>setTabIndex(0)}/>
-    </TabPanel>
+  return <>
+    <ContainerCard title={"Email"} contentPadding={"0"}>
+      <Tabs
+        value={tabIndex}
+        onChange={handleChange}
+        variant="fullWidth"
+        aria-label="full width tabs example"
+      >
+        <Tab label="Sign in" {...a11yProps(0)} />
+        <Tab label="Sign up" {...a11yProps(1)} />
+        <Tab label="Forgot password" {...a11yProps(2)} />
+      </Tabs>
+      <TabPanel value={tabIndex} index={0}>
+        <SignInContainer pool={pool} emailState={emailState}
+          onSignInSucceeded={onSignInSucceeded}/>
+      </TabPanel>
+      <TabPanel value={tabIndex} index={1}>
+        <SignUpContainer pool={pool} emailState={emailState}/>
+      </TabPanel>
+      <TabPanel value={tabIndex} index={2}>
+        <ForgotPasswordContainer pool={pool} emailState={emailState}
+          onConfirmed={() => setTabIndex(0)}/>
+      </TabPanel>
     </ContainerCard>
-  </div>;
+  </>;
 }
 
 interface TabPanelProps {
@@ -76,7 +76,7 @@ function TabPanel(props: TabPanelProps){
     >
       {value === index && (
         <Box sx={{p: 3}}>
-          <Typography>{children}</Typography>
+          {children}
         </Box>
       )}
     </div>
