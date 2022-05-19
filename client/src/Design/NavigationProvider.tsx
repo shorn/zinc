@@ -38,7 +38,7 @@ export function NavigationProvider(props: {children: React.ReactNode}){
   const [navigatingTo, setNavigatingTo] = useState(
     undefined as string | undefined );
 
-  const navTo = React.useCallback((to, event)=> {
+  const navTo = React.useCallback((to: string, event?: SyntheticEvent)=> {
     event?.preventDefault();
     setNavigatingTo(to);
     setTimeout(()=>{

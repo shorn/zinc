@@ -35,7 +35,7 @@ export function LocationPathnameProvider({children}: {
   children: React.ReactNode
 }){
   const [pathname, setPathname] = useState(window.location.pathname);
-  const replaceState = useCallback(path => {
+  const replaceState = useCallback((path: string) => {
     if( !originalFunctions ){
       console.warn("replaceState callback invoked before listener installed");
       return;
@@ -43,7 +43,7 @@ export function LocationPathnameProvider({children}: {
     originalFunctions.replaceState(null, "", path);
     setPathname(parsePathname(path));
   }, [setPathname]);
-  const pushState = useCallback(path => {
+  const pushState = useCallback((path: string) => {
     if( !originalFunctions ){
       console.warn("pushState callback invoked before listener installed");
       return;

@@ -13,7 +13,9 @@ import {LargeContentMain} from "Design/LayoutMain";
  * errors while still rendering the normal component hierarchy - we can't
  * render the component hierarchy if it's causing errors.
  */
-export class ReactErrorBoundary extends React.Component {
+export class ReactErrorBoundary extends React.Component<{
+  children: React.ReactNode
+}> {
   state = {} as { hasError: undefined|Error };
 
   static getDerivedStateFromError(error: any) {

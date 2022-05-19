@@ -43,7 +43,7 @@ export function LocationSearchProvider({children}: {
       formatPath(window.location.pathname, params));
     setSearch(recordToSearchString(params));
   }, [setSearch]);
-  const pushState = useCallback(params => {
+  const pushState = useCallback((params: Record<string, string|undefined>) => {
     if( !originalFunctions ){
       console.warn("pushState callback invoked before listener installed");
       return;
