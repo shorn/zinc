@@ -97,7 +97,7 @@ export async function findSignInIdToken(
 ):Promise<string | undefined>{
   let idToken:string|undefined = getSocialRedirectIdToken();
   if( idToken ){
-    console.log("found social idToken", idToken);
+    console.log("found social idToken", idToken.slice(-10));
     return idToken;
   }
 

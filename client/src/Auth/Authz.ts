@@ -15,6 +15,13 @@ import { authApi } from "Api/AuthApi";
 
 const accessTokenStorageKey = "zincAccessToken";
 
+function debugAuthzResponse(auth: AuthorizeUserResponse){
+  if( !auth.succeeded ){
+    return "failed";
+  }
+  
+  return "succeeded - " + auth.accessToken.slice(-10); 
+}
 
 export async function authorizeWithServer(idToken: string)
 : Promise<ErrorInfo|AuthorizedSession>{
@@ -28,7 +35,7 @@ export async function authorizeWithServer(idToken: string)
       problem: err,
     };
   }
-  console.log("authzResponse", authzResponse);
+  console.log("authzResponse", debugAuthzResponse(authzResponse));
 
   if( !authzResponse.succeeded ){
     return {
