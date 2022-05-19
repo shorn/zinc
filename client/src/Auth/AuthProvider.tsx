@@ -44,7 +44,7 @@ export const useAuth = () => {
 };
 
 type ProviderState =
-// in-progress states
+  // in-progress states
   {current: "init"} |
   {current: "authenticating"} |
   {current: "authorizing"} |
@@ -65,7 +65,8 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
   const serverInfo = useServerInfo();
   const {pathname} = useLocationPathname();
   const [state, setState] = React.useState<ProviderState>({current: "init"});
-
+  const stateCache = React.useRef({} as AuthState);
+  
   /**
    * - looks for a non-expired `accessToken` in local storage,
    *   otherwise looks for an `idToken` from signing in with email/social
@@ -146,12 +147,19 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
     />
   }
 
+  // avoid unnecessary re-renders based on creating a new context value
+  if( stateCache.current.signOut !== onSignOutClicked ||
+    stateCache.current.session !== state.authSession 
+  ){
+    stateCache.current = {
+      signOut: onSignOutClicked,
+      session: state.authSession,
+    }
+  }  
+  
   /* User is successfully verified and successfully signed in, so now show the 
   rest of the app and provide the auth details via the useAuth() hook. */
-  return <AuthContext.Provider value={{
-    signOut: onSignOutClicked,
-    session: state.authSession,
-  }}>
+  return <AuthContext.Provider value={stateCache.current}>
     {children}
   </AuthContext.Provider>;
 }
