@@ -155,7 +155,7 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
       signOut: onSignOutClicked,
       session: state.authSession,
     }
-  }  
+  }
   
   /* User is successfully verified and successfully signed in, so now show the 
   rest of the app and provide the auth details via the useAuth() hook. */
