@@ -3,20 +3,18 @@ import {
   formatErrorResponse,
   formatRedirectResponse,
   LambdaFunctionUrlEvent,
-  LambdaResponse,
-  LamdbaQueryStringParameters
+  LambdaResponse
 } from "Util/LambdaEvent";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
-import { decodeBase64 } from "Util/Encoding";
 import {
-  OAuthClientConfig, parseIdpResponse,
-  readOAuthConfigFromSsm, validateRedirectUri,
-  ZincOAuthIdpResponse
+  OAuthClientConfig,
+  parseIdpResponse,
+  readOAuthConfigFromSsm,
+  validateRedirectUri
 } from "AuthnApi/OAuth";
-import { GoogleApi } from "AuthnApi/Downstream/GoogleApi";
 import { FacebookApi } from "AuthnApi/Downstream/FacebookApi";
 
-const name = "DirectGoogleAuthnApi";
+const name = "DirectFacebookAuthnApi";
 
 // time spent in here is part of the "cold start" 
 let config: Promise<OAuthClientConfig> = initConfig();
