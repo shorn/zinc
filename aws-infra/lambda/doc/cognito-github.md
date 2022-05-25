@@ -15,7 +15,7 @@ allowing a Github login to the Zinc app.
 * supports only the OIDC attributes that Zinc needs, not the full standard set
 
 The Lamba implementation is in
-[LambdaGithubOidcApiV1.ts](/aws-infra/lambda/src/LambdaGithubOidcApiV1.ts).
+[CognitoGithubOidcApiHandler.ts](/aws-infra/lambda/src/AuthnApi/CognitoGithubOidcApiHandler.ts).
 
 The AWS CDK setup for Github is in
 [CognitoGithubStackV1.ts](/aws-infra/src/Stack/CognitoGithubStackV1.ts)
