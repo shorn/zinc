@@ -1,47 +1,25 @@
-import { AuthError, forceError, isError } from "Util/Error";
+import { AuthError, isError } from "Util/Error";
 import {
   formatErrorResponse,
   formatRedirectResponse,
-  formatSuccessResponse,
   LambdaFunctionUrlEvent,
   LambdaResponse,
   LamdbaQueryStringParameters
 } from "Util/LambdaEvent";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { z as zod } from "zod";
-import { readJsonParam } from "Util/Ssm";
 import { TwitterApi } from "AuthnApi/Downstream/TwitterApi";
 import { twitter } from "Shared/Constant";
+import { createIdTokenJwt } from "AuthnApi/Cognito";
+import {
+  DirectTwitterAuthnConfig,
+  readTwitterConfigFromSsm
+} from "LambdaConfig";
 
 const name = "DirectTwitterAuthnApi";
 
-
-export const DirectTwitterAuthnConfig = zod.object({
-  consumerKey: zod.string(),
-  consumerSecret: zod.string(),
-  //allowedCallbackUrls: zod.string().url().array().nonempty(),
-  //functionUrl: zod.string().url(),
-});
-export type DirectTwitterAuthnConfig = 
-  zod.infer<typeof DirectTwitterAuthnConfig>;
-
 // time spent in here is part of the "cold start" 
 let config: Promise<DirectTwitterAuthnConfig> = initConfig();
-
-export async function readTwitterConfigFromSsm(
-  paramName: string|undefined
-): Promise<DirectTwitterAuthnConfig|Error>{
-  try {
-    const paramValue = await readJsonParam(paramName);
-    return DirectTwitterAuthnConfig.parse(paramValue);
-  }
-  catch( err ){
-    console.log(`problem parsing lambda config from ${paramName}`,
-      "TODO:STO help",
-      "TODO:STO example" );
-    return forceError(err);
-  }
-}
 
 async function initConfig(): Promise<DirectTwitterAuthnConfig>{
   if( config ){
@@ -96,8 +74,8 @@ async function dispatchApiCall(
     
     const api = new TwitterApi();
     const authUrl = await api.getAppOAuthToken({
-      consumerKey: config.consumerKey,
-      consumerSecret: config.consumerSecret,
+      consumerKey: config.twitterConsumerKey,
+      consumerSecret: config.twitterConsumerSecret,
       callbackUrl
     });
     
@@ -115,36 +93,45 @@ async function dispatchApiCall(
     const api = new TwitterApi();
     
     const accessToken = await api.getUserOAuthToken({
-      consumerKey: config.consumerKey,
-      consumerSecret: config.consumerSecret,
+      consumerKey: config.twitterConsumerKey,
+      consumerSecret: config.twitterConsumerSecret,
       oauthToken: idpResponse.oauthToken,
       oauthVerifier: idpResponse.oauthVerfier,
     });
     
-    const email = await api.getUserVerifiyCredentials({
-      consumerKey: config.consumerKey,
-      consumerSecret: config.consumerSecret,
+    const userDetails = await api.getUserVerifiyCredentials({
+      consumerKey: config.twitterConsumerKey,
+      consumerSecret: config.twitterConsumerSecret,
       oauthToken: accessToken.oAuthToken,
       oauthTokenSecret: accessToken.oAuthTokenSecret,
     });
-    
-  //
-  //  ///* logging this will log the access and id tokens - not quite as bad as 
-  //  //logging a secret since it has an expiry, but still not something we want 
-  //  //to leak. */
-  //  //const facebookToken = await facebookApi.getToken({
-  //  //  code: idpResponse.code,
-  //  //  client_id: config.clientId,
-  //  //  client_secret: config.clientSecret,
-  //  //  grant_type: "authorization_code",
-  //  //  redirect_uri: `https://${event.headers.host}/idpresponse`
-  //  //});
-  //  
-  //  // redirect back to the client with the new id_token
-  //  const signedInUrl = idpResponse.state.redirectUri + 
-  //    `#id_token=${"xxx"}`;
-  //  return formatRedirectResponse(signedInUrl);
-    return formatSuccessResponse({result: email});
+
+    const email = userDetails.email ? userDetails.email : 
+      `${userDetails.id}@noreply.${event.headers.host}`;
+    const oidcClaims = {
+      // OIDC says this must be string
+      sub: userDetails.id.toString(),
+      email: email,
+      /* twitter just doesn't give you that info, note that `verified` is about
+      the blue tick, not email addresses. */
+      email_verified: false,
+    }
+
+    const idToken = createIdTokenJwt({
+      secret: config.jwtSecret,
+      issuer: `https://${event.headers.host}`,
+      // this maybe should be be just "https://zincApi-twitter or something
+      audience: config.twitterConsumerKey,
+      attributes: oidcClaims }) ;
+
+    /* TODO:STO this is the missing bit, I can't figure out how to get Twitter
+     to pass state so I can figure out who to redirect the idpResponse to. 
+     Worst case, gonna need two Twitter OAuth apps, and we can select the 
+     redirectUri based on consumerKey. */
+    const redirectUri = "http://localhost:9090";
+    // redirect back to the client with the new id_token
+    const signedInUrl = `${redirectUri}#id_token=${idToken}`;
+    return formatRedirectResponse(signedInUrl);
   }
 
   return undefined;
@@ -156,7 +143,7 @@ export const TwitterIdpResponse = zod.object({
 });
 export type TwitterIdpResponse = zod.infer<typeof TwitterIdpResponse>;
 
-export function parseTwitterIdpResponse(
+function parseTwitterIdpResponse(
   query: LamdbaQueryStringParameters | undefined
 ): TwitterIdpResponse {
   if( !query ){

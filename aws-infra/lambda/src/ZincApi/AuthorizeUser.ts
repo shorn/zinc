@@ -89,10 +89,17 @@ async function verifyCognitoIdToken(
   console.log("authorize decode", decoded);
 
   let payload: JwtPayload;
-  // IMPROVE: it's about time to make this a map of verifier keyed by audience,
-  // verifier objects need to know how to do both RSA and HMAC.
+  /* IMPROVE: it's about time to make this a map of verifier keyed by audience,
+   verifier objects need to know how to do both RSA and HMAC.
+   Or better; leave the Cognito verfiers the way they are, but unify all the 
+   direct authentication under a "zincApi" audience secured with a single HS256
+   secret. Make each direct lambda handler responsible for mapping a successful
+   user authentication through to the single standard zincApi id_token. 
+   Less config flying around and also more secure (zincApi lambda then wouldn't
+   need to be allowed to all the direct lambda's config params. */
   if( decoded.aud === config.cognito.google.userPoolClientId ){
     try {
+      payload = await config.rsaVerifier.googleCognito.verify(idToken);
       payload = await config.rsaVerifier.googleCognito.verify(idToken);
     }
     catch( err ){
@@ -158,6 +165,18 @@ async function verifyCognitoIdToken(
       });
     }
   }
+  else if( decoded.aud === config.directAuthn.twitter.twitterConsumerKey ){
+    try {
+      payload = await verifyTwitterDirectAuthn(
+        idToken, {...config.directAuthn.twitter} );
+    }
+    catch( err ){
+      throw new AuthError({
+        publicMsg: "while verifying twitter direct",
+        privateMsg: forceError(err).message
+      });
+    }
+  }
   else {
     console.error("unknown JWT [aud]: ", decoded);
     throw new AuthError({
@@ -175,6 +194,44 @@ async function verifyCognitoIdToken(
   }
 
   return payload;
+}
+
+function verifyTwitterDirectAuthn(
+  idToken: string, 
+  config: {
+    functionUrl: string,
+    twitterConsumerKey: string,
+    jwtSecret: string,
+  }
+): JwtPayload{
+  let result: string | JwtPayload;
+  try {
+    result = verify(
+      idToken, 
+      config.jwtSecret,
+      {
+        algorithms: ["HS256"] as Algorithm[],
+        issuer: config.functionUrl,
+        audience: config.twitterConsumerKey,
+      }
+    );
+  }
+  catch( err ){
+    console.log("problem verifying twitter idToken", err);
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "failed direct twitter verify: " + forceError(err).message
+    });
+  }
+
+  if( typeof(result) === 'string' ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "direct twitter payload was string: " + result
+    });
+  }
+
+  return result;
 }
 
 function verifyGithubDirectAuthn(
@@ -201,14 +258,14 @@ function verifyGithubDirectAuthn(
     console.log("problem verifying", err);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
-      privateMsg: "failed direct verification: " + forceError(err).message
+      privateMsg: "failed direct github verify: " + forceError(err).message
     });
   }
 
   if( typeof(result) === 'string' ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
-      privateMsg: "direct payload was string: " + result
+      privateMsg: "direct github payload was string: " + result
     });
   }
 

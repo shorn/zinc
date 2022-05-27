@@ -7,12 +7,11 @@ import {
 } from "Util/LambdaEvent";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import {
-  OAuthClientConfig,
   parseIdpResponse,
-  readOAuthConfigFromSsm,
   validateRedirectUri
 } from "AuthnApi/OAuth";
 import { FacebookApi } from "AuthnApi/Downstream/FacebookApi";
+import { OAuthClientConfig, readOAuthConfigFromSsm } from "LambdaConfig";
 
 const name = "DirectFacebookAuthnApi";
 

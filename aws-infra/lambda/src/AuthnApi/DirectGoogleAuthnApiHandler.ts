@@ -1,19 +1,14 @@
-import { AuthError, isError } from "Util/Error";
+import { AuthError, genericAuthError, isError } from "Util/Error";
 import {
   formatErrorResponse,
   formatRedirectResponse,
   LambdaFunctionUrlEvent,
-  LambdaResponse,
-  LamdbaQueryStringParameters
+  LambdaResponse
 } from "Util/LambdaEvent";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
-import { decodeBase64 } from "Util/Encoding";
-import {
-  OAuthClientConfig, parseIdpResponse,
-  readOAuthConfigFromSsm, validateRedirectUri,
-  ZincOAuthIdpResponse
-} from "AuthnApi/OAuth";
+import { parseIdpResponse, validateRedirectUri } from "AuthnApi/OAuth";
 import { GoogleApi } from "AuthnApi/Downstream/GoogleApi";
+import { OAuthClientConfig, readOAuthConfigFromSsm } from "LambdaConfig";
 
 const name = "DirectGoogleAuthnApi";
 
@@ -84,6 +79,9 @@ async function dispatchApiCall(
       grant_type: "authorization_code",
       redirect_uri: `https://${event.headers.host}/idpresponse`
     });
+    if( !googleToken.scope ){
+      throw genericAuthError("google /token did not return a scope");
+    }
     validateGoogleTokenScope(googleToken.scope);
     
     // redirect back to the client with the new id_token

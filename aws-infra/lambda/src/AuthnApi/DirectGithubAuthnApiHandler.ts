@@ -11,7 +11,7 @@ import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { decodeBase64 } from "Util/Encoding";
 import { createIdTokenJwt } from "AuthnApi/Cognito";
 import { ZincOAuthState } from "Shared/ApiTypes";
-import { OAuthClientConfig, readOAuthConfigFromSsm } from "AuthnApi/OAuth";
+import { OAuthClientConfig, readOAuthConfigFromSsm } from "LambdaConfig";
 
 const name = "DirectGithubAuthnApi";
 
@@ -128,7 +128,7 @@ export type ZincOAuthIdpResonse = {
   state: ZincOAuthState,
 }
 
-export function parseIdpResponse(
+function parseIdpResponse(
   query: LamdbaQueryStringParameters | undefined
 ): ZincOAuthIdpResonse {
   if( !query ){

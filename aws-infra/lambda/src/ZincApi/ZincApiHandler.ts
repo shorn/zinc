@@ -26,7 +26,6 @@ import {
 } from "Util/LambdaEvent";
 import { prdApiPath } from "../../../src/Stack/CloudFrontStackV5";
 import { authorizeUser } from "ZincApi/AuthorizeUser";
-import { OAuthClientConfig, readOAuthConfigFromSsm } from "AuthnApi/OAuth";
 import {
   createCognitoJwtRsaVerifier,
   readZincApiConfigFromSsm,
@@ -37,6 +36,11 @@ import {
   googleIssuerUrl,
   googleJwksUrl
 } from "Shared/Constant";
+import {
+  DirectTwitterAuthnConfig,
+  OAuthClientConfig,
+  readOAuthConfigFromSsm, readTwitterConfigFromSsm
+} from "LambdaConfig";
 
 const name = "LambdaApiV2";
 const lambdaCreateDate = new Date();
@@ -102,6 +106,7 @@ export interface ZincApiRuntime {
     github: OAuthClientConfig,
     google: OAuthClientConfig,
     facebook: OAuthClientConfig,
+    twitter: DirectTwitterAuthnConfig,
   }
 }
 
@@ -124,11 +129,12 @@ async function initRuntime(): Promise<ZincApiRuntime>{
     readOAuthConfigFromSsm(process.env.DIRECT_GOOGLE_OAUTH_CONFIG_SSM_PARAM),
     readOAuthConfigFromSsm(process.env.DIRECT_GITHUB_OAUTH_CONFIG_SSM_PARAM),
     readOAuthConfigFromSsm(process.env.DIRECT_FACEBOOK_OAUTH_CONFIG_SSM_PARAM),
+    readTwitterConfigFromSsm(process.env.DIRECT_TWITTER_OAUTH_CONFIG_SSM_PARAM),
   ]);
 
   const configErrors = configResults.filter(it=> isError(it));
   if( configErrors.length > 0 ){
-    configErrors.forEach(it=> console.log(it));
+    console.log("some config errors", configErrors);
     throw configErrors[0];
   }
   
@@ -136,6 +142,7 @@ async function initRuntime(): Promise<ZincApiRuntime>{
   const googleDirectConfig = configResults[1] as OAuthClientConfig;
   const githubDirectConfig = configResults[2] as OAuthClientConfig;
   const facebookDirectConfig = configResults[3] as OAuthClientConfig;
+  const twitterDirectConfig = configResults[4] as DirectTwitterAuthnConfig;
   
   console.log("SSM read and validated");
   
@@ -152,6 +159,7 @@ async function initRuntime(): Promise<ZincApiRuntime>{
       github: githubDirectConfig,
       google: googleDirectConfig,
       facebook: facebookDirectConfig,
+      twitter: twitterDirectConfig,
     },
     authzSecrets: zincApiConfig.authzSecrets,
     authzSigningSecret: getAuthzSigningSecret(zincApiConfig.authzSecrets),
