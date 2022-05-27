@@ -87,11 +87,8 @@ async function dispatchApiCall(
   if( method === "GET" && path === "/idpresponse" ){
     // do not log the tokenRequest without protecting the secrets it contains
     const idpResponse = parseTwitterIdpResponse(query);
-    // can't figure out how to carry state through Twitter yet
-    //  validateRedirectUri(idpResponse.state.redirectUri, config);
-    //  
+
     const api = new TwitterApi();
-    
     const accessToken = await api.getUserOAuthToken({
       consumerKey: config.twitterConsumerKey,
       consumerSecret: config.twitterConsumerSecret,
@@ -126,9 +123,11 @@ async function dispatchApiCall(
 
     /* TODO:STO this is the missing bit, I can't figure out how to get Twitter
      to pass state so I can figure out who to redirect the idpResponse to. 
-     Worst case, gonna need two Twitter OAuth apps, and we can select the 
-     redirectUri based on consumerKey. */
-    const redirectUri = "http://localhost:9090";
+     Worst case, gonna need two Twitter OAuth apps and two lambda functions, 
+     blech. At the moment, just hardcoded and have to change and hot-deploy
+     when doing local dev. */
+    const redirectUri = "https://d10mxtejtt0tmd.cloudfront.net";
+
     // redirect back to the client with the new id_token
     const signedInUrl = `${redirectUri}#id_token=${idToken}`;
     return formatRedirectResponse(signedInUrl);
