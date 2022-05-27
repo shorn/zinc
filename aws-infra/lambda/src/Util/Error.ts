@@ -1,3 +1,5 @@
+import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
+
 export function forceError(e: unknown): Error{
   if( !e ){
     return new Error("[null or undefined]");
@@ -41,5 +43,12 @@ export class AuthError extends Error {
     // Set the prototype explicitly.
     Object.setPrototypeOf(this, AuthError.prototype);
   }
+  
+  static generic(privateMsg: string): AuthError{ 
+    return new AuthError({publicMsg: GENERIC_DENIAL, privateMsg});
+  }
 }
 
+export function genericAuthError(privateMsg: string){
+  return AuthError.generic(privateMsg);
+}

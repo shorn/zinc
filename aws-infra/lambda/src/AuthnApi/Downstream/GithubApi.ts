@@ -6,15 +6,7 @@ import {
   AuthorizeCodeGrantParameters,
   OAuthTokenRequest
 } from "AuthnApi/OAuth";
-
-/* Hardcoded because Zinc is only designed to work with public Github, not
-the enterprise version. */
-const githubUrlBase = {
-  authorize: "https://github.com/login/oauth/authorize",
-  token: "https://github.com/login/oauth/access_token",
-  userDetail: "https://api.github.com/user",
-  userEmails: "https://api.github.com/user/emails",
-}
+import { github } from "Shared/Constant";
 
 export interface GithubTokenResponse {
   access_token: string,
@@ -84,7 +76,7 @@ export class GithubApi {
   public async getToken(
     tokenRequest: OAuthTokenRequest
   ): Promise<GithubTokenResponse>{
-    const githubResponse = await fetch(githubUrlBase.token, {
+    const githubResponse = await fetch(github.token, {
       agent: this.httpsAgent,
       method: "POST",
       headers: {
@@ -121,7 +113,7 @@ export class GithubApi {
   }
 
   private async getUserDetails(accessToken: string): Promise<GithubUserDetail>{
-    const res = await fetch(githubUrlBase.userDetail, {
+    const res = await fetch(github.userDetail, {
       agent: this.httpsAgent,
       method: "GET",
       headers: {
@@ -164,7 +156,7 @@ export class GithubApi {
   private async getUserEmail(
     accessToken: string
   ): Promise<GithubUserEmail>{
-    const res = await fetch(githubUrlBase.userEmails, {
+    const res = await fetch(github.userEmails, {
       agent: this.httpsAgent,
       method: "GET",
       headers: {
@@ -257,7 +249,7 @@ export function getAuthorizeUrlRedirect(
 ): string{
   const {client_id, scope, state, response_type, redirect_uri} = params;
 
-  return githubUrlBase.authorize +
+  return github.authorize +
     `?client_id=${client_id}` +
     `&scope=${encodeURIComponent(scope)}` +
     `&state=${state}` +

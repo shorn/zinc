@@ -34,6 +34,12 @@ import {
 import {
   DirectFacebookAuthnApiLambdaStack
 } from "Stack/Lambda/DirectFacebookAuthnApiLambdaStack";
+import {
+  DirectTwitterAuthnApiConfigParamStack
+} from "Stack/Lambda/DirectTwitterAuthnApiConfigParamStack";
+import {
+  DirectTwitterAuthnApiLambdaStack
+} from "Stack/Lambda/DirectTwitterAuthnApiLambdaStack";
 
 const main = new App();
 
@@ -71,6 +77,12 @@ const auDirectFacebookAuthnConfig = new DirectFacebookAuthnApiConfigParamStack(
   }
 );
 
+const auDirectTwitterAuthnConfig = new DirectTwitterAuthnApiConfigParamStack(
+  main, `DirectTwitterAuthnApiConfigParamStack`, {
+    ...auStackProps(),
+  }
+);
+
 const auZincApiLambda = new ZincApiLambdaStack(
   main, 'ZincApiLambdaStack', {
     ...auStackProps(),
@@ -100,6 +112,13 @@ const auDirectFacebookAuthnLambda = new DirectFacebookAuthnApiLambdaStack(
   main, 'DirectFacebookAuthnApiLambdaStack', {
     ...auStackProps(),
     config: auDirectFacebookAuthnConfig,
+  }
+);
+
+const auDirectTwitterAuthnLambda = new DirectTwitterAuthnApiLambdaStack(
+  main, 'DirectTwitterAuthnApiLambdaStack', {
+    ...auStackProps(),
+    config: auDirectTwitterAuthnConfig,
   }
 );
 

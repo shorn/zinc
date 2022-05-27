@@ -1,5 +1,8 @@
-import { signAuthzToken, verifyAuthzToken } from "../src/Authz/AuthzToken";
 import { getBearerToken } from "../src/Util/Header";
+import {
+  signAuthzToken,
+  verifyAuthzToken
+} from "../src/ZincApi/Authz/AuthzToken";
 
 /*
  needs lots more tests

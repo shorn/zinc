@@ -9,9 +9,9 @@ import { NewWindowLink, zincGithubDirectDocUrl } from "Component/ExternalLinks";
 import { ZincOAuthState } from "Shared/ApiTypes";
 import { encodeBase64 } from "Util/Encoding";
 import {
-  facebookAuthnScope, facebookAuthorizeUrl,
-  githubAuthnScope,
-  githubAuthorizeUrl, googleAuthnScope,
+  facebookAuthnScope,
+  facebookAuthorizeUrl, github,
+  googleAuthnScope,
   googleAuthorizeUrl
 } from "Shared/Constant";
 import { useSignInContext } from "Auth/AuthProvider";
@@ -19,6 +19,7 @@ import { useSignInContext } from "Auth/AuthProvider";
 const githubAction = "github-direct";
 const googleAction = "google-direct";
 const facebookAction = "facebook-direct";
+const twitterAction = "twitter-direct";
 
 export function DirectSocialSignInContainer(){
   const serverInfo = useServerInfo();
@@ -32,9 +33,9 @@ export function DirectSocialSignInContainer(){
     }
     signInContext.setAction(githubAction);
     try {
-      let loginUrl = `${githubAuthorizeUrl}` +
+      let loginUrl = `${github.authorize}` +
         `?client_id=${serverInfo.directAuthn.github.clientId}` +
-        `&scope=${encodeURIComponent(githubAuthnScope)}` +
+        `&scope=${encodeURIComponent(github.authnScope)}` +
         `&response_type=code` +
         `&state=${encodeBase64(JSON.stringify(state))}`;
       navBrowserByAssign(loginUrl);
@@ -91,6 +92,24 @@ export function DirectSocialSignInContainer(){
     }
   }
 
+  async function twitterSignIn(){
+    const state: ZincOAuthState = {
+      redirectUri: serverLocationUrl()
+    }
+    // TODO:STO iontegrate this into ZincApi config
+    const twitterAuthUrl = "https://27hnnzi4cesojd5cpwhfoxfpx40tnwmy.lambda-url.ap-southeast-2.on.aws/authorize"; 
+    signInContext.setAction(twitterAction);
+    try {
+      let loginUrl = `${twitterAuthUrl}` +
+        `?state=${encodeBase64(JSON.stringify(state))}`;
+      navBrowserByAssign(loginUrl);
+    }
+    catch( err ){
+      signInContext.setAction(undefined);
+      throw err;
+    }
+  }
+
   const disabled = !!signInContext.action;
   return <ContainerCard title={"Direct Social Sign-in"}>
     <ButtonContainer style={{
@@ -112,6 +131,11 @@ export function DirectSocialSignInContainer(){
         disabled={disabled} onClick={facebookSignIn}
       >
         Facebook
+      </PrimaryButton>
+      <PrimaryButton isLoading={signInContext.action === twitterAction} 
+        disabled={disabled} onClick={twitterSignIn}
+      >
+        Twitter
       </PrimaryButton>
     </ButtonContainer>
     <TextSpan>
