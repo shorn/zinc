@@ -59,7 +59,10 @@ export const authApi: AuthApi = {
       facebook: {
         issuer: (await runtime).directAuthn.facebook.functionUrl,
         clientId: (await runtime).directAuthn.facebook.clientId,
-      }
+      },
+      twitter: {
+        issuer: (await runtime).directAuthn.twitter.functionUrl,
+      },
     },
     lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,
   }),

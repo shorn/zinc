@@ -2,7 +2,6 @@ import React from "react";
 import { navBrowserByAssign, serverLocationUrl } from "Util/WindowUtil";
 import { ContainerCard } from "Design/ContainerCard";
 import { PrimaryButton } from "Component/AppButton";
-import { ButtonContainer } from "Component/ButtonContainer";
 import { useServerInfo } from "Api/ServerInfoProvider";
 import { TextSpan } from "Component/TextSpan";
 import { NewWindowLink, zincGithubDirectDocUrl } from "Component/ExternalLinks";
@@ -10,7 +9,8 @@ import { ZincOAuthState } from "Shared/ApiTypes";
 import { encodeBase64 } from "Util/Encoding";
 import {
   facebookAuthnScope,
-  facebookAuthorizeUrl, github,
+  facebookAuthorizeUrl,
+  github,
   googleAuthnScope,
   googleAuthorizeUrl
 } from "Shared/Constant";
@@ -93,15 +93,11 @@ export function DirectSocialSignInContainer(){
   }
 
   async function twitterSignIn(){
-    const state: ZincOAuthState = {
-      redirectUri: serverLocationUrl()
-    }
-    // TODO:STO iontegrate this into ZincApi config
-    const twitterAuthUrl = "https://27hnnzi4cesojd5cpwhfoxfpx40tnwmy.lambda-url.ap-southeast-2.on.aws/authorize"; 
     signInContext.setAction(twitterAction);
     try {
-      let loginUrl = `${twitterAuthUrl}` +
-        `?state=${encodeBase64(JSON.stringify(state))}`;
+      /* this points to *our* lambda handler, because Twitter requires that we 
+      pass the "app oauth_token" to their actual /authorize endpoint */  
+      let loginUrl = `${serverInfo.directAuthn.twitter.issuer}/authorize`;
       navBrowserByAssign(loginUrl);
     }
     catch( err ){
@@ -112,11 +108,13 @@ export function DirectSocialSignInContainer(){
 
   const disabled = !!signInContext.action;
   return <ContainerCard title={"Direct Social Sign-in"}>
-    <ButtonContainer style={{
+    <div style={{display: "grid", 
+      gridTemplateColumns: "8em 8em",
       justifyContent: "center",
+      columnGap: "1em", rowGap: "1em",
       // the textspan following was too cramped
       marginBottom: ".5em"
-    }}>
+    }}> 
       <PrimaryButton isLoading={signInContext.action === googleAction} 
         disabled={disabled} onClick={googleSignIn}
       >
@@ -137,7 +135,7 @@ export function DirectSocialSignInContainer(){
       >
         Twitter
       </PrimaryButton>
-    </ButtonContainer>
+    </div>
     <TextSpan>
       Sign in directly to the ID Provider,{" "}
       <NewWindowLink href={zincGithubDirectDocUrl}>without using Cognito

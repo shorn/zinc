@@ -27,7 +27,7 @@ export function  ButtonContainer({
     </span>;
   }
 
-  return <div >
+  return <>
     { justifyContent === 'flex-end' && errorComponent }
     <span {...spanProps} style={{
       display: "flex", flexWrap: "wrap",
@@ -45,5 +45,5 @@ export function  ButtonContainer({
       )}
     </span>
     { (justifyContent !== 'flex-end') && errorComponent }
-  </div>
+  </>
 }

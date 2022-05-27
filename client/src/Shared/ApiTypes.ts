@@ -134,6 +134,9 @@ export interface ServerInfo {
       issuer: string,
       clientId: string,
     },
+    twitter: {
+      issuer: string,
+    }
   }
   lambdaCreateDate: Date,
 }
