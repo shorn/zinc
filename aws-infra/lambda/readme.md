@@ -5,23 +5,23 @@ authn/authz and Zinc access control.
 
 * [/src/ZincApi/](src/ZincApi)
   * Individual functions that implement "Zinc API".
-  * [/src/ZincApi/ZincApiHandler.ts](src/ZincApi/ZincApiHandler.ts)
+  * [ZincApiHandler.ts](src/ZincApi/ZincApiHandler.ts)
     * entry point for the ZincApi lambda
     * handles "business logic", including authorization
 * [src/AuthnApi](src/AuthnApi)
   * various lambdas for handling authentication
-  * [src/AuthnApi/CognitoGithubOidcApiHandler.ts](src/AuthnApi/CognitoGithubOidcApiHandler.ts)
+  * [CognitoGithubOidcApiHandler.ts](src/AuthnApi/CognitoGithubOidcApiHandler.ts)
     * publishes a set of endpoints that map Github's OAuth API to the 
     standard OIDC endpoints (Github doesn't support OIDC)
     * see [cognito-github.md](/aws-infra/lambda/doc/cognito-github.md)
-  * [src/AuthnApi/DirectGoogleAuthnApiHandler.ts](src/AuthnApi/DirectGoogleAuthnApiHandler.ts)
+  * [DirectGoogleAuthnApiHandler.ts](src/AuthnApi/DirectGoogleAuthnApiHandler.ts)
     * publishes a callback url that Google can redirect the browser to as part
     of the direct authentication flow
-  * [src/AuthnApi/DirectGithubAuthnApiHandler.ts](src/AuthnApi/DirectGithubAuthnApiHandler.ts)
+  * [DirectGithubAuthnApiHandler.ts](src/AuthnApi/DirectGithubAuthnApiHandler.ts)
     * publishes a callback url that Github can redirect the browser to as part
     of the direct authentication flow
     * see [direct-github-sign-in.md](/aws-infra/lambda/doc/direct-github-sign-in.md)
-  * [src/AuthnApi/DirectTwitterAuthnApiHandler.ts](src/AuthnApi/DirectTwitterAuthnApiHandler.ts)
+  * [DirectTwitterAuthnApiHandler.ts](src/AuthnApi/DirectTwitterAuthnApiHandler.ts)
     * publishes an /authorize url that the client calls to redirect to the twitter/authenticate url
       (required by Twitter's OAuth1 flow) and the callback url that Twitter 
       redirects the browser to as part of the direct authentication flow
