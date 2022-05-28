@@ -44,7 +44,7 @@ idp->>lambda:
 note left of idp: {id, email, screen_name}
 lambda->>lambda: create JWT, signed with config.idTokenSecret
 
-lambda->>user: 302 redirect to client (from {state.redirect_uri}) 
+lambda->>user: 302 redirect to client (from state.redirect_uri) 
 note left of lambda: {id_token}
 user-->>client: browser follows redirect
 client->>client: parse id_token from url
