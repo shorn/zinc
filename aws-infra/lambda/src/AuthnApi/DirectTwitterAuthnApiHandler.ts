@@ -132,7 +132,7 @@ async function dispatchApiCall(
     }
 
     const idToken = createIdTokenJwt({
-      secret: config.jwtSecret,
+      secret: config.idTokenSecret,
       issuer: `https://${event.headers.host}`,
       /* this maybe should be be just "https://zincApi-twitter or something,
       it doesn't need to be the consumerKey, I just don't feel like adding

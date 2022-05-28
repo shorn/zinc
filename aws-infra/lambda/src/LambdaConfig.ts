@@ -18,7 +18,7 @@ export const DirectTwitterAuthnConfig = zod.object({
   twitterConsumerKey: zod.string().nonempty(),
   twitterConsumerSecret: zod.string().nonempty(),
   // used by the TwitterHandler to create a JWT and ZincApi to validate it
-  jwtSecret: zod.string().nonempty().min(15),
+  idTokenSecret: zod.string().nonempty().min(15),
   // used by ZincApi to validate the issuer
   functionUrl: zod.string().url().nonempty(),
   allowedCallbackUrls: zod.string().url().array().nonempty(),

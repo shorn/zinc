@@ -201,14 +201,14 @@ function verifyTwitterDirectAuthn(
   config: {
     functionUrl: string,
     twitterConsumerKey: string,
-    jwtSecret: string,
+    idTokenSecret: string,
   }
 ): JwtPayload{
   let result: string | JwtPayload;
   try {
     result = verify(
       idToken, 
-      config.jwtSecret,
+      config.idTokenSecret,
       {
         algorithms: ["HS256"] as Algorithm[],
         issuer: config.functionUrl,
