@@ -93,11 +93,16 @@ export function DirectSocialSignInContainer(){
   }
 
   async function twitterSignIn(){
+    const state: ZincOAuthState = {
+      // this redirectUri is about the lambda redirect back our client
+      redirectUri: serverLocationUrl()
+    }
     signInContext.setAction(twitterAction);
     try {
       /* this points to *our* lambda handler, because Twitter requires that we 
       pass the "app oauth_token" to their actual /authorize endpoint */  
-      let loginUrl = `${serverInfo.directAuthn.twitter.issuer}/authorize`;
+      let loginUrl = `${serverInfo.directAuthn.twitter.issuer}/authorize` +
+        `?state=${encodeBase64(JSON.stringify(state))}`;
       navBrowserByAssign(loginUrl);
     }
     catch( err ){

@@ -3,8 +3,8 @@
  * handler modules.  If you import a function (as opposed to types) from a 
  * handler module, it will run the `initConfig()` code of that lambda (because
  * the config init stuff is defined as a module global in order to happen at 
- * "cold start", but each time you import a function from some other lambda into 
- * your lambda, you're effectively "cold starting" that other lambda).
+ * "cold start", but each time you import a function from some other lambda 
+ * into your lambda, you're effectively "cold starting" that other lambda).
  * It's a waste of time and a source of errors (if the lambda uses different
  * ENV names to read the config, for example).
  * Note the ZincApiConfig is fine because it's off in it's own module.
@@ -21,7 +21,7 @@ export const DirectTwitterAuthnConfig = zod.object({
   jwtSecret: zod.string().nonempty().min(15),
   // used by ZincApi to validate the issuer
   functionUrl: zod.string().url().nonempty(),
-  //allowedCallbackUrls: zod.string().url().array().nonempty(),
+  allowedCallbackUrls: zod.string().url().array().nonempty(),
 });
 export type DirectTwitterAuthnConfig =
   zod.infer<typeof DirectTwitterAuthnConfig>;

@@ -24,7 +24,9 @@ export const facebookAuthnScope = "openid email";
 
 export const twitter = {
   tokenRequestUrl: "https://api.twitter.com/oauth/request_token",
-  authorizeUrl: "https://api.twitter.com/oauth/authorize",
+  /** `/authorize` will ask for permission every time, `/authenticate` will 
+   * remember if user had previously approved our app. */
+  authenticateUrl: "https://api.twitter.com/oauth/authenticate",
   accessTokenUrl: "https://api.twitter.com/oauth/access_token",
   verifyCredentialsUrl: "https://api.twitter.com/1.1/account/verify_credentials.json",
 };                      

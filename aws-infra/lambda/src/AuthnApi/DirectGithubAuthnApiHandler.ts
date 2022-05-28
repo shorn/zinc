@@ -12,6 +12,7 @@ import { decodeBase64 } from "Util/Encoding";
 import { createIdTokenJwt } from "AuthnApi/Cognito";
 import { ZincOAuthState } from "Shared/ApiTypes";
 import { OAuthClientConfig, readOAuthConfigFromSsm } from "LambdaConfig";
+import { validateRedirectUri } from "AuthnApi/OAuth";
 
 const name = "DirectGithubAuthnApi";
 
@@ -67,7 +68,8 @@ async function dispatchApiCall(
   if( method === "GET" && path === "/idpresponse" ){
     // do not log the tokenRequest without protecting the secrets it contains
     const idpResponse = parseIdpResponse(query);
-    validateRedirectUri(idpResponse.state.redirectUri, config);
+    validateRedirectUri(idpResponse.state.redirectUri, 
+      config.allowedCallbackUrls);
  
     const githubApi = new GithubApi();
     const githubToken = await githubApi.getToken({
@@ -76,12 +78,10 @@ async function dispatchApiCall(
       client_secret: config.clientSecret,
       grant_type: "code"
     });
-    console.log("githubToken", githubToken);
     validateGithubTokenScope(githubToken.scope);
     
     const attributes = await githubApi.mapOidcAttributes(
       githubToken.access_token );
-    console.log("github attributes", attributes);
 
     const idToken = createIdTokenJwt({
       secret: config.clientSecret,
@@ -105,20 +105,6 @@ function validateGithubTokenScope(
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
       privateMsg: "github /access_token returned unexpected [scope]: " + scope,
-    });
-  }
-}
-
-function validateRedirectUri(
-  redirect_uri: string,
-  config: OAuthClientConfig,
-){
-  if( !config.allowedCallbackUrls.includes(redirect_uri) ){
-    //console.log("allowed urls", config.allowedCallbackUrls);
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "[redirect_uri] not in allowed callback urls: " + 
-        redirect_uri,
     });
   }
 }
@@ -153,7 +139,6 @@ function parseIdpResponse(
   }
 
   let decodedString = decodeBase64(state);
-  console.log("/idpresponse", code, decodedString);
   const decodedState = JSON.parse(decodedString);
 
   if( !decodedState.redirectUri ){

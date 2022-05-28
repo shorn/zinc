@@ -145,10 +145,10 @@ export type OAuthIdToken = zod.infer<typeof OAuthIdToken>;
 
 export function validateRedirectUri(
   redirect_uri: string,
-  config: OAuthClientConfig,
+  allowedCallbackUrls: string[],
 ){
-  if( !config.allowedCallbackUrls.includes(redirect_uri) ){
-    console.log("allowed urls", config.allowedCallbackUrls);
+  if( !allowedCallbackUrls.includes(redirect_uri) ){
+    console.log("allowed urls", allowedCallbackUrls);
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
       privateMsg: "[redirect_uri] not in allowed callback urls: " +
@@ -183,7 +183,7 @@ export function parseIdpResponse(
   }
 
   let decodedString = decodeBase64(state);
-  console.log("/idpresponse", code, decodedString);
+  
   const decodedState = JSON.parse(decodedString);
 
   if( !decodedState.redirectUri ){

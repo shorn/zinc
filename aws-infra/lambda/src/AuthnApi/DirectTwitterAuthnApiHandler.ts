@@ -15,6 +15,9 @@ import {
   DirectTwitterAuthnConfig,
   readTwitterConfigFromSsm
 } from "LambdaConfig";
+import { decodeBase64 } from "Util/Encoding";
+import { ZincOAuthState } from "Shared/ApiTypes";
+import { validateRedirectUri } from "AuthnApi/OAuth";
 
 const name = "DirectTwitterAuthnApi";
 
@@ -69,8 +72,15 @@ async function dispatchApiCall(
   const query = event.queryStringParameters;
 
   if( method === "GET" && path === "/authorize" ){
-    // must match what is configured in the Twitter developer console
-    const callbackUrl = `https://${event.headers.host}/idpresponse`;
+    const parsedState = parseAuthorizeRequest(query);
+    validateRedirectUri(parsedState.redirectUri, config.allowedCallbackUrls);
+
+    /* callbackBase must match what is configured in the Twitter developer 
+    console, but without query parameters.
+    Twitter will redirect the browser to the calbackUrl, including parameters, 
+    once Twitter and the user have approved this request to sign in. */
+    const callbackBase = `https://${event.headers.host}/idpresponse`;
+    const callbackUrl = `${callbackBase}?state=${query?.state}`;
     
     const api = new TwitterApi();
     const authUrl = await api.getAppOAuthToken({
@@ -78,16 +88,23 @@ async function dispatchApiCall(
       consumerSecret: config.twitterConsumerSecret,
       callbackUrl
     });
-    
-    // turns out, you don't need the oauthTokenSecret for authentication
-    return formatRedirectResponse(twitter.authorizeUrl +
-      `?oauth_token=${authUrl.oAuthToken}&oauth_state=xxxxxx`);
+
+    /* Turns out, you don't need the oauthTokenSecret for authentication.
+    I guess because we're only doing "user stuff" when we authenticate, 
+    not "app stuff". 
+    For "user stuff", you need a user-specific oauthToken/oauthTokenSecret.
+    The "app" oauth token is only needed for the "app" to be authorised to 
+    retrieve the "user credentials". */
+    return formatRedirectResponse(twitter.authenticateUrl +
+      `?oauth_token=${authUrl.oAuthToken}`);
   }
   
   if( method === "GET" && path === "/idpresponse" ){
     // do not log the tokenRequest without protecting the secrets it contains
     const idpResponse = parseTwitterIdpResponse(query);
-
+    validateRedirectUri(idpResponse.state.redirectUri, 
+      config.allowedCallbackUrls);
+    
     const api = new TwitterApi();
     const accessToken = await api.getUserOAuthToken({
       consumerKey: config.twitterConsumerKey,
@@ -109,36 +126,55 @@ async function dispatchApiCall(
       // OIDC says this must be string
       sub: userDetails.id.toString(),
       email: email,
-      /* twitter just doesn't give you that info, note that `verified` is about
-      the blue tick, not email addresses. */
+      /* twitter just doesn't give you that info 
+      `verified` is about the "blue tick", not email addresses */
       email_verified: false,
     }
 
     const idToken = createIdTokenJwt({
       secret: config.jwtSecret,
       issuer: `https://${event.headers.host}`,
-      // this maybe should be be just "https://zincApi-twitter or something
+      /* this maybe should be be just "https://zincApi-twitter or something,
+      it doesn't need to be the consumerKey, I just don't feel like adding
+      more config right now. */
       audience: config.twitterConsumerKey,
       attributes: oidcClaims }) ;
 
-    /* TODO:STO this is the missing bit, I can't figure out how to get Twitter
-     to pass state so I can figure out who to redirect the idpResponse to. 
-     Worst case, gonna need two Twitter OAuth apps and two lambda functions, 
-     blech. At the moment, just hardcoded and have to change and hot-deploy
-     when doing local dev. */
-    const redirectUri = "https://d10mxtejtt0tmd.cloudfront.net";
-
     // redirect back to the client with the new id_token
-    const signedInUrl = `${redirectUri}#id_token=${idToken}`;
+    const signedInUrl = `${idpResponse.state.redirectUri}#id_token=${idToken}`;
     return formatRedirectResponse(signedInUrl);
   }
 
   return undefined;
 }
 
+function parseAuthorizeRequest(
+  query?: LamdbaQueryStringParameters
+): ZincOAuthState{
+  if( !query ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "/authorize no query params"
+    });
+  }
+
+  const {state} = query;
+  if( !state ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "/authorize missing [state] param"
+    });
+  }
+
+  let decodedString = decodeBase64(state);
+  const json = JSON.parse(decodedString);
+  return ZincOAuthState.parse(json);
+}
+
 export const TwitterIdpResponse = zod.object({
   oauthToken: zod.string(),
   oauthVerfier: zod.string(),
+  state: ZincOAuthState,
 });
 export type TwitterIdpResponse = zod.infer<typeof TwitterIdpResponse>;
 
@@ -152,7 +188,7 @@ function parseTwitterIdpResponse(
     });
   }
 
-  const {oauth_token, oauth_verifier} = query;
+  const {oauth_token, oauth_verifier, state} = query;
   if( !oauth_token ){
     throw new AuthError({
       publicMsg: GENERIC_DENIAL,
@@ -165,19 +201,20 @@ function parseTwitterIdpResponse(
       privateMsg: "/idpresponse missing [oauth_verifier] param"
     });
   }
+  if( !state ){
+    throw new AuthError({
+      publicMsg: GENERIC_DENIAL,
+      privateMsg: "/idpresponse missing [state] param"
+    });
+  }
 
-  //let decodedString = decodeBase64(state);
-  //console.log("/idpresponse", code, decodedString);
-  //const decodedState = JSON.parse(decodedString);
-  //
-  //if( !decodedState.redirectUri ){
-  //  throw new AuthError({
-  //    publicMsg: GENERIC_DENIAL,
-  //    privateMsg: "/idpresponse missing [state.redirectUri]"
-  //  });
-  //}
+  let decodedString = decodeBase64(state);
+  const json = JSON.parse(decodedString);
+  const decodedOAuthState = ZincOAuthState.parse(json)
+  
   return {
     oauthToken: oauth_token,
     oauthVerfier: oauth_verifier,
+    state: decodedOAuthState, 
   };
 }

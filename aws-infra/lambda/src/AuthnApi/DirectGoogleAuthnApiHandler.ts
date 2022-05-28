@@ -65,7 +65,8 @@ async function dispatchApiCall(
   if( method === "GET" && path === "/idpresponse" ){
     // do not log the tokenRequest without protecting the secrets it contains
     const idpResponse = parseIdpResponse(query);
-    validateRedirectUri(idpResponse.state.redirectUri, config);
+    validateRedirectUri(idpResponse.state.redirectUri, 
+      config.allowedCallbackUrls);
  
     const googleApi = new GoogleApi();
 
