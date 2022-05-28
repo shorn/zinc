@@ -26,8 +26,8 @@ note right of lambda: {oauth_consumer_key,<br/>callback_url,<br/>state.redirect}
 idp->>lambda: 
 note left of idp: {oauth_token}
 lambda-->>user: 302 redirect to twitter/authenticate
+note left of lambda: {oauth_token}
 
-note right of lambda: {oauth_token}
 user-->>idp: browser loads page
 user->>idp: user clicks "authorize Zinc app" 
 idp-->>user: redirect browser to lambda/idpresponse
