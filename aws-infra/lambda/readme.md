@@ -1,3 +1,5 @@
+See [access-control.md](/doc/access-control.md) for information about about
+authn/authz and Zinc access control.
 
 ## Structure
 
