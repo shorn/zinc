@@ -30,7 +30,7 @@ note left of lambda: {oauth_token}
 
 user-->>idp: browser loads page
 user->>idp: user clicks "authorize Zinc app" 
-idp-->>user: redirect browser to lambda/idpresponse
+idp-->>user: 302 redirect to lambda/idpresponse
 note left of idp: {oauth_token, oauth_verifier, state}
 user-->>lambda: browser follows redirect
 lambda->>lambda: validate state.redirect_uri is allowed (from config)
