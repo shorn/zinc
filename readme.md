@@ -1,7 +1,6 @@
-The Zinc repo is for my learning about Cognito and aws-cdk.
+The Zinc repo is a demonstration for my learning about Cognito and aws-cdk.
 Begun as a Proof-of-Concept ("PoC") of Cognito functionality for 
 kopi.cloud.
-
 
 ## Functionality
 
@@ -16,17 +15,17 @@ If the code is not working on your machine, please let me know in the Github
 discussions.
 
 It doesn't do much of anything:
-* Login via email, Google or Github.
-  * there are two implementations of Social Sign-in - one through Cognito and
+* Login via email, Google, Github, Facebook or Twitter.
+  * some IdProviders have two implementations - one through Cognito and
   the other directly to the ID Providers.
   * the Github-Cognito integration requires an entire 
     [cognito-github OIDC shim](aws-infra/lambda/doc/cognito-github.md)
-  * the direct sign-in is significantly simpler, see
+  * the direct sign-in logic for Github is significantly simpler, see
   [direct-github-sign-in.md](aws-infra/lambda/doc/direct-github-sign-in.md)
 * Set your own "display name" .
 * List all users that have signed up 
   * only lists created date and user-entered "display name", 
-  not email or any SSO profile data.
+    not email or any SSO profile data.
 
 
 ## Project structure
@@ -105,6 +104,9 @@ changed lambda code
 
 There are a lot of shortcuts taken in the Zinc codebase.
 
+See [access-control.md](/doc/access-control.md) for information about about
+authn/authz and Zinc access control.
+
 * the accessToken is stored in local-storage, not as a secure http cookie - 
   so there's no implementaiton of CSRF prevention
   * I'm personally fine with this, but some people think it's "not the way"
@@ -136,3 +138,21 @@ my Github and Google unique id
 
 Please feel free to create Github issues, pull requests or discussion topics 
 regarding these or other security considerations you'd like to talk about.
+
+
+## Cognito identity-pool vs user-pool
+
+Note that, for this repo, I was only interested in learning how to use
+Cognito to authenticate users. For this use-case, I'm not interested in
+using AWS resources directly or managing authorization via AWS IAM - so Zinc
+does not use Cognito identity-pools, only user-pools.
+
+Note that if you want to use Cognito but not do your own authorization,
+you will need to use Cognito identity-pools. 
+The Cognito "id token" expiry can only be set up to 24 hours, but identity-pool 
+"access tokens" can be refreshed for up to 30 days. 
+
+It's really not a good idea to keep id tokens around for a long time - 
+especially don't store them in local storage, cookies, etc.
+
+
