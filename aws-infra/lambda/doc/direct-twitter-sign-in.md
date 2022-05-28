@@ -14,17 +14,19 @@ participant client as Client
 participant lambda as DirectTwitter<br/>Lambda
 participant idp as api.twitter.com
 
-user-->>client: user navigates to client
+user->>client: user navigates to client
 user->>client: user clicks Twitter login button
 client-->>user: 302 redirect to lambda/authorize
 note left of client: {state.redirect_uri}
-user-->>lambda: browser loads page
+
+user-->>lambda: browser follows redirect
 lambda->>lambda: validate state.redirect_uri is allowed (from config)
 lambda->>idp: POST /request_token
 note right of lambda: {oauth_consumer_key,<br/>callback_url,<br/>state.redirect}<br/>signed with consumer_secret 
 idp->>lambda: 
 note left of idp: {oauth_token}
 lambda-->>user: 302 redirect to twitter/authenticate
+
 note right of lambda: {oauth_token}
 user-->>idp: browser loads page
 user->>idp: user clicks "authorize Zinc app" 
@@ -41,7 +43,8 @@ note right of lambda: {oauth_consumer_key,<br/>oauth_token,<br/>include_email}<b
 idp->>lambda: 
 note left of idp: {id, email, screen_name}
 lambda->>lambda: create JWT, signed with config.idTokenSecret
-lambda->>user: redirect browser to client (from {state.redirect_uri}) 
+
+lambda->>user: 302 redirect to client (from {state.redirect_uri}) 
 note left of lambda: {id_token}
 user-->>client: browser follows redirect
 client->>client: parse id_token from url
