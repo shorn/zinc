@@ -19,6 +19,11 @@
     * publishes a callback url that Github can redirect the browser to as part
     of the direct authentication flow
     * see [direct-github-sign-in.md](/aws-infra/lambda/doc/direct-github-sign-in.md)
+  * [src/AuthnApi/DirectTwitterAuthnApiHandler.ts](src/AuthnApi/DirectTwitterAuthnApiHandler.ts)
+    * publishes an /authorize url that the client calls to redirect to the twitter/authenticate url
+      (required by Twitter's OAuth1 flow) and the callback url that Twitter 
+      redirects the browser to as part of the direct authentication flow
+    * see [direct-twitter-sign-in.md](/aws-infra/lambda/doc/direct-twitter-sign-in.md)
 * [/src/Db/](src/Db)
   * The logic for reading/writing with DynamoDb using 
   [dynamodb-onetable](https://github.com/sensedeep/dynamodb-onetable).
