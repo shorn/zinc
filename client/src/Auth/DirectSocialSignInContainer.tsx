@@ -15,7 +15,6 @@ import {
   googleAuthorizeUrl
 } from "Shared/Constant";
 import { useSignInContext } from "Auth/AuthProvider";
-import { ButtonProps } from "@mui/material";
 import { Facebook, GitHub, Google, Twitter } from "@mui/icons-material";
 import { HelpPopover } from "Component/HelpPopover";
 
