@@ -1,7 +1,7 @@
 Implemented in [DirectTwitterAuthnApiHandler.ts](/aws-infra/lambda/src/AuthnApi/DirectTwitterAuthnApiHandler.ts)
 
 Based off [expo-twitter-login-example](https://github.com/expo/expo-twitter-login-example)
-but with a lot of changes because that code is very fragile (hand-coded for 
+but with a lot of changes because that code is quite fragile (hand-coded for 
 parameter order) and the [createSignature()](https://github.com/expo/expo-twitter-login-example/blob/master/twitter-login-backend/index.js#L143) 
 method is flat-out broken for signing user user requests (it uses the 
 `encodedRequestURL ` in the `signingKey`, should be the `tokenSecret`).
@@ -11,7 +11,7 @@ sequenceDiagram
 autonumber
 actor user as User
 participant client as Client
-participant lambda as DirectTwitter Lambda
+participant lambda as DirectTwitter<br/>Lambda
 participant idp as api.twitter.com
 
 user-->>client: user navigates to client
