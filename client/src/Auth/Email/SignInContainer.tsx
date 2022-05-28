@@ -11,6 +11,7 @@ import { TextSpan } from "Component/TextSpan";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { EmailFieldState } from "Auth/Email/EmailTabContainer";
 import { useSignInContext } from "Auth/AuthProvider";
+import { EmailOutlined } from "@mui/icons-material";
 
 export type EmailSignInState =
   {status: "succeeded", email: string} |
@@ -73,7 +74,8 @@ export function SignInContainer({
           }}
         />
         <div style={{display: "flex", flexWrap: "wrap", gap: ".5em"}}>
-          <PrimaryButton type={"submit"} isLoading={isWorking}
+          <PrimaryButton startIcon={<EmailOutlined/>} 
+            type={"submit"} isLoading={isWorking}
             disabled={!!signInContext.action  || !email || !password}>
             Sign in
           </PrimaryButton>

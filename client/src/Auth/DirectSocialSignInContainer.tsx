@@ -15,6 +15,9 @@ import {
   googleAuthorizeUrl
 } from "Shared/Constant";
 import { useSignInContext } from "Auth/AuthProvider";
+import { ButtonProps } from "@mui/material";
+import { Facebook, GitHub, Google, Twitter } from "@mui/icons-material";
+import { HelpPopover } from "Component/HelpPopover";
 
 const githubAction = "github-direct";
 const googleAction = "google-direct";
@@ -113,7 +116,7 @@ export function DirectSocialSignInContainer(){
   }
 
   const disabled = !!signInContext.action;
-  return <ContainerCard title={"Direct Social Sign-in"}>
+  return <ContainerCard title={"Direct Social Sign-in"} action={<DirectHelp/>}> 
     <div style={{display: "grid", 
       gridTemplateColumns: "8em 8em",
       justifyContent: "center",
@@ -121,32 +124,31 @@ export function DirectSocialSignInContainer(){
       // the textspan following was too cramped
       marginBottom: ".5em"
     }}> 
-      <PrimaryButton isLoading={signInContext.action === googleAction} 
+      <PrimaryButton startIcon={<Google/>} 
+        isLoading={signInContext.action === googleAction} 
         disabled={disabled} onClick={googleSignIn}
       >
         Google
       </PrimaryButton>
-      <PrimaryButton isLoading={signInContext.action === githubAction} 
+      <PrimaryButton startIcon={<GitHub/>} 
+        isLoading={signInContext.action === githubAction} 
         disabled={disabled} onClick={githubSignIn}
       >
         Github
       </PrimaryButton>
-      <PrimaryButton isLoading={signInContext.action === facebookAction} 
+      <PrimaryButton startIcon={<Facebook/>} 
+        isLoading={signInContext.action === facebookAction} 
         disabled={disabled} onClick={facebookSignIn}
       >
         Facebook
       </PrimaryButton>
-      <PrimaryButton isLoading={signInContext.action === twitterAction} 
+      <PrimaryButton startIcon={<Twitter/>} 
+        isLoading={signInContext.action === twitterAction} 
         disabled={disabled} onClick={twitterSignIn}
       >
         Twitter
       </PrimaryButton>
     </div>
-    <TextSpan>
-      Sign in directly to the ID Provider,{" "}
-      <NewWindowLink href={zincGithubDirectDocUrl}>without using Cognito
-      </NewWindowLink>.
-    </TextSpan>
   </ContainerCard>
 }
 
@@ -162,4 +164,14 @@ function formatStateValue(state: ZincOAuthState):string{
   I never saw a problem from the other IdProviders, but I decided to use this 
   method to encode their state anyway - it makes sense. */
   return encodeURIComponent(base64);
+}
+
+function DirectHelp(){
+  return <HelpPopover content={
+    <TextSpan>
+      Sign in directly to the ID Provider,{" "}
+      <NewWindowLink href={zincGithubDirectDocUrl}>without using Cognito
+      </NewWindowLink>.
+    </TextSpan>
+  }/>;
 }
