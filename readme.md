@@ -121,9 +121,11 @@ my Github and Google unique id
     it's worth pointing out
 * the backend authentication and authorization code needs lots more 
   logic (and testing) of checking and verifying claims, scopes, etc.
-  * needs to algorithm tests - i.e. prove that we don't accept `alg:none` or
-  `alg:hs256` where the token is actually signed with the public key of an RS256
-  pair (yup, there've been multiple library implementations that've done that)
+  * needs to test algorithm stuff 
+    * prove that we don't accept `alg:none`
+    * prove that we don't accept `alg:hs256` where the token is actually signed 
+    with the public key of an RS256 pair (yup, there've been multiple library 
+    implementations that've done that)
 * secrets stored in plain SSM params
   * this is done for cost, AWS App Config and Secrets Manager cost money I 
   don't want to pay for a demo code base.  
