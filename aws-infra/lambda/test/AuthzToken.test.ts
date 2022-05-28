@@ -19,7 +19,7 @@ import {
 */
 
 
-describe("Authz token signing verificaiton", () => {
+describe("Authz token signing verification", () => {
   const secrets = ["blah", "bleah"];
   const userId = "someIdpIdentifier";
   const email = "test@example.com";

@@ -37,7 +37,7 @@ export function DirectSocialSignInContainer(){
         `?client_id=${serverInfo.directAuthn.github.clientId}` +
         `&scope=${encodeURIComponent(github.authnScope)}` +
         `&response_type=code` +
-        `&state=${encodeBase64(JSON.stringify(state))}`;
+        `&state=${formatStateValue(state)}`;
       navBrowserByAssign(loginUrl);
     }
     catch( err ){
@@ -60,7 +60,7 @@ export function DirectSocialSignInContainer(){
         /* this redirect_uri is about google redirecting to the lambda for hte 
         "authorization code grant" flow, beore it issues the id_token */
         `&redirect_uri=${serverInfo.directAuthn.google.issuer}/idpresponse` +
-        `&state=${encodeBase64(JSON.stringify(state))}`;
+        `&state=${formatStateValue(state)}`;
       navBrowserByAssign(loginUrl);
     }
     catch( err ){
@@ -83,7 +83,7 @@ export function DirectSocialSignInContainer(){
         /* this redirect_uri is about google redirecting to the lambda for hte 
         "authorization code grant" flow, beore it issues the id_token */
         `&redirect_uri=${serverInfo.directAuthn.facebook.issuer}/idpresponse` +
-        `&state=${encodeBase64(JSON.stringify(state))}`;
+        `&state=${formatStateValue(state)}`;
       navBrowserByAssign(loginUrl);
     }
     catch( err ){
@@ -102,7 +102,8 @@ export function DirectSocialSignInContainer(){
       /* this points to *our* lambda handler, because Twitter requires that we 
       pass the "app oauth_token" to their actual /authorize endpoint */  
       let loginUrl = `${serverInfo.directAuthn.twitter.issuer}/authorize` +
-        `?state=${encodeBase64(JSON.stringify(state))}`;
+        `?state=${formatStateValue(state)}`;
+      console.log("loginUrl", loginUrl);
       navBrowserByAssign(loginUrl);
     }
     catch( err ){
@@ -149,3 +150,16 @@ export function DirectSocialSignInContainer(){
   </ContainerCard>
 }
 
+function formatStateValue(state: ZincOAuthState):string{
+  let base64 = encodeBase64(JSON.stringify(state));
+  /* the TwitterHandler was dying when the base64 encoding padded with `==`.
+  The request never reached the lambda, AWS was returning a 400 error 
+  without invoking it.  At a guess, the AWS funtionUrl/lambda infra is trying 
+  to parse out the query string parameters to pass in the Lambda context and 
+  failing because those `=` chars were causing it to choke.  
+  We don't need to "un-uriencode" on the server because we use those lambda 
+  context params and they've already been decoded for us by AWS.
+  I never saw a problem from the other IdProviders, but I decided to use this 
+  method to encode their state anyway - it makes sense. */
+  return encodeURIComponent(base64);
+}

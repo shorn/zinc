@@ -75,12 +75,18 @@ async function dispatchApiCall(
     const parsedState = parseAuthorizeRequest(query);
     validateRedirectUri(parsedState.redirectUri, config.allowedCallbackUrls);
 
+    /* AWS helpfully decoded this for us before adding it to the 
+    queryStringParameters, but we have to re-encode it because it will be used
+    to invoke the /idpresponse and Twitter won't encode it.
+    `query` and `state` can be assumed because validate didn't fail. */
+    const encodedState = encodeURIComponent(query?.state!);
+    
     /* callbackBase must match what is configured in the Twitter developer 
     console, but without query parameters.
     Twitter will redirect the browser to the calbackUrl, including parameters, 
     once Twitter and the user have approved this request to sign in. */
     const callbackBase = `https://${event.headers.host}/idpresponse`;
-    const callbackUrl = `${callbackBase}?state=${query?.state}`;
+    const callbackUrl = `${callbackBase}?state=${encodedState}`;
     
     const api = new TwitterApi();
     const authUrl = await api.getAppOAuthToken({
@@ -208,6 +214,7 @@ function parseTwitterIdpResponse(
     });
   }
 
+  // param has already been "un-UriEncoded" by the lambda infrasructure
   let decodedString = decodeBase64(state);
   const json = JSON.parse(decodedString);
   const decodedOAuthState = ZincOAuthState.parse(json)
