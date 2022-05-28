@@ -79,6 +79,9 @@ See [guardGenericAuthz()](/aws-infra/lambda/src/ZincApi/Authz/GuardAuthz.ts).
 
 None.
 
+I'll implement Real Auditing for a demo app the day Satan's snowball collection 
+starts melting or when somebody pays me - whichever comes first.
+
 
 
  
