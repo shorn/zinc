@@ -40,7 +40,7 @@ lambda->>idp: GET /user
 note right of lambda: {oauth_consumer_key,<br/>oauth_token,<br/>include_email}<br/>signed with<br/>oauth_token_secret & consumer_secret
 idp->>lambda: 
 note left of idp: {id, email, screen_name}
-lambda->>lambda: create JWT, signed with jwt_secret (from config)
+lambda->>lambda: create JWT, signed with config.idTokenSecret
 lambda->>user: redirect browser to client (from {state.redirect_uri}) 
 note left of lambda: {id_token}
 user-->>client: browser follows redirect
