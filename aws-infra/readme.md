@@ -1,5 +1,8 @@
 ## Structure
 
+This diagram is a little out of date (missing direct lambdas, etc.), but it
+gives you the basic gist of it.
+
 ![architecture](../doc/aws-infra.svg)
 Diagram by [Cloudcraft](https://www.cloudcraft.co/).
 
