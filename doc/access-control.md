@@ -83,5 +83,24 @@ I'll implement Real Auditing for a demo app the day Satan's snowball collection
 starts melting or when somebody pays me - whichever comes first.
 
 
+## Issues
 
- 
+### Access token contains PII 
+
+PII = Personally Identifiable Information
+
+The accessToken contains PII (`email` claim), which is bad practice for an 
+access token, particularly when storing it in client storage.
+
+This is pure laziness on my part, the email is used for two things:
+* used when logging problems, facilitates diagnosis and monitoring
+  * solution: implement a debug lookup utility to add the email to logs
+  * solution won't be viable sometimes and you'll just have to use the userId to
+    figure things out 
+  * email isn't even exact, you have to log the userId anyway because it's 
+  possible for a user to use multiple IdP's using same email address.
+* used to display the email in the "Account" widgent (top right of screen)
+  * solution: implement a proper user details lookup endpoint instead of 
+  using the claim directly
+    * the endpoint for this does exist now (`/readUser`), I just haven't 
+    refactored 

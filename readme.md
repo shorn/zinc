@@ -114,6 +114,8 @@ authn/authz and Zinc access control.
   * I'm personally fine with this, but some people think it's "not the way"
   * if you decide to use a cookie, you'll need to implement a CSRF prevention
   strategy
+* the accessToken contains PII (`email` claim), see 
+  [access-control.md](/doc/access-control.md) 
 * the direct login implementation leaks the unique-ID that providers use to
 identify a user - e.g. if you login and go to the user list, you can find out
 my Github and Google unique id
