@@ -43,6 +43,7 @@ participant idp as IdProvider<br/>(google.com, etc.)
 user->>app: user navigates to client
 user->>app: user clicks<br/>`login with IdProvider`
 app-->>user: 302 redirect to<br/>IdProvider.com/authorize
+note left of app: {scope = read}
 
 user-->>idp: browser follows redirect
 user->>idp: user clicks "authorize app" 
@@ -56,13 +57,20 @@ github->>client:
 note left of github: {access_token} 
 ```
 
-At this point, the flow is finished - you have "authorised" the client to 
-call the IdProvider on behalf of that specific user, by using the returned
-`access_token`.
-The access token doesn't tell you anything about the user (email, etc.) 
-it's purely a bearer token (usually opaque, not even a JWT) that allows the 
-client to call other endpoints to access data about the user.
+At this point, the flow is finished - accomplising several things:
+1. The user has ***approved*** that your client is allowed to perform actions
+with the IdProvider on their behalf, within a certain ***scope*** of action
+(Zinc only wants to read the user id / email data).
+2. The IdProvider has ***authorised*** your client to take the approved actions.
+3. The IdProvider has returned to the client an ***access token*** that it can
+provide to the vairous IdProvider endpoints to prove it's allowed to perform
+those actions.
 
+The access token doesn't tell you anything about the user (id, email, etc.) 
+it's purely a bearer token (usually opaque, not even a JWT) that allows the 
+client to invoke the IdProvider's endpoints.
+
+## Using the access token 
 After the code grant flow is done, the client can use the access token to call 
 standard OIDC endpoints to gather info about the user.  
 
@@ -78,6 +86,8 @@ create an `id_token`, see
 [direct-twitter-sign-in.md](/aws-infra/lambda/doc/direct-twitter-sign-in.md).
 
 ----
+
+### Footnotes
 
 [^id-provider-indentification]:
 IdProviders require authorization of the client because they want can be sure
