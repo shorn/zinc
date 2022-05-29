@@ -19,7 +19,7 @@ Zinc doesn't do much of anything:
   * some IdProviders have two implementations - one through Cognito and
   the other directly to the ID Providers.
   * [access-control.md](/doc/access-control.md) outlines Zinc access control
-  * [oauth-oidc.md](/aws-infra/lambda/doc/oauth-oidc.md) is the start point
+  * [oauth-oidc.md](/doc/oauth-oidc.md) is the start point
   for digging into authentication specifics
 * Set your own "display name" .
 * List all users that have signed up 

@@ -1,3 +1,5 @@
+Look in [/aws-infra/lambda/](/aws-infra/lambda/readme.md) for links to code
+handling different authentication methods.
 
 ## Terminology - "App" vs "Client"
 
