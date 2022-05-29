@@ -5,7 +5,6 @@ import { sign, SignOptions } from "jsonwebtoken";
 import { ZincOAuthState } from "Shared/ApiTypes";
 import { z as zod } from "zod";
 import { decodeBase64 } from "Util/Encoding";
-import { OAuthClientConfig } from "LambdaConfig";
 
 /**
  * https://www.oauth.com/oauth2-servers/single-page-apps/
@@ -181,7 +180,7 @@ export function parseIdpResponse(
       privateMsg: "/idpresponse missing [state] param"
     });
   }
-
+  
   let decodedString = decodeBase64(state);
   
   const decodedState = JSON.parse(decodedString);

@@ -1,5 +1,6 @@
 import { AuthError, forceError } from "Util/Error";
 import {
+  DANGERouslyLogEvent,
   formatErrorResponse,
   formatRedirectResponse,
   formatSuccessResponse,
@@ -51,9 +52,7 @@ export async function handler(
 async function dispatchOidcApiCall(
   event: LambdaFunctionUrlEvent
 ):Promise<LambdaResponse|undefined>{
-  /* be careful with logging params because the Cognito passes the client_secret
-  to the /token endpoint */
-  //console.log("OIDC API event", event);
+  DANGERouslyLogEvent(name, event);
   const {method, path} = event.requestContext.http; 
   const query = event.queryStringParameters;
 

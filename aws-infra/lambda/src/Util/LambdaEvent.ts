@@ -79,3 +79,14 @@ export function formatRedirectResponse(url: string): LambdaResponse{
   };
 }
 
+/** Using this is dangerous, because it logs all Lambda event's parameters,
+ * which when handling, for example, the /idpresponse callback etc, will log
+ * auth_code's, access_token's, id_token's, consumer_secret's - very bad.
+ * Do not use this in a production environment.
+ */ 
+export function DANGERouslyLogEvent(
+  description: string, 
+  event: LambdaFunctionUrlEvent
+): void{
+  console.log(description + " API event", event);
+}

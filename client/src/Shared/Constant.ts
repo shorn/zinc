@@ -29,7 +29,11 @@ export const twitter = {
   authenticateUrl: "https://api.twitter.com/oauth/authenticate",
   accessTokenUrl: "https://api.twitter.com/oauth/access_token",
   verifyCredentialsUrl: "https://api.twitter.com/1.1/account/verify_credentials.json",
-};                      
+};
+
+/** There are many different  
+ */
+export const oauthCodeGrantFlow = "code";
 
 export function formatCognitoIdpUrl({region, userPoolId}:{
   region: string,

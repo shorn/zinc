@@ -3,16 +3,13 @@ import {
   formatErrorResponse,
   formatRedirectResponse,
   LambdaFunctionUrlEvent,
-  LambdaResponse,
-  LamdbaQueryStringParameters
+  LambdaResponse
 } from "Util/LambdaEvent";
 import { GithubApi } from "AuthnApi/Downstream/GithubApi";
 import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
-import { decodeBase64 } from "Util/Encoding";
 import { createIdTokenJwt } from "AuthnApi/Cognito";
-import { ZincOAuthState } from "Shared/ApiTypes";
 import { OAuthClientConfig, readOAuthConfigFromSsm } from "LambdaConfig";
-import { validateRedirectUri } from "AuthnApi/OAuth";
+import { parseIdpResponse, validateRedirectUri } from "AuthnApi/OAuth";
 
 const name = "DirectGithubAuthnApi";
 
@@ -108,49 +105,4 @@ function validateGithubTokenScope(
     });
   }
 }
-
-export type ZincOAuthIdpResonse = {
-  code: string,
-  state: ZincOAuthState,
-}
-
-function parseIdpResponse(
-  query: LamdbaQueryStringParameters | undefined
-): ZincOAuthIdpResonse {
-  if( !query ){
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "/idpresponse no query params"
-    });
-  }
-
-  const {code, state} = query;
-  if( !code ){
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "/idpresponse missing [code] param"
-    });
-  }
-  if( !state ){
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "/idpresponse missing [state] param"
-    });
-  }
-
-  let decodedString = decodeBase64(state);
-  const decodedState = JSON.parse(decodedString);
-
-  if( !decodedState.redirectUri ){
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "/idpresponse missing [state.redirectUri]"
-    });
-  }
-  return {
-    code,
-    state: decodedState
-  };
-}
-
 

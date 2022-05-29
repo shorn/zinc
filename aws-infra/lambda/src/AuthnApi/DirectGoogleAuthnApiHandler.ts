@@ -1,5 +1,6 @@
 import { AuthError, genericAuthError, isError } from "Util/Error";
 import {
+  DANGERouslyLogEvent,
   formatErrorResponse,
   formatRedirectResponse,
   LambdaFunctionUrlEvent,
@@ -58,7 +59,7 @@ async function dispatchApiCall(
   event: LambdaFunctionUrlEvent,
   config: OAuthClientConfig
 ):Promise<LambdaResponse|undefined>{
-  console.log(name + " API event", event);
+  DANGERouslyLogEvent(name, event);
   const {method, path} = event.requestContext.http; 
   const query = event.queryStringParameters;
   

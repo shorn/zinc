@@ -18,6 +18,7 @@ import {
   getAuthzSigningSecret
 } from "ZincApi/Authz/GuardAuthz";
 import {
+  DANGERouslyLogEvent,
   formatErrorResponse,
   formatSuccessResponse,
   LambdaEventHeaders,
@@ -42,7 +43,7 @@ import {
   readOAuthConfigFromSsm, readTwitterConfigFromSsm
 } from "LambdaConfig";
 
-const name = "LambdaApiV2";
+const name = "ZincApi";
 const lambdaCreateDate = new Date();
 
 export const authApi: AuthApi = {
@@ -196,7 +197,8 @@ async function initRuntime(): Promise<ZincApiRuntime>{
 export const handler: Handler<LambdaFunctionUrlEvent, LambdaResponse> = 
   async (event)=> 
 {
-  console.log(name + " exec ");
+  DANGERouslyLogEvent(name, event);
+
   try {
     
     const authApiResult = await dispatchAuthApiCall(await runtime, event);
@@ -232,8 +234,6 @@ async function dispatchAuthApiCall(
     return undefined;
   }
 
-  console.log("get event ", event);
-  
   const apiName = parseApiName(config, event);
 
   if( apiName  === "readConfig" ){
@@ -265,8 +265,6 @@ async function dispatchPostCall(
     console.warn("POST method with no body");
     return undefined;
   }
-
-  console.log("post event", event);
 
   const apiName = parseApiName(config, event);
   if( !apiName ){

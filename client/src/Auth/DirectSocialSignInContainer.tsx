@@ -12,7 +12,7 @@ import {
   facebookAuthorizeUrl,
   github,
   googleAuthnScope,
-  googleAuthorizeUrl
+  googleAuthorizeUrl, oauthCodeGrantFlow
 } from "Shared/Constant";
 import { useSignInContext } from "Auth/AuthProvider";
 import { Facebook, GitHub, Google, Twitter } from "@mui/icons-material";
@@ -22,31 +22,11 @@ const githubAction = "github-direct";
 const googleAction = "google-direct";
 const facebookAction = "facebook-direct";
 const twitterAction = "twitter-direct";
-
+ 
 export function DirectSocialSignInContainer(){
   const serverInfo = useServerInfo();
 
   const signInContext = useSignInContext();
-
-  async function githubSignIn(){
-    // this is not an OIDC sign-in, github uses `,` to separate scopes
-    const state: ZincOAuthState = {
-      redirectUri: serverLocationUrl()
-    }
-    signInContext.setAction(githubAction);
-    try {
-      let loginUrl = `${github.authorize}` +
-        `?client_id=${serverInfo.directAuthn.github.clientId}` +
-        `&scope=${encodeURIComponent(github.authnScope)}` +
-        `&response_type=code` +
-        `&state=${formatStateValue(state)}`;
-      navBrowserByAssign(loginUrl);
-    }
-    catch( err ){
-      signInContext.setAction(undefined);
-      throw err;
-    }
-  }
 
   async function googleSignIn(){
     const state: ZincOAuthState = {
@@ -58,10 +38,31 @@ export function DirectSocialSignInContainer(){
       let loginUrl = `${googleAuthorizeUrl}` +
         `?client_id=${serverInfo.directAuthn.google.clientId}` +
         `&scope=${encodeURIComponent(googleAuthnScope)}` +
-        `&response_type=code` +
-        /* this redirect_uri is about google redirecting to the lambda for hte 
-        "authorization code grant" flow, beore it issues the id_token */
+        `&response_type=${oauthCodeGrantFlow}` +
+        /* if the user accepts, google will redirect the browser to this uri,
+        which will use the google code to generate an id_token and redirect 
+        the browser back to whatever is in the state.redirectUri */
         `&redirect_uri=${serverInfo.directAuthn.google.issuer}/idpresponse` +
+        `&state=${formatStateValue(state)}`;
+      navBrowserByAssign(loginUrl);
+    }
+    catch( err ){
+      signInContext.setAction(undefined);
+      throw err;
+    }
+  }
+
+  async function githubSignIn(){
+    // this is not an OIDC sign-in, github uses `,` to separate scopes
+    const state: ZincOAuthState = {
+      redirectUri: serverLocationUrl()
+    }
+    signInContext.setAction(githubAction);
+    try {
+      let loginUrl = `${github.authorize}` +
+        `?client_id=${serverInfo.directAuthn.github.clientId}` +
+        `&scope=${encodeURIComponent(github.authnScope)}` +
+        `&response_type=${oauthCodeGrantFlow}` +
         `&state=${formatStateValue(state)}`;
       navBrowserByAssign(loginUrl);
     }
@@ -81,9 +82,7 @@ export function DirectSocialSignInContainer(){
       let loginUrl = `${facebookAuthorizeUrl}` +
         `?client_id=${serverInfo.directAuthn.facebook.clientId}` +
         `&scope=${encodeURIComponent(facebookAuthnScope)}` +
-        `&response_type=code` +
-        /* this redirect_uri is about google redirecting to the lambda for hte 
-        "authorization code grant" flow, beore it issues the id_token */
+        `&response_type=${oauthCodeGrantFlow}` +
         `&redirect_uri=${serverInfo.directAuthn.facebook.issuer}/idpresponse` +
         `&state=${formatStateValue(state)}`;
       navBrowserByAssign(loginUrl);
