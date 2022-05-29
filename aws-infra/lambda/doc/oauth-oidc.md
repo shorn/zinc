@@ -53,8 +53,8 @@ user-->>client: browser follows redirect
 
 client->>idp: GET /access_token
 note right of client: {code, client_secret}
-github->>client: 
-note left of github: {access_token} 
+idp->>client: 
+note left of idp: {access_token} 
 ```
 
 At this point, the flow is finished - accomplising several things:
