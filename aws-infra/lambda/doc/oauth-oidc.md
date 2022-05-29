@@ -1,4 +1,6 @@
 
+## Terminology - "App" vs "Client"
+
 There are many OAuth2 "grant types": https://oauth.net/2/grant-types/
 
 Usually, folks use the word "client" to refer to the Single Page Application 
