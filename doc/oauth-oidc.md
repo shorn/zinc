@@ -63,9 +63,9 @@ At this point, the flow is finished - accomplising several things:
 1. The user has ***consented*** that your client is allowed to perform actions
 with the IdProvider on their behalf, within a certain ***scope*** of action
 (Zinc only wants to read the user id / email data).
-  * IdProviders will generally remember that a user consented to authorize
+    * IdProviders will generally remember that a user consented to authorize
   your app previously and will avoid displaying the prompt needlessly.
-  * Note that users are able to revoke their consent for your app through 
+    * Note that users are able to revoke their consent for your app through 
   the IdProvider (i.e. login to Github and "revoke app"). 
 2. The IdProvider has ***authorised*** your client to take the approved actions.
 3. The IdProvider has returned to the client an ***access token*** that it can
