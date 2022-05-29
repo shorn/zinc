@@ -14,7 +14,7 @@ applications/code that have no UI at all, or an actual person using something
 like Postman manually. 
 
 Zinc uses the "authorization code" grant type, which specifies a flow that 
-requires a "confidential client". The "confidential client" part means that the
+requires a "confidential client". The *confidential* part means that the
 client needs to know a specific `client_secret` that must only be known to the 
 client and the IdProvider.  The secret can never be sent to the browser - it's 
 the credential your system uses to identify itself to the 
