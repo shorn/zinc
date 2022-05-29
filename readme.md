@@ -14,7 +14,7 @@ Or I might just not be running the project live any more.  See instructions for
 If the code is not working on your machine, please let me know in the Github
 discussions.
 
-It doesn't do much of anything:
+Zinc doesn't do much of anything:
 * Login via email, Google, Github, Facebook or Twitter.
   * some IdProviders have two implementations - one through Cognito and
   the other directly to the ID Providers.
@@ -39,7 +39,9 @@ There's no CI/CD infrastructure, though I may stand up a CDK pipeline one day.
     * contains all code for the APIs served by Lambda
     * no framework (Serverless, SAM, etc.)
 * [client/](client)
-  * React based SPA, using Material UI for components 
+  * React based SPA, built with 
+  [create-react-app](https://create-react-app.dev/).  
+  Uses [MUI](https://mui.com/) as the component library.  
 * [doc/](doc)
   * documentation topics to link to from readme files / source code  
 * [shared/](shared)
@@ -69,18 +71,19 @@ fits easily within the [Always free](https://aws.amazon.com/free) tier.
 I haven't done any estimation analysis but I would not be surprised to find 
 Zinc could support many hundres of users within the free tier (all busily 
 doing... pretty much nothing).
-Though you would need to bump the max concurrency of the lambdas.
+You'd end up paying a few cents per month for the S3 reads and would 
+need to bump the max concurrency of the lambdas.
 
 This would change quickly with a real system though.  Lambda and DynamoDB can 
 get expensive to run when you use them a lot under continuous load.  They only
 become a sensible choice again for high-end requirements.
 
-My personal choice of cloud architecture for msot systems would be a
+My personal choice of cloud architecture for most systems would be a
 container-based backend running on an ASG -> ELB -> EC2 setup backed by an
 RDS database. Swap out the EC2 stuff for an AppRunner setup when it becomes
 viable.
-The API and security model is designed for a state-free backend approach, so
-the above setup is fairly easy to implement and support.
+The API and authorization model is designed for a state-free backend approach, 
+so the above setup is fairly easy to implement and support.
 There'd probably still be a few Lambdas being used for low-volume
 integration/glue purposes (which is their sweet-spot, in my opinion).  
 Depending on number of users, I'd consider keeping the authentication lambdas 
@@ -94,17 +97,20 @@ set it to the cloudfront url you've created.
 * run `client` / `npm start-dev` to start the client locally, the `proxy` setting 
 will proxy calls out to the lambda running under cloudfront
   * uses create-react-app hot deploy, so turnaround for code changes is quick 
-* run `aws-infra` / `npm run hotswap-cloudfront` to do a fast deployment of 
-changed lambda code
+* run `aws-infra` / `npm run hotswap-all` to force a fast deployment of 
+all lambdas
   * turn around for changes is about 10-15 seconds - not great but good enough
   for a demo codebase
   * could also use the CDK - SAM integration for local development, but I 
   haven't dug into it
+  * doing a hotswap will also force the lambdas to re-read the config, useful
+  if you've changed the config but not the actual lambda code
 
 
 ## Security considerations
 
 There are a lot of shortcuts taken in the Zinc codebase.
 
-See [security-considerations.md](/doc/security-considerations.md).
+See [security-considerations.md](/doc/security-considerations.md) for the 
+important ones related to security.
 
