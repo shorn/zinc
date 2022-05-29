@@ -17,18 +17,9 @@ Zinc uses the "authorization code" grant type, which specifies a flow that
 requires a "confidential client". The "confidential client" part means that the
 client needs to know a specific `client_secret` that must only be known to the 
 client and the IdProvider.  The secret can never be sent to the browser - it's 
-the credential your system uses to identify itself to the IdProvider. 
+the credential your system uses to identify itself to the 
+IdProvider[^id-provider-indentification]. 
 
-IdProviders require authorization of the client because they want can be sure 
-the caller is someone they trust to do authentication on behalf of their users.  
-Identifying the client system securely is also important so that the IdProvider
-can provide a nice prompt to the user about who they're authorizing to use 
-their account, and for abuse detection (rate-limiting, etc.)  
-
-Then there's the financial aspect. If you're using an IdProvider's auth system 
-to make money - eventually, when there's enough money on the table (and you're 
-solidly locked in), they'll want a slice of the pie.
- 
 So, in the context of Zinc's use-case of authenticating users, the "app" is not 
 the client, our AWS Lambda is the "client" (the lambda is the thing that knows 
 the `client_secret`).  
@@ -85,3 +76,16 @@ Twitter authn works similarly but requires a bunch of fiddly OAuth1.0a
 guff before we can call their `/user` endpoint to get the info we need to 
 create an `id_token`, see 
 [direct-twitter-sign-in.md](/aws-infra/lambda/doc/direct-twitter-sign-in.md).
+
+----
+
+[^id-provider-indentification]:
+IdProviders require authorization of the client because they want can be sure
+the caller is someone they trust to do authentication on behalf of their users.  
+Identifying the client system securely is also important so that the IdProvider
+can provide a nice prompt to the user about who they're authorizing to use
+their account, and for abuse detection (rate-limiting, etc.)
+
+Then there's the financial aspect. If you're using an IdProvider's auth system
+to make money - eventually, when there's enough money on the table (and you're
+solidly locked in), they'll want a slice of the pie.
