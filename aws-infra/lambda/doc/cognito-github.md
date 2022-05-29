@@ -26,14 +26,14 @@ The AWS CDK setup for Github is in
 sequenceDiagram
     autonumber
     actor user as User
-    participant client as Client
+    participant app as App
     participant cognito as Cognito
     participant lambda as OIDC Lambda
     participant github as Github.com
     
-    user-->>client: navigate to client
-    user->>client: click Github login
-    client-->>user: redirect browser to cognito/login
+    user-->>app: navigate to app
+    user->>app: click Github login
+    app-->>user: redirect browser to cognito/login
     user-->>cognito: follow redirect
     user->>cognito: click "sign in with Corp ID"
     cognito-->>user: redirect browser to lambda/authorize
@@ -71,10 +71,10 @@ sequenceDiagram
     note left of lambda: {sub, email, email_verified}
     cognito->>cognito: create new JWT with mapped claims
     note right of cognito: signed with JWKS certificate
-    cognito-->>user: redirect to client
+    cognito-->>user: redirect to app
     note left of cognito: {id_token}
-    user-->>client: follow redirect
-    client->>client: parse id_token from url
+    user-->>app: follow redirect
+    app->>app: parse id_token from url
 
 ```
 

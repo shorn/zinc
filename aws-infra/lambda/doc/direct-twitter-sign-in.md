@@ -10,14 +10,14 @@ method is flat-out broken for signing user user requests (it uses the
 sequenceDiagram
 autonumber
 actor user as User
-participant client as Client
+participant app as App
 participant lambda as DirectTwitter<br/>Lambda
 participant idp as api.twitter.com
 
-user->>client: user navigates to client
-user->>client: user clicks Twitter login button
-client-->>user: 302 redirect to lambda/authorize
-note left of client: {state.redirect_uri}
+user->>app: user navigates to app
+user->>app: user clicks Twitter login button
+app-->>user: 302 redirect to lambda/authorize
+note left of app: {state.redirect_uri}
 
 user-->>lambda: browser follows redirect
 lambda->>lambda: validate state.redirect_uri is allowed (from config)
@@ -28,7 +28,7 @@ note left of idp: {oauth_token}
 lambda-->>user: 302 redirect to twitter/authenticate
 note left of lambda: {oauth_token}
 
-user-->>idp: browser loads page
+user-->>idp: browser follows redirect
 user->>idp: user clicks "authorize Zinc app" 
 idp-->>user: 302 redirect to lambda/idpresponse
 note left of idp: {oauth_token, oauth_verifier, state}
@@ -44,9 +44,9 @@ idp->>lambda:
 note left of idp: {id, email, screen_name}
 lambda->>lambda: create JWT, signed with config.idTokenSecret
 
-lambda->>user: 302 redirect to client (from state.redirect_uri) 
+lambda->>user: 302 redirect to app (from state.redirect_uri) 
 note left of lambda: {id_token}
-user-->>client: browser follows redirect
-client->>client: parse id_token from url
+user-->>app: browser follows redirect
+app->>app: parse id_token from url
 
 ```
