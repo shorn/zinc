@@ -31,21 +31,21 @@ sequenceDiagram
     participant lambda as OIDC Lambda
     participant github as Github.com
     
-    user-->>app: navigate to app
-    user->>app: click Github login
-    app-->>user: redirect browser to cognito/login
-    user-->>cognito: follow redirect
-    user->>cognito: click "sign in with Corp ID"
-    cognito-->>user: redirect browser to lambda/authorize
+    user-->>app: use navigate to<br/>app.cloudfront.net
+    user->>app: use clicks `Github login`
+    app-->>user: 302 redirect to<br/>user-poool.amazoncognito.com/login
+    user-->>cognito: browser follows redirect
+    user->>cognito: user clicks `sign in with Corp ID`
+    cognito-->>user: 302 redirect to<br/>lambda.on.aws/authorize
     note left of cognito: {client_id, scope}
-    user-->>lambda: follow redirect
-    lambda-->>user: redirect browser to github/login/oauth/authorize
+    user-->>lambda: browser follows redirect
+    lambda-->>user: 302 redirect to<br/>github.com/login/oauth/authorize
     note left of lambda: {client_id, scope}
-    user-->>github: follow redirect
-    user->>github: click "authorize Zinc app"
-    github-->>user: redirect to cognito/oauth2/idpresponse
+    user-->>github: browser follows redirect
+    user->>github: user consents to `authorize Zinc app`
+    github-->>user: 302 redirect to<br/>user-poool.amazoncognito.com/oauth2/idpresponse
     note left of github: {code}
-    user-->>cognito: follow redirect
+    user-->>cognito: browser follows redirect
     cognito->>lambda: GET /token
     note right of cognito: {code, client_id, client_secret}
     lambda->>github: POST /login/oauth/access_token 
@@ -71,9 +71,9 @@ sequenceDiagram
     note left of lambda: {sub, email, email_verified}
     cognito->>cognito: create new JWT with mapped claims
     note right of cognito: signed with JWKS certificate
-    cognito-->>user: redirect to app
+    cognito-->>user: 302 redirect to<br/>app.cloudfront.net
     note left of cognito: {id_token}
-    user-->>app: follow redirect
+    user-->>app: browser follows redirect
     app->>app: parse id_token from url
 
 ```

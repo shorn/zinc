@@ -42,13 +42,13 @@ participant app as App<br/>(SPA served<br/>from CloudFront)
 participant client as Client<br/>(AWS Lambda)
 participant idp as IdProvider<br/>(google.com, etc.)
 
-user->>app: user navigates to client
+user->>app: user navigates to <br/>app.cloudfront.net
 user->>app: user clicks<br/>`login with IdProvider`
 app-->>user: 302 redirect to<br/>IdProvider.com/authorize
 note left of app: {scope = read}
 
 user-->>idp: browser follows redirect
-user->>idp: user clicks "authorize app" 
+user->>idp: user consents to "authorize app" 
 idp-->>user: 302 redirect to<br/>lambda.on.aws/idpresponse
 note left of idp: {code}
 user-->>client: browser follows redirect
@@ -60,9 +60,13 @@ note left of idp: {access_token}
 ```
 
 At this point, the flow is finished - accomplising several things:
-1. The user has ***approved*** that your client is allowed to perform actions
+1. The user has ***consented*** that your client is allowed to perform actions
 with the IdProvider on their behalf, within a certain ***scope*** of action
 (Zinc only wants to read the user id / email data).
+  * IdProviders will generally remember that a user consented to authorize
+  your app previously and will avoid displaying the prompt needlessly.
+  * Note that users are able to revoke their consent for your app through 
+  the IdProvider (i.e. login to Github and "revoke app"). 
 2. The IdProvider has ***authorised*** your client to take the approved actions.
 3. The IdProvider has returned to the client an ***access token*** that it can
 provide to the vairous IdProvider endpoints to prove it's allowed to perform
