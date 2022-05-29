@@ -119,8 +119,8 @@ authn/authz and Zinc access control.
 * the direct login implementation leaks the unique-ID that providers use to
 identify a user - e.g. if you login and go to the user list, you can find out
 my Github and Google unique id
-  * I don't know what the threat model is for this, seems innocuous to me, but
-    it's worth pointing out
+  * I don't know what the threat vector for this would be, seems innocuous to 
+    me, but it's worth pointing out
 * the backend authentication and authorization code needs lots more 
   logic (and testing) of checking and verifying claims, scopes, etc.
   * needs to test algorithm stuff 
@@ -141,6 +141,8 @@ my Github and Google unique id
   * a better design would be for each sign-in method to normalize to a custom
   Zinc id_token format and signature algorithm.  This would simplify the authz
   logic and simplify the configuration of the authz lambda.
+  * Turns out AWS KMS has an always-free tier, so could even use RS256 for
+  securing the access token.  Would be a chunk of effort though.
 
 Please feel free to create Github issues, pull requests or discussion topics 
 regarding these or other security considerations you'd like to talk about.
