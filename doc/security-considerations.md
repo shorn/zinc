@@ -1,6 +1,9 @@
 See [access-control.md](/doc/access-control.md) for information about about
 authn/authz and Zinc access control.
 
+Please feel free to create Github issues, pull requests or discussion topics
+regarding these or other security considerations you'd like to talk about.
+
 
 ## Authorization code grant type
 
@@ -50,8 +53,13 @@ The direct login implementation leaks the unique-ID that providers use to
 identify a user - e.g. if you login and go to the user list, you can find out
 my Github and Google unique id
 
-I don't know what the threat vector for this would be, seems innocuous to
-me - but worth pointing out.
+Possbile threat vector: if attacker already knows the user's IdP id, the
+zinc authentication process could unintentionally leak the knowledge that
+the user has a Zinc account.  Or conversely, if an attacker could gain an
+id_token (unlikely, Zinc only uses them ephemerally) or an accessToken (they're
+in local storage, so more vulnerable) - they could analyse the id to figure out
+which IdProvider it's for, and then they also know that user's IdProvider id
+(doubt that's a particular threat, those things are all over the internet).
 
 
 ## Backend needs more logic and testing
@@ -102,9 +110,6 @@ definitely worth the effort in a real system.
 The various lambda handlers all use the method `DANGERouslyLogEvent()`, which
 logs all event parameters to CloudWatch.
 See [LambdaEvent.ts](/aws-infra/lambda/src/Util/LambdaEvent.ts)
-
-Please feel free to create Github issues, pull requests or discussion topics
-regarding these or other security considerations you'd like to talk about.
 
 
 ## Cognito identity-pool vs user-pool
