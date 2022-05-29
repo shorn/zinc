@@ -12,7 +12,7 @@ Zinc does not use the recommended "PKCE" grant type (I think only Google
 implements it anyway).  Zinc generally uses the "Authorization Code" grant
 type, with the "confidential client" part implemented on the server-side
 via AWS Lambda, see
-[oauth-oidc.md](/aws-infra/lambda/doc/oauth-oidc.md).
+[oauth-oidc.md](/doc/oauth-oidc.md).
 
 None of the direct authentication methods use anything except the minimal
 code that works to sign-in (no CSRF tokens, no nonces, etc.)
