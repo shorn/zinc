@@ -3,7 +3,7 @@
 
 There are many OAuth2 "grant types": https://oauth.net/2/grant-types/
 
-Usually, folks use the word "client" to refer to the Single Page Application 
+Often, folks use the word "client" to refer to the Single Page Application 
 (the thing that runs inside the browser), or Mobile Application (the thing that
 runs on a phone).
 
