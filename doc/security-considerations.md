@@ -74,18 +74,31 @@ don't want to pay for a demo code base.
 If you're adapting any of this code for real, you should not store
   secrets in SSM.
 
-## ID tokens from IdProviders are passed back to client
-The various sign-in methods just pass through the id_token from the
+
+## Direct authentication exposes `id_token` from IdProviders
+
+The various direct sign-in methods just pass through the id_token from the
 provider back to the client and then it's left to the "authorize" logic in
-the ZincApi to verify them appropriately
-* a better design would be for each sign-in method to normalize to a custom
-  Zinc id_token format and signature algorithm.  This would simplify the authz
-  logic and simplify the configuration of the authz lambda.
-* Turns out AWS KMS has an always-free tier, so could even use RS256 for
-  securing the access token.  It would be a chunk of implementation - but
-  definitely worth the effort in a real system.
+the ZincApi to verify them appropriately.
+
+Cognito, on the other hand, generates a cognito-specific user-id and returns a
+new `id_token` JWT based on that to the client.  Cognito maps the user-id 
+to the IdProvider's `sub` via a data store (i.e. the user-pool) so that
+subsequent authentications via that IdProvider map to the same cognito user-id.
+
+A better design for the direct authentication methods would be for each sign-in 
+method to normalize to a custom Zinc id_token format and signature algorithm.  
+This will simplify the authz logic and reduce the configuration of the authz 
+lambda (more secure too, since then ZincApi lambda doesn't need to be able to 
+read all the different `client_secret` values, which is super-dodgy).
+
+Turns out AWS KMS has an always-free tier, so could even use RS256 for
+securing the id_token.  It would be a chunk of implementation - but
+definitely worth the effort in a real system.
+
 
 ## Secrets are logged to CloudWatch
+
 The various lambda handlers all use the method `DANGERouslyLogEvent()`, which
 logs all event parameters to CloudWatch.
 See [LambdaEvent.ts](/aws-infra/lambda/src/Util/LambdaEvent.ts)
