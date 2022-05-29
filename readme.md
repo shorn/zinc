@@ -111,6 +111,6 @@ all lambdas
 
 There are a lot of shortcuts taken in the Zinc codebase.
 
-See [security-considerations.md](/doc/security-considerations.md) for the 
+See [security-considerations.md](/doc/security-considerations.md) for a list of 
 important ones related to security.
 
