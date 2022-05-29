@@ -7,7 +7,7 @@ Often, folks use the word "client" to refer to the Single Page Application
 (the thing that runs inside the browser), or Mobile Application (the thing that
 runs on a phone).
 
-Though when dealing with OAuth, the word "client" is used in the most generic
+But when dealing with OAuth, the word "client" is used in the most generic
 way possible, relative to the concept of authorization.
 Anything can be a client to the authorization process, even server 
 applications/code that have no UI at all, or an actual person using something 
