@@ -30,8 +30,10 @@ very careful with how it's used (i.e. should not even log it).
 
 ## OAuth 2.0 "authorization code grant" flow
 
-This is an "idealised" version of the flow, all sorts of important stuff is 
-omitted (client ids, scopes, rediret uris, etc.)  
+This is an "idealised" version of the flow, as it applies to the various Zinc
+"direct authentication" methods (i.e. not Cognito). 
+All sorts of important stuff is omitted (client ids, rediret uris, etc.) to 
+keep the diagram simple.
 The diagram only shows the flow, and sensitive data. 
 
 ```mermaid
@@ -77,18 +79,44 @@ it's purely a bearer token (usually opaque, not even a JWT) that allows the
 client to invoke the IdProvider's endpoints.
 
 ## Using the access token 
+
+### OIDC
+
 After the code grant flow is done, the client can use the access token to call 
-standard OIDC endpoints to gather info about the user.  
+standard OIDC endpoints to gather info about the user (for OIDC IdProviders, 
+just the call to `/access_token` returns everything Zinc stuff wants).  
+
+## Cognito - Github OIDC
+
+When using Cognito, generally it acts as the "confidential client" for us,
+the App talks to Cognito and Cognito talks to the IdProvider.  But the Cognito
+support works only if it has explicit support for a provider (Google, Facebook)
+or if the IdProvider supports OIDC.
+
+Github supports OAuth 2.0, but not OIDC.
+For "direct authentication", that's fine, we just performs the authorization
+code grant flow and then call the endpoints we need.
+
+To make Github work with Cognito, you have to use a "shim" layer to adapt the
+Github API and make it confirm to the parts of the OIDC spec that Cogntio 
+requires.
 
 [cognito-github.md](/aws-infra/lambda/doc/cognito-github.md) shows how Zinc
 integrates Github into Cognito as an OIDC IdProvider by implementing the 
-authorization code grant flow and then calling the non-stanard Github 
-`/userinfo` endpoint and mapping the results back to a stanard OIDC 
-`id_token` JWT bearer token.
+authorization code grant flow as part of the Cognito flow, then calling  
+`/access_token` and the non-stanard Github `/user` endpoint to get the email, 
+then mapping the results back to the standard OIDC attributes `id_token` and 
+returning that to Cognito, which does the usual thing (map the `sub` to user id 
+stored it in the user-pool and return a new JWT signed by Cognito).
 
-Twitter authn works similarly but requires a bunch of fiddly OAuth1.0a
-guff before we can call their `/user` endpoint to get the info we need to 
-create an `id_token`, see 
+
+## Twitter - OAuth 1.0a
+
+Twitter does not support OAuth 2.0 or OIDC for user authentication, see their
+[roadmap](https://trello.com/c/VpCE8JUi/113-additional-oauth-20-functionality).
+
+Twitter requires a bunch of fiddly OAuth1.0a guff before we can call 
+their `/user` endpoint to get the info we need to create an `id_token`, see 
 [direct-twitter-sign-in.md](/aws-infra/lambda/doc/direct-twitter-sign-in.md).
 
 ----
