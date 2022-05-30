@@ -114,6 +114,11 @@ Needs to test algorithm stuff:
   implementations that've done that)
 
 
+## Twitter nonce generated with Meth.random()
+
+Should use a cryptographic primitive designed for the task.
+
+
 # Other information 
 
 ## Cognito identity-pool vs user-pool
