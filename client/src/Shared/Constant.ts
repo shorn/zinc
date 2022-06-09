@@ -4,10 +4,13 @@ the enterprise version. */
 // https://aaf.freshdesk.com/support/solutions/articles/19000096640-openid-connect-
 export const aaf = {
   authorize: "https://central.test.aaf.edu.au/providers/op/authorize",
+  //authorize: "https://central.aaf.edu.au/providers/op/authorize",
   issuer: "https://central.test.aaf.edu.au",
   token: "https://central.test.aaf.edu.au/providers/op/token",
   jwks: "https://central.test.aaf.edu.au/providers/op/jwks",
   userInfo: "https://central.test.aaf.edu.au/providers/op/userinfo",
+  //authnScope: "openid email",
+  authnScope: "openid",
 }
 
 export const github = {

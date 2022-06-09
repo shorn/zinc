@@ -8,6 +8,7 @@ import { NewWindowLink, zincGithubDirectDocUrl } from "Component/ExternalLinks";
 import { ZincOAuthState } from "Shared/ApiTypes";
 import { encodeBase64 } from "Util/Encoding";
 import {
+  aaf,
   facebookAuthnScope,
   facebookAuthorizeUrl,
   github,
@@ -22,6 +23,7 @@ const githubAction = "github-direct";
 const googleAction = "google-direct";
 const facebookAction = "facebook-direct";
 const twitterAction = "twitter-direct";
+const aafAction = "aaf-direct";
  
 export function DirectSocialSignInContainer(){
   const serverInfo = useServerInfo();
@@ -64,6 +66,33 @@ export function DirectSocialSignInContainer(){
         `&scope=${encodeURIComponent(github.authnScope)}` +
         `&response_type=${oauthCodeGrantFlow}` +
         `&state=${formatStateValue(state)}`;
+      navBrowserByAssign(loginUrl);
+    }
+    catch( err ){
+      signInContext.setAction(undefined);
+      throw err;
+    }
+  }
+
+  async function aafSignIn(){
+    // this is not an OIDC sign-in, github uses `,` to separate scopes
+    const state: ZincOAuthState = {
+      redirectUri: serverLocationUrl()
+    }
+    signInContext.setAction(githubAction);
+    const aafClientId = 'accaabfd-a7c8-4d36-9363-ea7342e24db5';
+    const aafRedirectUri = 'https://tx4p26dkitb7wv7dkocplcmmsq0vnvda.lambda-url.ap-southeast-2.on.aws/idpresponse';
+    
+    try {
+      let loginUrl = `${aaf.authorize}` +
+        `?client_id=${aafClientId}` +
+        `&scope=${encodeURIComponent(aaf.authnScope)}` +
+        `&response_type=${oauthCodeGrantFlow}` +
+        `&redirect_uri=${encodeURIComponent(aafRedirectUri)}` +
+        '';
+        //`&response_type=${encodeURIComponent("code token")}`; //+
+        //`&state=${formatStateValue(state)}`;
+        
       navBrowserByAssign(loginUrl);
     }
     catch( err ){
@@ -145,6 +174,12 @@ export function DirectSocialSignInContainer(){
         disabled={disabled} onClick={twitterSignIn}
       >
         Twitter
+      </PrimaryButton>
+      <PrimaryButton  
+        isLoading={signInContext.action === aafAction} 
+        disabled={disabled} onClick={aafSignIn}
+      >
+        AAF
       </PrimaryButton>
     </div>
   </ContainerCard>
