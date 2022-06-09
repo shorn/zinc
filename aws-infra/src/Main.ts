@@ -40,6 +40,12 @@ import {
 import {
   DirectTwitterAuthnApiLambdaStack
 } from "Stack/Lambda/DirectTwitterAuthnApiLambdaStack";
+import {
+  DirectAafAuthnApiConfigParamStack
+} from "Stack/Lambda/DirectAafAuthnApiConfigParamStack";
+import {
+  DirectAafAuthnApiLambdaStack
+} from "Stack/Lambda/DirectAafAuthnApiLambdaStack";
 
 const main = new App();
 
@@ -67,6 +73,12 @@ const auDirectGoogleAuthnConfig = new DirectGoogleAuthnApiConfigParamStack(
 
 const auDirectGithubAuthnConfig = new DirectGithubAuthnApiConfigParamStack(
   main, `DirectGithubAuthnApiConfigParamStack`, {
+    ...auStackProps(),
+  }
+);
+
+const auDirectAafAuthnConfig = new DirectAafAuthnApiConfigParamStack(
+  main, `DirectAafAuthnApiConfigParamStack`, {
     ...auStackProps(),
   }
 );
@@ -106,6 +118,13 @@ const auDirectGithubAuthnLambda = new DirectGithubAuthnApiLambdaStack(
   main, 'DirectGithubAuthnApiLambdaStack', {
     ...auStackProps(),
     config: auDirectGithubAuthnConfig,
+  }
+);
+
+const auDirectAafAuthnLambda = new DirectAafAuthnApiLambdaStack(
+  main, 'DirectAafAuthnApiLambdaStack', {
+    ...auStackProps(),
+    config: auDirectAafAuthnConfig,
   }
 );
 
