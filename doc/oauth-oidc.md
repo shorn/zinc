@@ -71,11 +71,11 @@ with the IdProvider on their behalf, within a certain ***scope*** of action
   the IdProvider (i.e. login to Github and "revoke app"). 
 2. The IdProvider has ***authorised*** your client to take the approved actions.
 3. The IdProvider has returned an ***access token*** that the client can
-provide to the vairous IdProvider endpoints to prove it's allowed to perform
+provide to the various IdProvider endpoints to prove it's allowed to perform
 those actions.
 
 The access token doesn't tell you anything about the user (id, email, etc.) 
-it's purely a bearer token (usually opaque, not even a JWT) that allows the 
+it's usually just an opaque bearer token (not even a JWT) that allows the 
 client to invoke the IdProvider's endpoints.
 
 ## Using the access token 
@@ -84,14 +84,15 @@ client to invoke the IdProvider's endpoints.
 
 After the code grant flow is done, the client can use the access token to call 
 standard OIDC endpoints to gather info about the user (for OIDC IdProviders, 
-just the call to `/access_token` returns everything Zinc stuff wants).  
+just the call to `/access_token` returns all the data that Zinc wants).  
 
 ## Cognito - Github OIDC
 
 When using Cognito, generally it acts as the "confidential client" for us,
 the App talks to Cognito and Cognito talks to the IdProvider.  But the Cognito
 support works only if it has explicit support for a provider (Google, Facebook)
-or if the IdProvider supports OIDC.
+or if the IdProvider supports the parts of the OIDC standard that Cognito uses
+(mostly undocumented and implied).
 
 Github supports OAuth 2.0, but not OIDC.
 For "direct authentication", that's fine, we just performs the authorization
@@ -103,7 +104,7 @@ requires.
 
 [cognito-github.md](/aws-infra/lambda/doc/cognito-github.md) shows how Zinc
 integrates Github into Cognito as an OIDC IdProvider by implementing the 
-authorization code grant flow as part of the Cognito flow, then calling  
+authorization code grant flow as part of the Cognito flow, then calling   
 `/access_token` and the non-stanard Github `/user` endpoint to get the email, 
 then mapping the results back to the standard OIDC attributes `id_token` and 
 returning that to Cognito, which does the usual thing (map the `sub` to user id 
