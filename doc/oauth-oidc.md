@@ -104,11 +104,11 @@ requires.
 
 [cognito-github.md](/aws-infra/lambda/doc/cognito-github.md) shows how Zinc
 integrates Github into Cognito as an OIDC IdProvider by implementing the 
-authorization code grant flow as part of the Cognito flow, then calling   
-`/access_token` and the non-stanard Github `/user` endpoint to get the email, 
-then mapping the results back to the standard OIDC attributes `id_token` and 
-returning that to Cognito, which does the usual thing (map the `sub` to user id 
-stored it in the user-pool and return a new JWT signed by Cognito).
+authorization code grant flow as part of the Cognito flow, then 
+calling `/access_token` and the non-stanard Github `/user` endpoint to get the 
+email, then mapping the results back to the standard OIDC attributes `id_token` 
+and returning that to Cognito, which does the usual thing (map the `sub` to 
+user id stored it in the user-pool and return a new JWT signed by Cognito).
 
 
 ## Twitter - OAuth 1.0a
