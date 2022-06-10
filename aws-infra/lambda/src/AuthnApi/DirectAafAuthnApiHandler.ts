@@ -2,13 +2,13 @@ import { AuthError, forceError, isError } from "Util/Error";
 import {
   DANGERouslyLogEvent,
   formatErrorResponse,
-  formatSuccessResponse,
+  formatRedirectResponse,
   LambdaFunctionUrlEvent,
   LambdaResponse
 } from "Util/LambdaEvent";
-import { GENERIC_DENIAL } from "ZincApi/Authz/GuardAuthz";
 import { OAuthClientConfig, readOAuthConfigFromSsm } from "LambdaConfig";
 import { parseIdpResponse, validateRedirectUri } from "AuthnApi/OAuth";
+import { AafApi } from "AuthnApi/Downstream/AafApi";
 
 const name = "DirectAafAuthnApi";
 
@@ -67,44 +67,27 @@ async function dispatchApiCall(
     const idpResponse = parseIdpResponse(query);
     validateRedirectUri(idpResponse.state.redirectUri, 
       config.allowedCallbackUrls);
- 
-    //const githubApi = new GithubApi();
-    //const githubToken = await githubApi.getToken({
-    //  code: idpResponse.code,
-    //  client_id: config.clientId,
-    //  client_secret: config.clientSecret,
-    //  grant_type: "code"
-    //});
-    //validateGithubTokenScope(githubToken.scope);
-    //
-    //const attributes = await githubApi.mapOidcAttributes(
-    //  githubToken.access_token );
-    //
-    //const idToken = createIdTokenJwt({
-    //  secret: config.clientSecret,
-    //  issuer: `https://${event.headers.host}`,
-    //  audience: config.clientId,
-    //  attributes }) ;
-    //
-    //// redirect back to the client with the new id_token
-    //const signedInUrl = `${idpResponse.state.redirectUri}#id_token=${idToken}`;
-    //return formatRedirectResponse(signedInUrl);
-    
-    return formatSuccessResponse({message: "work in progress"});
+
+    const aafApi = new AafApi();
+
+    /* logging this will log the access and id tokens - not quite as bad as 
+    logging a secret since it has an expiry, but still not something we want 
+    to leak. */
+    const aafToken = await aafApi.getTokenWithPostBody({
+      code: idpResponse.code,
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: "authorization_code",
+      redirect_uri: `https://${event.headers.host}/idpresponse`,
+    });
+
+    // redirect back to the client with the new id_token
+    const signedInUrl = idpResponse.state.redirectUri +
+      `#id_token=${aafToken.id_token}`;
+    return formatRedirectResponse(signedInUrl);
   }
 
   return undefined;
 }
 
-function validateGithubTokenScope(
-  scope: string,
-){
-  // IMPROVE: need to parse the scope, I doubt the order is guaranteed
-  if( scope !== "read:user,user:email" ){
-    throw new AuthError({
-      publicMsg: GENERIC_DENIAL,
-      privateMsg: "github /access_token returned unexpected [scope]: " + scope,
-    });
-  }
-}
 

@@ -79,17 +79,16 @@ export function DirectSocialSignInContainer(){
     const state: ZincOAuthState = {
       redirectUri: serverLocationUrl()
     }
-    signInContext.setAction(githubAction);
+    signInContext.setAction(aafAction);
     
-    // integrate into /readConfig when working 
+    // TODO:STO integrate into /readConfig when working 
     // (or just delete the whole AAF channel after porting to RAiD)  
     const aafClientId = 'accaabfd-a7c8-4d36-9363-ea7342e24db5';
     const aafRedirectUri = 'https://tx4p26dkitb7wv7dkocplcmmsq0vnvda.lambda-url.ap-southeast-2.on.aws/idpresponse';
-    
     try {
       let loginUrl = `${aaf.authorize}` +
         `?client_id=${aafClientId}` +
-        `&scope=${encodeURIComponent(aaf.authnScope)}` +
+        `&scope=${encodeURIComponent("openid profile email")}` +
         `&response_type=${oauthCodeGrantFlow}` +
         `&redirect_uri=${encodeURIComponent(aafRedirectUri)}` +
         `&state=${formatStateValue(state)}`;
@@ -103,7 +102,7 @@ export function DirectSocialSignInContainer(){
 
   async function facebookSignIn(){
     const state: ZincOAuthState = {
-      // this redirectUril is about the lambda redirect back our client
+      // this redirectUri is about the lambda redirect back our client
       redirectUri: serverLocationUrl()
     }
     signInContext.setAction(facebookAction);
@@ -127,7 +126,7 @@ export function DirectSocialSignInContainer(){
       // this redirectUri is about the lambda redirect back our client
       redirectUri: serverLocationUrl()
     }
-    signInContext.setAction(twitterAction);
+    signInContext.setAction(aafAction);
     try {
       /* this points to *our* lambda handler, because Twitter requires that we 
       pass the "app oauth_token" to their actual /authorize endpoint */  

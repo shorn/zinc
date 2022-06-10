@@ -123,7 +123,7 @@ export type ZincOAuthIdpResponse = {
 export const OAuthTokenResponse = zod.object({
   access_token: zod.string(),
   expires_in: zod.number(),
-  // facebook doesn't return scope
+  // facebook and AAF, don't return scope
   scope: zod.string().optional(),
   token_type: zod.string(),
   id_token: zod.string(),

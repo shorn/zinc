@@ -90,3 +90,14 @@ export function DANGERouslyLogEvent(
 ): void{
   console.log(description + " API event", event);
 }
+
+/**
+ * IMPROVE:  replace logEvent() with this, no need to lock it down to events.
+ * But then it's not related to LambdaEvent, move it somewhere.
+ */
+export function DANGERouslyLog(
+  description: string, 
+  event: any
+): void{
+  console.log(description, event);
+}
