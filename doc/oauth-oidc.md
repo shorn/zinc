@@ -70,7 +70,7 @@ with the IdProvider on their behalf, within a certain ***scope*** of action
     * Note that users are able to revoke their consent for your app through 
   the IdProvider (i.e. login to Github and "revoke app"). 
 2. The IdProvider has ***authorised*** your client to take the approved actions.
-3. The IdProvider has returned to the client an ***access token*** that it can
+3. The IdProvider has returned an ***access token*** that the client can
 provide to the vairous IdProvider endpoints to prove it's allowed to perform
 those actions.
 
