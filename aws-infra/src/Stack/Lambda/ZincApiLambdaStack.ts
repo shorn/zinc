@@ -24,6 +24,9 @@ import {
 import {
   DirectTwitterAuthnApiConfigParamStack
 } from "Stack/Lambda/DirectTwitterAuthnApiConfigParamStack";
+import {
+  DirectAafAuthnApiConfigParamStack
+} from "Stack/Lambda/DirectAafAuthnApiConfigParamStack";
 
 const lambdaBaseDir = "../../../lambda";
 const lambdaSrcDir = `${lambdaBaseDir}/src/ZincApi`;
@@ -47,6 +50,7 @@ export class ZincApiLambdaStack extends Stack {
       directGoogleConfig,
       directFacebookConfig,
       directTwitterConfig,
+      directAafConfig,
       table, 
       ...props
     }: StackProps & {
@@ -55,6 +59,7 @@ export class ZincApiLambdaStack extends Stack {
       directGoogleConfig: DirectGoogleAuthnApiConfigParamStack,
       directFacebookConfig: DirectFacebookAuthnApiConfigParamStack,
       directTwitterConfig: DirectTwitterAuthnApiConfigParamStack,
+      directAafConfig: DirectAafAuthnApiConfigParamStack,
       table: Table,
     },
   ){
@@ -87,6 +92,8 @@ export class ZincApiLambdaStack extends Stack {
           directFacebookConfig.DirectFacebookAuthnApiConfig.parameterName,
         DIRECT_TWITTER_OAUTH_CONFIG_SSM_PARAM:
           directTwitterConfig.DirectTwitterAuthnApiConfig.parameterName,
+        DIRECT_AAF_OAUTH_CONFIG_SSM_PARAM:
+          directAafConfig.DirectAafAuthnApiConfig.parameterName,
       }
     });
 
@@ -100,6 +107,7 @@ export class ZincApiLambdaStack extends Stack {
     directGithubConfig.DirectGithubAuthnApiConfig.grantRead(this.lambdaFunction);
     directFacebookConfig.DirectFacebookAuthnApiConfig.grantRead(this.lambdaFunction);
     directTwitterConfig.DirectTwitterAuthnApiConfig.grantRead(this.lambdaFunction);
+    directAafConfig.DirectAafAuthnApiConfig.grantRead(this.lambdaFunction);
 
     table.grantReadWriteData(this.lambdaFunction);
   }

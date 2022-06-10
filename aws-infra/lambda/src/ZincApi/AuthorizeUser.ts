@@ -177,6 +177,17 @@ async function verifyCognitoIdToken(
       });
     }
   }
+  else if( decoded.aud === config.directAuthn.aaf.clientId ){
+    try {
+      payload = await config.rsaVerifier.aafDirect.verify(idToken);
+    }
+    catch( err ){
+      throw new AuthError({
+        publicMsg: "while verifying aaf direct",
+        privateMsg: forceError(err).message
+      });
+    }
+  }
   else {
     console.error("unknown JWT [aud]: ", decoded);
     throw new AuthError({

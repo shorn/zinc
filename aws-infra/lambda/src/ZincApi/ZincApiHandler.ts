@@ -33,6 +33,7 @@ import {
   ZincApiConfig
 } from "ZincApi/ZincApiConfig";
 import {
+  aaf,
   facebookIssuerUrl, facebookJwksUrl,
   googleIssuerUrl,
   googleJwksUrl
@@ -63,6 +64,10 @@ export const authApi: AuthApi = {
       },
       twitter: {
         issuer: (await runtime).directAuthn.twitter.functionUrl,
+      },
+      aaf: {
+        issuer: (await runtime).directAuthn.aaf.functionUrl,
+        clientId: (await runtime).directAuthn.aaf.clientId,
       },
     },
     lambdaCreateDate: lambdaCreateDate.toISOString() as unknown as Date,
@@ -104,6 +109,7 @@ export interface ZincApiRuntime {
     githubCognito: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
     googleDirect: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
     facebookDirect: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
+    aafDirect: JwtRsaVerifierSingleIssuer<RsaVerifierProps>,
   },
 
   directAuthn: {
@@ -111,6 +117,7 @@ export interface ZincApiRuntime {
     google: OAuthClientConfig,
     facebook: OAuthClientConfig,
     twitter: DirectTwitterAuthnConfig,
+    aaf: OAuthClientConfig,
   }
 }
 
@@ -134,6 +141,7 @@ async function initRuntime(): Promise<ZincApiRuntime>{
     readOAuthConfigFromSsm(process.env.DIRECT_GITHUB_OAUTH_CONFIG_SSM_PARAM),
     readOAuthConfigFromSsm(process.env.DIRECT_FACEBOOK_OAUTH_CONFIG_SSM_PARAM),
     readTwitterConfigFromSsm(process.env.DIRECT_TWITTER_OAUTH_CONFIG_SSM_PARAM),
+    readOAuthConfigFromSsm(process.env.DIRECT_AAF_OAUTH_CONFIG_SSM_PARAM),
   ]);
 
   const configErrors = configResults.filter(it=> isError(it));
@@ -147,6 +155,7 @@ async function initRuntime(): Promise<ZincApiRuntime>{
   const githubDirectConfig = configResults[2] as OAuthClientConfig;
   const facebookDirectConfig = configResults[3] as OAuthClientConfig;
   const twitterDirectConfig = configResults[4] as DirectTwitterAuthnConfig;
+  const aafDirectConfig = configResults[5] as OAuthClientConfig;
   
   console.log("SSM read and validated");
   
@@ -164,6 +173,7 @@ async function initRuntime(): Promise<ZincApiRuntime>{
       google: googleDirectConfig,
       facebook: facebookDirectConfig,
       twitter: twitterDirectConfig,
+      aaf: aafDirectConfig,
     },
     authzSecrets: zincApiConfig.authzSecrets,
     authzSigningSecret: getAuthzSigningSecret(zincApiConfig.authzSecrets),
@@ -188,6 +198,11 @@ async function initRuntime(): Promise<ZincApiRuntime>{
         issuer: facebookIssuerUrl,
         audience: facebookDirectConfig.clientId,
         jwksUri: facebookJwksUrl,
+      }),
+      aafDirect: JwtRsaVerifier.create({
+        issuer: aaf.issuer,
+        audience: aafDirectConfig.clientId,
+        jwksUri: aaf.jwks,
       }),
     },
   }

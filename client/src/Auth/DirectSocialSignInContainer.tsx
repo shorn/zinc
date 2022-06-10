@@ -81,16 +81,12 @@ export function DirectSocialSignInContainer(){
     }
     signInContext.setAction(aafAction);
     
-    // TODO:STO integrate into /readConfig when working 
-    // (or just delete the whole AAF channel after porting to RAiD)  
-    const aafClientId = 'accaabfd-a7c8-4d36-9363-ea7342e24db5';
-    const aafRedirectUri = 'https://tx4p26dkitb7wv7dkocplcmmsq0vnvda.lambda-url.ap-southeast-2.on.aws/idpresponse';
     try {
       let loginUrl = `${aaf.authorize}` +
-        `?client_id=${aafClientId}` +
-        `&scope=${encodeURIComponent("openid profile email")}` +
+        `?client_id=${serverInfo.directAuthn.aaf.clientId}` +
+        `&scope=${encodeURIComponent(aaf.authnScope)}` +
         `&response_type=${oauthCodeGrantFlow}` +
-        `&redirect_uri=${encodeURIComponent(aafRedirectUri)}` +
+        `&redirect_uri=${serverInfo.directAuthn.aaf.issuer}/idpresponse` +
         `&state=${formatStateValue(state)}`;
       navBrowserByAssign(loginUrl);
     }

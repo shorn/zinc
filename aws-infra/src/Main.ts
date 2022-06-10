@@ -103,6 +103,7 @@ const auZincApiLambda = new ZincApiLambdaStack(
     directGithubConfig: auDirectGithubAuthnConfig,
     directFacebookConfig: auDirectFacebookAuthnConfig,
     directTwitterConfig: auDirectTwitterAuthnConfig,
+    directAafConfig: auDirectAafAuthnConfig,
     table: auOneTableV1.table,
   }
 );

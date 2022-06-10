@@ -136,7 +136,11 @@ export interface ServerInfo {
     },
     twitter: {
       issuer: string,
-    }
+    },
+    aaf: {
+      issuer: string,
+      clientId: string,
+    },
   }
   lambdaCreateDate: Date,
 }
