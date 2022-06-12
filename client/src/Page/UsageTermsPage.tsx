@@ -33,8 +33,9 @@ function Content(){
       </ListItemText>
       <ListItemText>Don't use it to obtain data on other users.
       </ListItemText>
-      <ListItemText>You can link to it to publish your own blog articles or 
-      examples, but I make no promises that I will keep it running.
+      <ListItemText>You can link to this running example to publish your own 
+        blog articles or examples, but I make no promises that I will keep 
+        it running.
       </ListItemText>
     </List>
   </SmallContentMain>
