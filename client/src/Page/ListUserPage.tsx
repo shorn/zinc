@@ -54,7 +54,9 @@ function Content(){
   const listUsers = React.useCallback(async () => {
     setState({current: "loading"});
     try {
-      const result = await api.listUser({});
+      const result: PublicUserData[] = await api.listUser({});
+      result.sort( (left, right)=> 
+        right.userCreated.getTime() - left.userCreated.getTime() );
       setUsers(result);
       setState({current: "loaded"});
     }
