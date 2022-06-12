@@ -3,7 +3,7 @@ authn/authz and Zinc access control.
 
 See [oauth-oidc.md](/doc/oauth-oidc.md) for some high-level discussion about
 oauth and the authentication flow.
-x
+
 ## Structure
 
 * [/src/ZincApi/](src/ZincApi)
