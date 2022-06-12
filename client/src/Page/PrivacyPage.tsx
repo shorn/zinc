@@ -31,9 +31,9 @@ function Content(){
       Zinc is just a demonstration app.
     </Typography>
     <List >
-      <ListItemText>All data collected (Account details such as email) is only 
+      <ListItemText>All data collected (account details such as email) is only 
         collected to show that the code works.</ListItemText>
-      <ListItemText>No data is sent or sold to any third party other than AWS.
+      <ListItemText>No data is sold or sent to any third party other than AWS.
       </ListItemText>
       <ListItemText>When the Zinc example infrastructure is shutdown, all data 
         will be deleted.
