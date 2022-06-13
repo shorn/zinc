@@ -11,6 +11,7 @@ import {
 } from "Shared/ApiTypes";
 import { forceError } from "Error/ErrorUtil";
 import { serverLocationUrl } from "Util/WindowUtil";
+import jwtDecode from "jwt-decode";
 
 /** no logic, just a helper for turning callback into promise */
 export function getCognitoUserSession(
@@ -97,7 +98,7 @@ export async function findSignInIdToken(
 ):Promise<string | undefined>{
   let idToken:string|undefined = getSocialRedirectIdToken();
   if( idToken ){
-    console.log("found social idToken", idToken.slice(-10));
+    console.log("found social idToken", idToken.slice(-10), jwtDecode(idToken));
     return idToken;
   }
 

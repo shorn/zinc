@@ -18,7 +18,7 @@
     "deploy-dev": "npm run zinc deploy LambdaApiStackV2",
     "destroy-dev": "cdk --profile zinc destroy DirectTwitterAuthnApiLambdaStack DirectTwitterAuthnApiConfigParamStack",
     "deploy-lambda": "npm run zinc deploy LambdaApiStackV1",
-    "hotswap-dev": "cdk --hotswap --profile zinc deploy DirectAafAuthnApiLambdaStack ZincApiLambdaStack",
+    "hotswap-dev": "cdk --hotswap --profile zinc deploy DirectAafAuthnApiLambdaStack",
     "hotswap-all": "cdk --all --hotswap --profile zinc deploy",
     "deploy-client": "npm run zinc deploy ClientBucketDeploymentStackV1",
     "deploy-cloudfront": "npm run zinc deploy CloudFrontStackV4",

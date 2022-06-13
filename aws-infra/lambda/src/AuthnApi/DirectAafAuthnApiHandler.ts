@@ -1,5 +1,6 @@
 import { AuthError, forceError, isError } from "Util/Error";
 import {
+  DANGERouslyLog,
   DANGERouslyLogEvent,
   formatErrorResponse,
   formatRedirectResponse,
@@ -7,8 +8,13 @@ import {
   LambdaResponse
 } from "Util/LambdaEvent";
 import { OAuthClientConfig, readOAuthConfigFromSsm } from "LambdaConfig";
-import { parseIdpResponse, validateRedirectUri } from "AuthnApi/OAuth";
+import {
+  OAuthTokenResponse,
+  parseIdpResponse,
+  validateRedirectUri
+} from "AuthnApi/OAuth";
 import { AafApi } from "AuthnApi/Downstream/AafApi";
+import { decode } from "jsonwebtoken";
 
 const name = "DirectAafAuthnApi";
 
@@ -81,6 +87,8 @@ async function dispatchApiCall(
       redirect_uri: `https://${event.headers.host}/idpresponse`,
     });
 
+    await inspectAafData(aafToken);
+    
     // redirect back to the client with the new id_token
     const signedInUrl = idpResponse.state.redirectUri +
       `#id_token=${aafToken.id_token}`;
@@ -90,4 +98,30 @@ async function dispatchApiCall(
   return undefined;
 }
 
+async function inspectAafData(token: OAuthTokenResponse){
+  
+  const idToken = token.id_token;
+  
+  if( !idToken ){
+    console.log("no idToken");
+    return;
+  }
+  
+  const decoded = decode(idToken);
+  DANGERouslyLog("decoded id_token", decoded);
 
+  if( !decoded ){
+    console.log("decoded was empty");
+    return;
+  }
+  
+  if( typeof decoded === "string" ){
+    console.log("unexpected token string", decoded);
+    return;
+  }
+
+  const aafApi = new AafApi();
+  const response = await aafApi.getUserInfo(token);
+  console.log("/userinfo data", response);
+  
+}

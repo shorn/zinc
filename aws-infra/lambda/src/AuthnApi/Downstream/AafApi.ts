@@ -37,6 +37,25 @@ export class AafApi {
     return parseAafTokenResponse(aafResponse);
   }
   
+  public async getUserInfo(
+    token: OAuthTokenResponse
+  ): Promise<any>{
+    const response = await fetch(aaf.userInfo, {
+      agent: this.httpsAgent,
+      method: "GET",
+      headers: {
+        Authorization: `${token.token_type} ${token.access_token}`,
+      },
+    });
+
+    if( response.status !== 200 ){
+      throw genericAuthError("AAF /userinfo responded with non-200 code: " +
+        `${response.status} (${response.statusText})` );
+    }
+
+    return await response.json();
+  }
+  
 }
 
 function formatUrlEncodedBody(details: any): string{
