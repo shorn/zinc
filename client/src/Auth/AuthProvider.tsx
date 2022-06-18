@@ -169,7 +169,7 @@ function NotSignedInContent({onSignInSucceeded}: {
 }){
   const [signInAction, setSignInAction] = React.useState(
     undefined as string | undefined);
-  console.log("NotSignedInContent render signInAction", signInAction);
+  console.log("NotSignedInContent render signInAction", signInAction, new Date().toISOString());
   
   return <LargeContentMain>
     <IntroContainer/>
@@ -193,7 +193,7 @@ export type SignInState = {
   setAction: (action: string | undefined) => void,
 };
 
-console.log("SignInContext global init");
+console.log("SignInContext global init", new Date().toISOString());
 const SignInContext = React.createContext(
   undefined as unknown as SignInState);
 
