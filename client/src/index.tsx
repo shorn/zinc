@@ -30,16 +30,15 @@ serviceWorker.unregister();
  * The "persisted load" scenario was observed when the user hit the back button
  * after we had navigated them to the Cognito (or any other IdP) page.
  * The browser (Chrome, Safari, Firefox) may load the App from the
- * "back forward cache", in which case the in-memory state (and thus, context,
+ * "back forward cache", which restores in-memory state (and thus, context,
  * etc.) This resulted in the SignInContext state still being set to disable
  * all the SSO buttons and show loading spinner on the button pressed.
- *
+ * <p>
  * The specific SignInContext state issue could possibly be fixed by un-setting
  * the context on the page unload event or re-setting the individual state here.
  * But I don't like that plan - I prefer the nuclear option.  This way the
- * problem is solved for all funtions globally - if we re-start the whole
- * page swe know exactly what state the page is in.
- *
+ * problem is solved for all functionality globally. 
+ * <p>
  * Note that there is no specific way to disable the bfcache and it doesn't
  * look like there will be: https://github.com/whatwg/html/issues/5744
  */
