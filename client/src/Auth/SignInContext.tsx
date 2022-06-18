@@ -1,5 +1,13 @@
 import React, { useContext } from "react";
 
+window.addEventListener('pageshow', (ev: PageTransitionEvent) => {
+  console.log("onpageshow", ev);
+  if( ev.persisted ){
+    console.log("reloading page because it's a persisted load");
+    window.location.reload()
+  }
+});
+
 export type SignInState = {
   action: string | undefined,
   setAction: (action: string | undefined) => void,
