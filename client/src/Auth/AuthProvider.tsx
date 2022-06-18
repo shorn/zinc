@@ -164,15 +164,6 @@ export function AuthProvider({unauthenticatedPaths = [], children}: {
   </AuthContext.Provider>;
 }
 
-/*
-IMPROVE:
-* refactor the email to use tabs instead of buttons to switch between
-  signin, signup and forgot password
-* pull email field state up to share the address across tabs
-* refactory the button state, either only disable the button they clicked
-  or pull up some state so *all* buttons get disabled, but on the one they 
-  clicked shows "working" indicator 
- */
 function NotSignedInContent({onSignInSucceeded}: {
   onSignInSucceeded: () => void,
 }){
