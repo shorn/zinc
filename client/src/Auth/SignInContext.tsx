@@ -5,7 +5,6 @@ export type SignInState = {
   setAction: (action: string | undefined) => void,
 };
 
-console.log("SignInContext global init", new Date().toISOString());
 export const SignInContext = React.createContext(
   undefined as unknown as SignInState);
 

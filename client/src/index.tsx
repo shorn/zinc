@@ -44,7 +44,7 @@ serviceWorker.unregister();
  * look like there will be: https://github.com/whatwg/html/issues/5744
  */
 window.addEventListener('pageshow', (ev: PageTransitionEvent) => {
-  console.log("pageshow event", ev);
+  //console.log("pageshow event", ev);
   if( ev.persisted ){
     console.log("location.reload() because we've been loaded from bfcache");
     window.location.reload()

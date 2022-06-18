@@ -170,7 +170,6 @@ function NotSignedInContent({onSignInSucceeded}: {
 }){
   const [signInAction, setSignInAction] = React.useState(
     undefined as string | undefined);
-  console.log("NotSignedInContent render signInAction", signInAction, new Date().toISOString());
   
   return <LargeContentMain>
     <IntroContainer/>
