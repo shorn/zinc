@@ -5,8 +5,7 @@ import { Stack, TextField } from "@mui/material";
 import { PrimaryButton, SecondaryButton } from "Component/AppButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { EmailFieldState } from "Auth/Email/EmailTabContainer";
-import { useSignInContext } from "Auth/AuthProvider";
-import { delay } from "Util/EventUtil";
+import { useSignInContext } from "Auth/SignInContext";
 
 const sendCodeAction = "sending-email-code";
 const confirmAction = "confirming-password";

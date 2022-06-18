@@ -10,7 +10,7 @@ import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { TextSpan } from "Component/TextSpan";
 import { ErrorInfo } from "Error/ErrorUtil";
 import { EmailFieldState } from "Auth/Email/EmailTabContainer";
-import { useSignInContext } from "Auth/AuthProvider";
+import { useSignInContext } from "Auth/SignInContext";
 import { EmailOutlined } from "@mui/icons-material";
 
 export type EmailSignInState =

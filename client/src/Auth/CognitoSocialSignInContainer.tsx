@@ -6,7 +6,7 @@ import { formatCognitoIdProviderRedirect } from "Auth/Authn";
 import { useServerInfo } from "Api/ServerInfoProvider";
 import { TextSpan } from "Component/TextSpan";
 import { NewWindowLink, zincGithubOidcDocUrl } from "Component/ExternalLinks";
-import { useSignInContext } from "Auth/AuthProvider";
+import { useSignInContext } from "Auth/SignInContext";
 import { GitHub, Google } from "@mui/icons-material";
 import { HelpPopover } from "Component/HelpPopover";
 

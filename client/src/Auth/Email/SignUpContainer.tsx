@@ -5,7 +5,7 @@ import { Stack, TextField } from "@mui/material";
 import { PrimaryButton } from "Component/AppButton";
 import { CompactErrorPanel } from "Error/CompactErrorPanel";
 import { EmailFieldState } from "Auth/Email/EmailTabContainer";
-import { useSignInContext } from "Auth/AuthProvider";
+import { useSignInContext } from "Auth/SignInContext";
 
 const signUpAction = "signupAction";
 

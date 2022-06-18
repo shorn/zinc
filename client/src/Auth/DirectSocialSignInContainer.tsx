@@ -15,7 +15,7 @@ import {
   googleAuthnScope,
   googleAuthorizeUrl, oauthCodeGrantFlow
 } from "Shared/Constant";
-import { useSignInContext } from "Auth/AuthProvider";
+import { useSignInContext } from "Auth/SignInContext";
 import { Facebook, GitHub, Google, Twitter } from "@mui/icons-material";
 import { HelpPopover } from "Component/HelpPopover";
 
